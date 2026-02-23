@@ -74,13 +74,38 @@
             font-weight: 400;
         }
 
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-5px);
+            }
+
+            75% {
+                transform: translateX(5px);
+            }
+        }
+
+        .animate-shake {
+            animation: shake 0.4s ease-in-out;
+            background-color: rgba(239, 68, 68, 0.2) !important;
+        }
+
         .reaction-btn:active {
             transform: scale(1.2);
             transition: 0.1s;
         }
 
-        .share-btn:hover {
-            transform: translateY(-3px);
+        .share-btn {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .share-btn:active {
+            transform: scale(0.95);
         }
     </style>
 </head>
@@ -302,9 +327,13 @@
                                     class="share-btn bg-[#1877F2] text-white p-3 rounded-2xl flex items-center justify-center transition hover:shadow-lg">
                                     <span class="font-black text-xs uppercase italic">Facebook</span>
                                 </button>
-                                <button onclick="share('copy')"
-                                    class="share-btn bg-slate-900 text-white p-3 rounded-2xl flex items-center justify-center transition hover:shadow-lg">
-                                    <span class="font-black text-xs uppercase italic">Посилання</span>
+                                <button onclick="share('copy')" id="copy-btn"
+                                    class="share-btn bg-slate-900 text-white p-3 rounded-2xl flex items-center justify-center transition hover:shadow-lg relative overflow-hidden">
+                                    <span id="copy-text" class="font-black text-xs uppercase italic">Посилання</span>
+                                    <div id="copy-toast"
+                                        class="absolute inset-0 bg-green-600 flex items-center justify-center translate-y-full transition-transform duration-300">
+                                        <span class="text-[10px] font-black uppercase italic">Скопійовано!</span>
+                                    </div>
                                 </button>
                             </div>
                         </div>
@@ -524,20 +553,62 @@
         }
 
         async function loadReactions(id) {
-            // Simulated reactions storage in local storage for demo, or real DB if exists
-            const reactions = JSON.parse(localStorage.getItem(`reactions_${id}`) || '{"like":0, "fire":0, "wow":0}');
-            ['like', 'fire', 'wow'].forEach(r => {
-                document.getElementById(`count-${r}`).innerText = reactions[r];
-            });
+            try {
+                const { data, error } = await _supabase.from('news').select('likes, fire, wow').eq('id', id).single();
+                if (error) throw error;
+
+                ['like', 'fire', 'wow'].forEach(r => {
+                    const count = data[r === 'like' ? 'likes' : r] || 0;
+                    document.getElementById(`count-${r}`).innerText = count;
+                });
+            } catch (e) {
+                console.warn("Reactions load error:", e);
+            }
         }
 
-        window.handleReaction = (type) => {
-            const reactions = JSON.parse(localStorage.getItem(`reactions_${currentPost.id}`) || '{"like":0, "fire":0, "wow":0}');
-            reactions[type]++;
-            localStorage.setItem(`reactions_${currentPost.id}`, JSON.stringify(reactions));
-            document.getElementById(`count-${type}`).innerText = reactions[type];
+        window.handleReaction = async (type) => {
+            const btn = event.currentTarget;
+            btn.style.transform = 'scale(0.9)';
+            setTimeout(() => btn.style.transform = '', 100);
 
-            // Add sparkle/pop effect? For now just UI update
+            const dbField = type === 'like' ? 'likes' : type;
+            const storageKey = `reacted_${currentPost.id}_${type}`;
+
+            if (localStorage.getItem(storageKey)) {
+                // Shake effect if already reacted
+                btn.classList.add('animate-shake');
+                setTimeout(() => btn.classList.remove('animate-shake'), 400);
+                return;
+            }
+
+            try {
+                // Use RPC for atomic increment
+                const { error } = await _supabase.rpc('increment_reaction', {
+                    post_id: currentPost.id,
+                    reaction_type: dbField
+                });
+
+                if (error) {
+                    // Fallback to fetch-and-update if RPC doesn't exist
+                    const { data: currentData, error: fetchError } = await _supabase.from('news').select(dbField).eq('id', currentPost.id).single();
+                    if (!fetchError && currentData) {
+                        await _supabase.from('news').update({ [dbField]: (currentData[dbField] || 0) + 1 }).eq('id', currentPost.id);
+                    } else {
+                        throw new Error("Missing reaction columns in database. Please run supabase_setup.sql");
+                    }
+                }
+
+                localStorage.setItem(storageKey, 'true');
+                await loadReactions(currentPost.id);
+
+                // Pop effect
+                const countElem = document.getElementById(`count-${type}`);
+                countElem.classList.add('scale-150', 'text-orange-500');
+                setTimeout(() => countElem.classList.remove('scale-150', 'text-orange-500'), 300);
+
+            } catch (err) {
+                console.error("Reaction error:", err);
+            }
         };
 
         async function loadRelated(category, currentId) {
@@ -565,15 +636,26 @@
         window.share = (platform) => {
             const url = window.location.href;
             const title = document.title;
+            const summary = document.getElementById('news-title').innerText;
             let shareUrl = '';
 
             switch (platform) {
-                case 'telegram': shareUrl = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`; break;
-                case 'viber': shareUrl = `viber://forward?text=${encodeURIComponent(title + ' ' + url)}`; break;
-                case 'facebook': shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`; break;
+                case 'telegram':
+                    shareUrl = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(summary)}`;
+                    break;
+                case 'viber':
+                    shareUrl = `viber://forward?text=${encodeURIComponent(summary + '\n\n' + url)}`;
+                    break;
+                case 'facebook':
+                    shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+                    break;
                 case 'copy':
                     navigator.clipboard.writeText(url);
-                    alert('Посилання скопійовано!');
+                    const toast = document.getElementById('copy-toast');
+                    if (toast) {
+                        toast.classList.remove('translate-y-full');
+                        setTimeout(() => toast.classList.add('translate-y-full'), 2000);
+                    }
                     return;
             }
             if (shareUrl) window.open(shareUrl, '_blank');
