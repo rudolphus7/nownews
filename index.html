@@ -126,25 +126,23 @@
                         медіа</span>
                 </div>
             </a>
+            <!-- Navigation -->
             <nav
-                class="hidden lg:flex items-center space-x-8 text-[11px] font-black uppercase tracking-widest text-slate-600">
-                <a href="index.html?category=war"
-                    class="hover:text-orange-600 transition-colors border-b-2 border-transparent hover:border-orange-600 pb-1">Війна</a>
-                <a href="index.html?category=politics"
-                    class="hover:text-orange-600 transition-colors border-b-2 border-transparent hover:border-orange-600 pb-1">Політика</a>
-                <a href="index.html?category=economy"
-                    class="hover:text-orange-600 transition-colors border-b-2 border-transparent hover:border-orange-600 pb-1">Економіка</a>
-                <a href="index.html?category=oblast"
-                    class="hover:text-orange-600 transition-colors border-b-2 border-transparent hover:border-orange-600 pb-1">Область</a>
-                <a href="index.html?category=sport"
-                    class="hover:text-orange-600 transition-colors border-b-2 border-transparent hover:border-orange-600 pb-1">Спорт</a>
-                <a href="index.html?category=culture"
-                    class="hover:text-orange-600 transition-colors border-b-2 border-transparent hover:border-orange-600 pb-1">Культура</a>
+                class="hidden md:flex items-center gap-8 text-[11px] font-black uppercase tracking-widest text-slate-500">
+                <!-- Dynamic categories will be injected here -->
                 <button
-                    class="bg-slate-900 text-white px-5 py-2.5 rounded-xl hover:bg-orange-600 transition-all shadow-xl shadow-slate-200 flex items-center">
-                    <span class="w-2 h-2 bg-red-500 rounded-full mr-2 animate-pulse"></span> LIVE
-                </button>
+                    class="bg-orange-600 text-white px-5 py-2.5 rounded-xl hover:bg-orange-700 transition shadow-lg shadow-orange-200 ml-4">LIVE</button>
             </nav>
+
+            <!-- Mobile Burger Button -->
+            <button id="mobile-menu-toggle" class="md:hidden flex flex-col gap-1.5 p-2">
+                <span class="w-6 h-0.5 bg-slate-900 rounded-full transition-all duration-300 origin-center"
+                    id="burger-top"></span>
+                <span class="w-6 h-0.5 bg-slate-900 rounded-full transition-all duration-300" id="burger-mid"></span>
+                <span class="w-6 h-0.5 bg-slate-900 rounded-full transition-all duration-300 origin-center"
+                    id="burger-bot"></span>
+            </button>
+        </div>
         </div>
         <!-- City Filter Row -->
         <div class="bg-slate-50 border-t border-slate-100 overflow-x-auto no-scrollbar">
@@ -164,7 +162,65 @@
         </div>
     </header>
 
+    <!-- Mobile Menu Overlay -->
+    <div id="mobile-menu-overlay"
+        class="fixed inset-0 z-[200] bg-white/95 backdrop-blur-xl translate-x-full transition-transform duration-500 md:hidden overflow-y-auto">
+        <div class="p-8">
+            <div class="flex justify-between items-center mb-12">
+                <a href="index.html" class="flex items-center space-x-3 group">
+                    <span
+                        class="bg-orange-600 text-white p-2.5 rounded-xl font-black text-2xl italic tracking-tighter shadow-sm group-hover:rotate-3 transition-transform">IF</span>
+                    <div class="leading-none text-left">
+                        <span
+                            class="text-2xl font-black uppercase tracking-tighter text-slate-900 block mt-1">Прикарпаття
+                            <span class="text-orange-600">News</span></span>
+                    </div>
+                </a>
+                <button id="close-mobile-menu"
+                    class="p-4 -mr-4 text-slate-400 hover:text-orange-600 font-black text-4xl transition-colors">&times;</button>
+            </div>
+
+            <div class="space-y-8">
+                <div>
+                    <h3
+                        class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6 border-b border-slate-100 pb-2">
+                        РУБРИКИ</h3>
+                    <div id="mobile-nav-list"
+                        class="flex flex-col gap-5 text-lg font-black uppercase text-slate-800 tracking-tight">
+                        <!-- Dynamic categories -->
+                    </div>
+                </div>
+
+                <div>
+                    <h3
+                        class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6 border-b border-slate-100 pb-2">
+                        МІСТА</h3>
+                    <div id="mobile-city-list" class="grid grid-cols-2 gap-3 text-sm font-bold text-slate-600">
+                        <!-- Dynamic cities -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <main class="container mx-auto px-4 py-12 max-w-7xl">
+        <!-- Section Header (Only for filters) -->
+        <div id="section-header" class="hidden mb-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <div class="mb-8 flex items-center gap-4">
+                <a href="index.html"
+                    class="bg-white p-3 rounded-2xl shadow-sm border border-slate-100 hover:bg-slate-50 transition">
+                    <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </a>
+                <span
+                    class="text-[10px] font-black text-orange-600 uppercase tracking-widest bg-orange-50 px-3 py-1 rounded-lg border border-orange-100"
+                    id="section-subtitle">Розділ</span>
+            </div>
+            <h2 id="section-title"
+                class="text-5xl md:text-8xl font-black italic tracking-tighter text-slate-900 leading-none">Новини</h2>
+        </div>
+
         <!-- Hero Section Upgrade -->
         <div id="hero-container" class="mb-20">
             <div class="animate-pulse bg-slate-200 h-[600px] rounded-[3rem]"></div>
@@ -338,6 +394,29 @@
                 } else {
                     renderDynamicCities(Object.keys(CITIES_UK).map(k => ({ slug: k, name: CITIES_UK[k] })));
                 }
+
+                // Mobile Burger logic
+                const burgerBtn = document.getElementById('mobile-menu-toggle');
+                const overlay = document.getElementById('mobile-menu-overlay');
+                const closeBtn = document.getElementById('close-mobile-menu');
+
+                burgerBtn.onclick = () => {
+                    overlay.classList.remove('translate-x-full');
+                    document.body.style.overflow = 'hidden';
+                };
+
+                closeBtn.onclick = () => {
+                    overlay.classList.add('translate-x-full');
+                    document.body.style.overflow = '';
+                };
+
+                // CRITICAL: Close and re-enable scroll on any link click in mobile menu
+                overlay.addEventListener('click', (e) => {
+                    if (e.target.closest('a')) {
+                        overlay.classList.add('translate-x-full');
+                        document.body.style.overflow = '';
+                    }
+                });
             } catch (err) {
                 console.warn("Dynamic data load failed, using fallbacks:", err);
                 renderDynamicNav(Object.keys(CATEGORIES_UK).map(k => ({ slug: k, name: CATEGORIES_UK[k] })));
@@ -357,6 +436,7 @@
 
         function renderDynamicNav(categories) {
             const nav = document.querySelector('nav');
+            const mobileNav = document.getElementById('mobile-nav-list');
             if (!nav) return;
             const liveBtn = nav.querySelector('button');
 
@@ -368,10 +448,18 @@
             `).join('');
 
             nav.innerHTML = html + (liveBtn ? liveBtn.outerHTML : '');
+
+            if (mobileNav) {
+                mobileNav.innerHTML = categories.map(c => `
+                    <a href="index.html?category=${c.slug}" class="py-2 active:text-orange-600 border-b border-slate-50">${c.name}</a>
+                `).join('') + `<a href="#" class="text-orange-600 mt-4 font-black">LIVE • РЕПОРТАЖІ</a>`;
+            }
+            bindFastNavigation();
         }
 
         function renderDynamicCities(cities) {
             const cityContainer = document.querySelector('.bg-slate-50 .container');
+            const mobileCities = document.getElementById('mobile-city-list');
             if (!cityContainer) return;
 
             let html = `
@@ -381,10 +469,21 @@
                 `).join('')}
             `;
             cityContainer.innerHTML = html;
+
+            if (mobileCities) {
+                mobileCities.innerHTML = `
+                    <a href="index.html" class="bg-slate-50 p-4 rounded-2xl flex items-center justify-center text-center hover:bg-orange-50 hover:text-orange-600 transition h-full font-black text-xs uppercase leading-tight">ВСЯ ОБЛАСТЬ</a>
+                    ${cities.map(c => `
+                        <a href="index.html?city=${c.slug}" class="bg-slate-50 p-4 rounded-2xl flex items-center justify-center text-center hover:bg-orange-50 hover:text-orange-600 transition h-full font-black text-xs uppercase leading-tight">${c.name}</a>
+                    `).join('')}
+                `;
+            }
+            bindFastNavigation();
         }
 
         function bindFastNavigation() {
-            document.querySelectorAll('header a').forEach(link => {
+            // Target both desktop nav and mobile menu links
+            document.querySelectorAll('header a, #mobile-menu-overlay a').forEach(link => {
                 link.onclick = async (e) => {
                     const url = new URL(link.href, window.location.origin);
                     if (url.pathname.endsWith('index.html') || url.pathname === '/' || url.pathname.includes('index.html')) {
@@ -457,15 +556,31 @@
                 if (error) throw error;
 
                 if (!isMore) {
+                    const isFiltered = currentFilters.category || currentFilters.city;
+                    const heroSec = document.getElementById('hero-container');
+                    const sectionHead = document.getElementById('section-header');
+
+                    if (isFiltered) {
+                        heroSec.classList.add('hidden');
+                        sectionHead.classList.remove('hidden');
+                        const title = currentFilters.category ? CATEGORIES_UK[currentFilters.category] : CITIES_UK[currentFilters.city];
+                        document.getElementById('section-title').innerText = title || 'Новини';
+                        document.getElementById('section-subtitle').innerText = currentFilters.category ? 'Рубрика' : 'Місто';
+                    } else {
+                        heroSec.classList.remove('hidden');
+                        sectionHead.classList.add('hidden');
+                    }
+
                     // Ticker Logic (only first load)
                     const tickerText = data.slice(0, 5).map(n => n.title).join(' • ');
                     document.getElementById('news-ticker').innerText = tickerText + ' • ' + document.getElementById('news-ticker').innerText;
 
                     if (data.length > 0) {
-                        renderHero(data[0]);
-                        renderGrid(data.slice(1));
+                        if (!isFiltered) renderHero(data[0]);
+                        renderGrid(isFiltered ? data : data.slice(1));
                     } else {
-                        document.getElementById('hero-container').innerHTML = '<div class="text-center py-20 text-slate-400 font-bold uppercase tracking-widest">Новин не знайдено</div>';
+                        document.getElementById('hero-container').innerHTML = ''; // Clear pulse
+                        document.getElementById('news-grid').innerHTML = '<div class="col-span-full text-center py-20 text-slate-400 font-bold uppercase tracking-widest">Новин не знайдено</div>';
                         document.getElementById('more-news-container').classList.add('hidden');
                     }
                 } else {
@@ -515,8 +630,41 @@
 
         function renderGrid(posts, append = false) {
             const grid = document.getElementById('news-grid');
+            const isFiltered = currentFilters.category || currentFilters.city;
+
+            if (isFiltered) {
+                grid.className = "flex flex-col gap-10 max-w-5xl mx-auto";
+            } else {
+                grid.className = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10";
+            }
+
             const html = posts.map((post, i) => {
                 const link = `news.html#${new URLSearchParams({ slug: post.slug || '', id: post.id }).toString()}`;
+
+                if (isFiltered) {
+                    // Vertical List Style (Screen 1 request)
+                    return `
+                    <a href="${link}" class="group flex flex-col md:flex-row gap-8 items-start animate-in fade-in slide-in-from-bottom-4 duration-700" style="animation-delay: ${i * 0.1}s">
+                        <div class="relative w-full md:w-80 h-60 rounded-3xl overflow-hidden flex-shrink-0 shadow-lg">
+                            <img src="${post.image_url}" class="w-full h-full object-cover grayscale transition-all duration-700 group-hover:grayscale-0 group-hover:scale-110">
+                            <div class="absolute bottom-4 right-4 bg-black/60 backdrop-blur px-3 py-1 rounded-xl text-[9px] font-black text-white">👁️ ${post.views || 0}</div>
+                        </div>
+                        <div class="flex-grow pt-2">
+                             <div class="flex flex-wrap gap-2 mb-4">
+                                <span class="bg-orange-50 text-orange-600 text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-lg border border-orange-100">${(CITIES_UK[post.city] || post.city || 'Область').toUpperCase()}</span>
+                                <span class="bg-indigo-50 text-indigo-600 text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-lg border border-indigo-100">${(CATEGORIES_UK[post.category] || post.category || 'Новини').toUpperCase()}</span>
+                             </div>
+                             <h3 class="text-2xl md:text-3xl font-black leading-tight mb-4 text-slate-900 group-hover:text-orange-600 transition-colors tracking-tight italic">${post.title}</h3>
+                             <p class="text-slate-500 text-lg line-clamp-2 leading-relaxed mb-6 font-medium">${post.meta_description}</p>
+                             <div class="flex items-center gap-2 text-slate-400 font-black text-[10px] uppercase tracking-widest group-hover:text-orange-600 transition-colors">
+                                 Читати далі 
+                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                             </div>
+                        </div>
+                    </a>`;
+                }
+
+                // Default Grid Style
                 return `
                 <a href="${link}" class="post-card bg-white rounded-[2.5rem] p-4 md:p-5 shadow-sm hover:shadow-2xl transition-all border border-slate-100 group block" style="animation-delay: ${i * 0.1}s">
                     <div class="relative overflow-hidden rounded-[2rem] h-60 md:h-64 mb-6 md:mb-8">

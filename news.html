@@ -116,27 +116,74 @@
                     <span class="w-2 h-2 bg-red-500 rounded-full mr-2 animate-pulse"></span> LIVE
                 </button>
             </nav>
-            <div class="lg:hidden">
-                <a href="index.html"
-                    class="text-xs font-black uppercase text-slate-400 hover:text-orange-600 transition">До стрічки</a>
+
+            <!-- Mobile Burger Button -->
+            <button id="mobile-menu-toggle" class="md:hidden flex flex-col gap-1.5 p-2">
+                <span class="w-6 h-0.5 bg-slate-900 rounded-full transition-all duration-300 origin-center"
+                    id="burger-top"></span>
+                <span class="w-6 h-0.5 bg-slate-900 rounded-full transition-all duration-300" id="burger-mid"></span>
+                <span class="w-6 h-0.5 bg-slate-900 rounded-full transition-all duration-300 origin-center"
+                    id="burger-bot"></span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Mobile Menu Overlay -->
+    <div id="mobile-menu-overlay"
+        class="fixed inset-0 z-[200] bg-white/95 backdrop-blur-xl translate-x-full transition-transform duration-500 md:hidden overflow-y-auto">
+        <div class="p-8">
+            <div class="flex justify-between items-center mb-12">
+                <a href="index.html" class="flex items-center space-x-3 group">
+                    <span
+                        class="bg-orange-600 text-white p-2.5 rounded-xl font-black text-2xl italic tracking-tighter shadow-sm group-hover:rotate-3 transition-transform">IF</span>
+                    <div class="leading-none text-left">
+                        <span
+                            class="text-2xl font-black uppercase tracking-tighter text-slate-900 block mt-1">Прикарпаття
+                            <span class="text-orange-600">News</span></span>
+                    </div>
+                </a>
+                <button id="close-mobile-menu"
+                    class="p-4 -mr-4 text-slate-400 hover:text-orange-600 font-black text-4xl transition-colors">&times;</button>
+            </div>
+
+            <div class="space-y-8">
+                <div>
+                    <h3
+                        class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6 border-b border-slate-100 pb-2">
+                        РУБРИКИ</h3>
+                    <div id="mobile-nav-list"
+                        class="flex flex-col gap-5 text-lg font-black uppercase text-slate-800 tracking-tight">
+                        <!-- Dynamic categories -->
+                    </div>
+                </div>
+
+                <div>
+                    <h3
+                        class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6 border-b border-slate-100 pb-2">
+                        МІСТА</h3>
+                    <div id="mobile-city-list" class="grid grid-cols-2 gap-3 text-sm font-bold text-slate-600">
+                        <!-- Dynamic cities -->
+                    </div>
+                </div>
             </div>
         </div>
-        <!-- City Filter Row -->
-        <div class="bg-slate-50 border-t border-slate-100 overflow-x-auto no-scrollbar">
-            <div
-                class="container mx-auto px-4 py-2.5 flex items-center space-x-6 text-[10px] font-bold uppercase tracking-wider text-slate-400 whitespace-nowrap">
-                <span class="text-slate-900 font-black flex items-center"><span
-                        class="w-1 h-3 bg-orange-600 mr-2"></span> МІСТА:</span>
-                <a href="index.html?city=if" class="hover:text-orange-600 transition-colors">Івано-Франківськ</a>
-                <a href="index.html?city=kalush" class="hover:text-orange-600 transition-colors">Калуш</a>
-                <a href="index.html?city=kolomyya" class="hover:text-orange-600 transition-colors">Коломия</a>
-                <a href="index.html?city=dolyna" class="hover:text-orange-600 transition-colors">Долина</a>
-                <a href="index.html?city=nadvirna" class="hover:text-orange-600 transition-colors">Надвірна</a>
-                <a href="index.html?city=burshtyn" class="hover:text-orange-600 transition-colors">Бурштин</a>
-                <a href="index.html?city=kosiv" class="hover:text-orange-600 transition-colors">Косів</a>
-                <a href="index.html?city=yaremche" class="hover:text-orange-600 transition-colors">Яремче</a>
-            </div>
+    </div>
+    <!-- City Filter Row -->
+    <div class="bg-slate-50 border-t border-slate-100 overflow-x-auto no-scrollbar">
+        <div
+            class="container mx-auto px-4 py-2.5 flex items-center space-x-6 text-[10px] font-bold uppercase tracking-wider text-slate-400 whitespace-nowrap">
+            <span class="text-slate-900 font-black flex items-center"><span class="w-1 h-3 bg-orange-600 mr-2"></span>
+                МІСТА:</span>
+            <a href="index.html?city=if" class="hover:text-orange-600 transition-colors">Івано-Франківськ</a>
+            <a href="index.html?city=kalush" class="hover:text-orange-600 transition-colors">Калуш</a>
+            <a href="index.html?city=kolomyya" class="hover:text-orange-600 transition-colors">Коломия</a>
+            <a href="index.html?city=dolyna" class="hover:text-orange-600 transition-colors">Долина</a>
+            <a href="index.html?city=nadvirna" class="hover:text-orange-600 transition-colors">Надвірна</a>
+            <a href="index.html?city=burshtyn" class="hover:text-orange-600 transition-colors">Бурштин</a>
+            <a href="index.html?city=kosiv" class="hover:text-orange-600 transition-colors">Косів</a>
+            <a href="index.html?city=yaremche" class="hover:text-orange-600 transition-colors">Яремче</a>
         </div>
+    </div>
     </header>
 
     <main class="container mx-auto px-4 py-8 max-w-7xl">
@@ -365,6 +412,31 @@
                     renderDynamicCities(Object.keys(CITIES_UK).map(k => ({ slug: k, name: CITIES_UK[k] })));
                 }
 
+                // Mobile Burger logic
+                const burgerBtn = document.getElementById('mobile-menu-toggle');
+                const overlay = document.getElementById('mobile-menu-overlay');
+                const closeBtn = document.getElementById('close-mobile-menu');
+
+                if (burgerBtn && overlay && closeBtn) {
+                    burgerBtn.onclick = () => {
+                        overlay.classList.remove('translate-x-full');
+                        document.body.style.overflow = 'hidden';
+                    };
+
+                    closeBtn.onclick = () => {
+                        overlay.classList.add('translate-x-full');
+                        document.body.style.overflow = '';
+                    };
+
+                    // CRITICAL: Close and re-enable scroll on any link click in mobile menu
+                    overlay.addEventListener('click', (e) => {
+                        if (e.target.closest('a')) {
+                            overlay.classList.add('translate-x-full');
+                            document.body.style.overflow = '';
+                        }
+                    });
+                }
+
                 // 2. Fetch Article
                 let query = _supabase.from('news').select('*');
                 if (slug) query = query.eq('slug', slug);
@@ -509,26 +581,45 @@
 
         function renderDynamicNav(categories) {
             const nav = document.querySelector('nav');
+            const mobileNav = document.getElementById('mobile-nav-list');
             if (!nav) return;
+            const liveBtn = nav.querySelector('button');
+
             let html = categories.map(c => `
                     <a href="index.html?category=${c.slug}" class="hover:text-orange-600 transition-colors border-b-2 border-transparent hover:border-orange-600 pb-1">
                         ${c.name}
                     </a>
                 `).join('');
-            nav.innerHTML = html;
+            nav.innerHTML = html + (liveBtn ? liveBtn.outerHTML : '');
+
+            if (mobileNav) {
+                mobileNav.innerHTML = categories.map(c => `
+                    <a href="index.html?category=${c.slug}" class="py-2 active:text-orange-600">${c.name}</a>
+                `).join('') + `<a href="#" class="text-orange-600 mt-4">LIVE • РЕПОРТАЖІ</a>`;
+            }
         }
 
         function renderDynamicCities(cities) {
             const cityContainer = document.querySelector('.bg-slate-50 .container');
+            const mobileCities = document.getElementById('mobile-city-list');
             if (!cityContainer) return;
 
             let html = `
                     <span class="text-slate-900 font-black flex items-center shrink-0"><span class="w-1 h-3 bg-orange-600 mr-2"></span> МІСТА:</span>
                     ${cities.map(c => `
-                        <a href="index.html?city=${c.slug}" class="hover:text-orange-600 transition-colors md:inline-block hidden last:inline-block">${c.name}</a>
+                        <a href="index.html?city=${c.slug}" class="hover:text-orange-600 transition-colors">${c.name}</a>
                     `).join('')}
                 `;
             cityContainer.innerHTML = html;
+
+            if (mobileCities) {
+                mobileCities.innerHTML = `
+                    <a href="index.html" class="bg-slate-50 p-4 rounded-2xl flex items-center justify-center text-center hover:bg-orange-50 hover:text-orange-600 transition h-full font-black text-xs uppercase leading-tight">ВСЯ ОБЛАСТЬ</a>
+                    ${cities.map(c => `
+                        <a href="index.html?city=${c.slug}" class="bg-slate-50 p-4 rounded-2xl flex items-center justify-center text-center hover:bg-orange-50 hover:text-orange-600 transition h-full font-black text-xs uppercase leading-tight">${c.name}</a>
+                    `).join('')}
+                `;
+            }
         }
 
         window.onload = loadFullNews;
