@@ -85,22 +85,26 @@
                     class="text-white">PRO</span></h1>
             <p class="text-[10px] text-slate-400 tracking-[0.2em] uppercase mt-1">Global Editorial System</p>
         </div>
-        <nav class="mt-4 px-4 space-y-2">
-            <a href="#" onclick="window.showSection('section-add')"
-                class="nav-btn flex items-center p-4 bg-orange-600 rounded-xl transition font-bold group">
-                <span class="mr-3 text-xl group-hover:scale-110 transition">✍️</span> Створити статтю
+        <nav class="flex-1 px-6 py-8 space-y-4">
+            <a href="#" onclick="showSection('section-add')"
+                class="flex items-center space-x-4 p-4 rounded-2xl hover:bg-slate-800 transition-all group">
+                <span class="text-xl">✍️</span>
+                <span class="font-bold tracking-wide">Редактор</span>
             </a>
-            <a href="#" onclick="window.showSection('section-list'); window.loadNews();"
-                class="nav-btn flex items-center p-4 hover:bg-slate-800 rounded-xl transition text-slate-300">
-                <span class="mr-3 text-xl">📑</span> Архів новин
+            <a href="#" onclick="showSection('section-list'); window.loadNews();"
+                class="flex items-center space-x-4 p-4 rounded-2xl hover:bg-slate-800 transition-all group">
+                <span class="text-xl">🗄️</span>
+                <span class="font-bold tracking-wide">Архів новин</span>
             </a>
-            <a href="#" onclick="window.showSection('section-seo'); window.loadStats();"
-                class="nav-btn flex items-center p-4 hover:bg-slate-800 rounded-xl transition text-slate-300">
-                <span class="mr-3 text-xl">📊</span> Аналітика
+            <a href="#" onclick="showSection('section-rss'); window.loadRSS();"
+                class="flex items-center space-x-4 p-4 rounded-2xl hover:bg-slate-800 transition-all group">
+                <span class="text-xl">📡</span>
+                <span class="font-bold tracking-wide">RSS Агрегатор</span>
             </a>
-            <a href="#" onclick="window.showSection('section-rss'); window.loadRSS();"
-                class="nav-btn flex items-center p-4 hover:bg-slate-800 rounded-xl transition text-slate-300">
-                <span class="mr-3 text-xl">📡</span> RSS Агрегатор
+            <a href="#" onclick="showSection('section-settings')"
+                class="flex items-center space-x-4 p-4 rounded-2xl hover:bg-slate-800 transition-all group">
+                <span class="text-xl">⚙️</span>
+                <span class="font-bold tracking-wide">Налаштування</span>
             </a>
         </nav>
     </aside>
@@ -147,7 +151,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                             <div>
                                 <label
-                                    class="block text-[10px] font-bold text-slate-500 uppercase mb-3 tracking-widest">Рубрика</label>
+                                    class="block text-[10px] font-black text-slate-400 uppercase mb-3 tracking-widest">РУБРИКА</label>
                                 <select id="category"
                                     class="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm focus:ring-2 focus:ring-orange-500 appearance-none cursor-pointer">
                                     <option value="frankivsk">Франківськ</option>
@@ -162,8 +166,8 @@
                             </div>
                             <div>
                                 <label
-                                    class="block text-[10px] font-bold text-slate-500 uppercase mb-3 tracking-widest">Місто
-                                    / Локація</label>
+                                    class="block text-[10px] font-black text-slate-400 uppercase mb-3 tracking-widest">МІСТО
+                                    / ЛОКАЦІЯ</label>
                                 <select id="city"
                                     class="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm focus:ring-2 focus:ring-orange-500 appearance-none cursor-pointer">
                                     <option value="">Вся область</option>
@@ -180,8 +184,8 @@
                             </div>
                             <div>
                                 <label
-                                    class="block text-[10px] font-bold text-slate-500 uppercase mb-3 tracking-widest">Теги
-                                    та Помітки</label>
+                                    class="block text-[10px] font-black text-slate-400 uppercase mb-3 tracking-widest">ТЕГИ
+                                    ТА ПОМІТКИ</label>
                                 <div class="bg-slate-50 border border-slate-100 rounded-2xl p-2 min-h-[56px] flex flex-wrap gap-2 items-center"
                                     id="tags-container">
                                     <input type="text" id="tag-input"
@@ -329,7 +333,108 @@
             </div>
         </section>
 
+        <!-- SECTION: SETTINGS -->
+        <section id="section-settings" class="admin-section hidden">
+            <h2 class="text-3xl font-extrabold text-slate-800 mb-8">Налаштування сайту</h2>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                <!-- Manage Categories -->
+                <div class="bg-white rounded-[2.5rem] p-10 shadow-xl border border-slate-100">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+                        <h3 class="text-xl font-black uppercase tracking-widest text-slate-400">Рубрики (Меню)</h3>
+                        <div class="flex gap-2 w-full sm:w-auto">
+                            <button onclick="window.seedDefaults('categories')"
+                                class="bg-slate-100 text-slate-500 px-4 py-3 rounded-2xl font-bold hover:bg-slate-200 transition text-xs">Стандартні</button>
+                            <button onclick="openSettingsModal('category')"
+                                class="bg-orange-600 text-white px-6 py-3 rounded-2xl font-bold hover:bg-orange-700 transition">Додати</button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr
+                                    class="text-xs font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                                    <th class="pb-4">Назва</th>
+                                    <th class="pb-4">Slug</th>
+                                    <th class="pb-4">Дії</th>
+                                </tr>
+                            </thead>
+                            <tbody id="categories-table-body" class="divide-y divide-slate-50">
+                                <!-- Dynamic content -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Manage Cities -->
+                <div class="bg-white rounded-[2.5rem] p-10 shadow-xl border border-slate-100">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+                        <h3 class="text-xl font-black uppercase tracking-widest text-slate-400">Міста (Фільтр)</h3>
+                        <div class="flex gap-2 w-full sm:w-auto">
+                            <button onclick="window.seedDefaults('cities')"
+                                class="bg-slate-100 text-slate-500 px-4 py-3 rounded-2xl font-bold hover:bg-slate-200 transition text-xs">Стандартні</button>
+                            <button onclick="openSettingsModal('city')"
+                                class="bg-orange-600 text-white px-6 py-3 rounded-2xl font-bold hover:bg-orange-700 transition">Додати</button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr
+                                    class="text-xs font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                                    <th class="pb-4">Назва</th>
+                                    <th class="pb-4">Slug</th>
+                                    <th class="pb-4">Дії</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cities-table-body" class="divide-y divide-slate-50">
+                                <!-- Dynamic content -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
     </main>
+
+    <!-- SETTINGS MODAL -->
+    <div id="settings-modal"
+        class="fixed inset-0 bg-slate-900/80 backdrop-blur-lg hidden z-[100] flex items-center justify-center p-4">
+        <div class="bg-white rounded-[3rem] p-10 w-full max-w-lg shadow-2xl">
+            <h3 id="settings-modal-title" class="text-2xl font-black mb-8 text-slate-800 uppercase tracking-tighter">
+                Налаштування</h3>
+            <form id="settings-form" class="space-y-6">
+                <input type="hidden" id="setting-type">
+                <input type="hidden" id="setting-id">
+                <div>
+                    <label class="block text-xs font-black uppercase text-slate-400 mb-2">Назва (укр)</label>
+                    <input type="text" id="setting-name"
+                        class="w-full p-5 bg-slate-50 rounded-2xl border-none focus:ring-2 focus:ring-orange-600 font-bold"
+                        required>
+                </div>
+                <div>
+                    <label class="block text-xs font-black uppercase text-slate-400 mb-2">Slug (англійською, для
+                        URL)</label>
+                    <input type="text" id="setting-slug"
+                        class="w-full p-5 bg-slate-50 rounded-2xl border-none focus:ring-2 focus:ring-orange-600 font-bold"
+                        required>
+                </div>
+                <div>
+                    <label class="block text-xs font-black uppercase text-slate-400 mb-2">Порядок (число)</label>
+                    <input type="number" id="setting-order"
+                        class="w-full p-5 bg-slate-50 rounded-2xl border-none focus:ring-2 focus:ring-orange-600 font-bold"
+                        value="0">
+                </div>
+                <div class="flex gap-4 pt-4">
+                    <button type="submit"
+                        class="flex-1 bg-slate-900 text-white py-5 rounded-2xl font-black uppercase tracking-widest hover:bg-orange-600 transition shadow-xl">Зберегти</button>
+                    <button type="button" onclick="closeSettingsModal()"
+                        class="flex-1 bg-slate-100 text-slate-500 py-5 rounded-2xl font-black uppercase tracking-widest hover:bg-slate-200 transition">Скасувати</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <script type="module" src="admin.js"></script>
 </body>

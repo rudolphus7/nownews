@@ -89,26 +89,55 @@
 
     <div id="scroll-progress" class="progress-bar"></div>
 
-    <nav class="bg-white/80 backdrop-blur-lg border-b border-slate-100 sticky top-0 z-50 py-4">
-        <div class="container mx-auto px-4 flex justify-between items-center">
-            <a href="index.html" class="flex items-center space-x-2">
+    <header class="bg-white/95 backdrop-blur-xl sticky top-0 z-[100] border-b border-slate-100">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <a href="index.html" class="flex items-center space-x-3 group">
                 <span
-                    class="bg-orange-600 text-white p-2 rounded-lg font-black text-xl italic tracking-tighter shadow-lg shadow-orange-200">IF</span>
-                <span class="text-2xl font-black uppercase tracking-tighter text-slate-900 hidden md:block">Прикарпаття
-                    <span class="text-orange-600">News</span></span>
+                    class="bg-orange-600 text-white p-2.5 rounded-xl font-black text-2xl italic tracking-tighter shadow-xl shadow-orange-200 group-hover:rotate-3 transition-transform">IF</span>
+                <div class="leading-none text-left">
+                    <span class="text-2xl font-black uppercase tracking-tighter text-slate-900 block mt-1">Прикарпаття
+                        <span class="text-orange-600">News</span></span>
+                    <span class="text-[9px] font-black uppercase tracking-[0.3em] text-slate-400">Перше незалежне
+                        медіа</span>
+                </div>
             </a>
-            <div class="flex items-center space-x-4">
+            <nav
+                class="hidden lg:flex items-center space-x-8 text-[11px] font-black uppercase tracking-widest text-slate-600">
+                <a href="index.html?category=economy"
+                    class="hover:text-orange-600 transition-colors border-b-2 border-transparent hover:border-orange-600 pb-1">Економіка</a>
+                <a href="index.html?category=oblast"
+                    class="hover:text-orange-600 transition-colors border-b-2 border-transparent hover:border-orange-600 pb-1">Область</a>
+                <a href="index.html?category=sport"
+                    class="hover:text-orange-600 transition-colors border-b-2 border-transparent hover:border-orange-600 pb-1">Спорт</a>
+                <a href="index.html?category=culture"
+                    class="hover:text-orange-600 transition-colors border-b-2 border-transparent hover:border-orange-600 pb-1">Культура</a>
+                <button
+                    class="bg-slate-900 text-white px-5 py-2.5 rounded-xl hover:bg-orange-600 transition-all shadow-xl shadow-slate-200 flex items-center">
+                    <span class="w-2 h-2 bg-red-500 rounded-full mr-2 animate-pulse"></span> LIVE
+                </button>
+            </nav>
+            <div class="lg:hidden">
                 <a href="index.html"
-                    class="text-xs font-black uppercase tracking-widest text-slate-400 hover:text-orange-600 transition flex items-center">
-                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
-                            d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-                    </svg>
-                    До стрічки
-                </a>
+                    class="text-xs font-black uppercase text-slate-400 hover:text-orange-600 transition">До стрічки</a>
             </div>
         </div>
-    </nav>
+        <!-- City Filter Row -->
+        <div class="bg-slate-50 border-t border-slate-100 overflow-x-auto no-scrollbar">
+            <div
+                class="container mx-auto px-4 py-2.5 flex items-center space-x-6 text-[10px] font-bold uppercase tracking-wider text-slate-400 whitespace-nowrap">
+                <span class="text-slate-900 font-black flex items-center"><span
+                        class="w-1 h-3 bg-orange-600 mr-2"></span> МІСТА:</span>
+                <a href="index.html?city=if" class="hover:text-orange-600 transition-colors">Івано-Франківськ</a>
+                <a href="index.html?city=kalush" class="hover:text-orange-600 transition-colors">Калуш</a>
+                <a href="index.html?city=kolomyya" class="hover:text-orange-600 transition-colors">Коломия</a>
+                <a href="index.html?city=dolyna" class="hover:text-orange-600 transition-colors">Долина</a>
+                <a href="index.html?city=nadvirna" class="hover:text-orange-600 transition-colors">Надвірна</a>
+                <a href="index.html?city=burshtyn" class="hover:text-orange-600 transition-colors">Бурштин</a>
+                <a href="index.html?city=kosiv" class="hover:text-orange-600 transition-colors">Косів</a>
+                <a href="index.html?city=yaremche" class="hover:text-orange-600 transition-colors">Яремче</a>
+            </div>
+        </div>
+    </header>
 
     <main class="container mx-auto px-4 py-8 max-w-7xl">
         <div id="loader" class="animate-pulse space-y-8 max-w-4xl mx-auto py-20">
@@ -280,7 +309,18 @@
 
         async function loadFullNews() {
             const urlParams = new URLSearchParams(window.location.search);
-            const CITIES_UK = {
+            let CATEGORIES_UK = {
+                'politics': 'Політика',
+                'economy': 'Економіка',
+                'sport': 'Спорт',
+                'culture': 'Культура',
+                'tech': 'Технології',
+                'frankivsk': 'Франківськ',
+                'oblast': 'Область',
+                'war': 'Війна'
+            };
+
+            let CITIES_UK = {
                 'kalush': 'Калуш',
                 'if': 'Івано-Франківськ',
                 'kolomyya': 'Коломия',
@@ -303,41 +343,67 @@
             }
 
             try {
+                // 1. Fetch Dynamic Data (Don't let failures block the site)
+                const [catRes, cityRes] = await Promise.all([
+                    _supabase.from('categories').select('*').order('order_index', { ascending: true }),
+                    _supabase.from('cities').select('*').order('order_index', { ascending: true })
+                ]);
+
+                if (catRes.data && catRes.data.length > 0) {
+                    CATEGORIES_UK = {};
+                    catRes.data.forEach(c => CATEGORIES_UK[c.slug] = c.name);
+                    renderDynamicNav(catRes.data);
+                } else {
+                    renderDynamicNav(Object.keys(CATEGORIES_UK).map(k => ({ slug: k, name: CATEGORIES_UK[k] })));
+                }
+
+                if (cityRes.data && cityRes.data.length > 0) {
+                    CITIES_UK = {};
+                    cityRes.data.forEach(c => CITIES_UK[c.slug] = c.name);
+                    renderDynamicCities(cityRes.data);
+                } else {
+                    renderDynamicCities(Object.keys(CITIES_UK).map(k => ({ slug: k, name: CITIES_UK[k] })));
+                }
+
+                // 2. Fetch Article
                 let query = _supabase.from('news').select('*');
                 if (slug) query = query.eq('slug', slug);
                 else query = query.eq('id', id);
 
                 const { data, error } = await query.single();
-                if (error || !data) throw new Error('Not found');
+
+                if (error || !data) {
+                    document.getElementById('loader').innerHTML = '<div class="text-center py-20 text-slate-400 font-bold uppercase tracking-widest">Статтю не знайдено</div>';
+                    return;
+                }
 
                 currentPost = data;
 
                 // UI Fill
-                const CATEGORIES_UK = {
-                    'politics': 'Політика',
-                    'economy': 'Економіка',
-                    'sport': 'Спорт',
-                    'culture': 'Культура',
-                    'tech': 'Технології',
-                    'frankivsk': 'Франківськ',
-                    'oblast': 'Область',
-                    'war': 'Війна'
-                };
-
                 document.title = `${data.title} | IF News`;
                 document.getElementById('news-title').innerText = data.title;
 
-                // Meta Tags & City Row
+                // Meta Tags (Badges style - Screen 1)
                 let metaHtml = '';
+
+                // 1. City
                 if (data.city) {
-                    metaHtml += `<div class="flex items-center gap-1.5 bg-orange-50 text-orange-700 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider border border-orange-100 shadow-sm">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                        ${CITIES_UK[data.city] || data.city}
+                    metaHtml += `<div class="inline-flex items-center gap-2 bg-orange-50 text-orange-600 px-4 py-2 rounded-2xl text-[11px] font-black uppercase tracking-widest border border-orange-100 shadow-sm leading-none">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        ${CITIES_UK[data.city] ? CITIES_UK[data.city].toUpperCase() : data.city.toUpperCase()}
                     </div>`;
                 }
+
+                // 2. Rubric
+                metaHtml += `<div class="inline-flex items-center bg-indigo-50 text-indigo-600 px-4 py-2 rounded-2xl text-[11px] font-black uppercase tracking-widest border border-indigo-100 shadow-sm leading-none">
+                    ${CATEGORIES_UK[data.category] ? CATEGORIES_UK[data.category].toUpperCase() : data.category.toUpperCase()}
+                </div>`;
+
+                // 3. Tags
                 if (data.tags && data.tags.length > 0) {
-                    metaHtml += data.tags.map(t => `<span class="bg-slate-100 text-slate-500 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider border border-slate-200">#${t}</span>`).join('');
+                    metaHtml += data.tags.map(t => `<span class="bg-slate-50 text-slate-500 px-4 py-2 rounded-2xl text-[11px] font-black uppercase tracking-widest border border-slate-100 shadow-sm leading-none">#${t.toUpperCase()}</span>`).join('');
                 }
+
                 document.getElementById('news-meta-tags').innerHTML = metaHtml;
 
                 document.getElementById('breadcrumb-category').innerText = CATEGORIES_UK[data.category] || data.category;
@@ -441,8 +507,31 @@
             if (shareUrl) window.open(shareUrl, '_blank');
         };
 
+        function renderDynamicNav(categories) {
+            const nav = document.querySelector('nav');
+            if (!nav) return;
+            let html = categories.map(c => `
+                    <a href="index.html?category=${c.slug}" class="hover:text-orange-600 transition-colors border-b-2 border-transparent hover:border-orange-600 pb-1">
+                        ${c.name}
+                    </a>
+                `).join('');
+            nav.innerHTML = html;
+        }
+
+        function renderDynamicCities(cities) {
+            const cityContainer = document.querySelector('.bg-slate-50 .container');
+            if (!cityContainer) return;
+
+            let html = `
+                    <span class="text-slate-900 font-black flex items-center shrink-0"><span class="w-1 h-3 bg-orange-600 mr-2"></span> МІСТА:</span>
+                    ${cities.map(c => `
+                        <a href="index.html?city=${c.slug}" class="hover:text-orange-600 transition-colors md:inline-block hidden last:inline-block">${c.name}</a>
+                    `).join('')}
+                `;
+            cityContainer.innerHTML = html;
+        }
+
         window.onload = loadFullNews;
-        // Listen for hash changes to reload content without page refresh
         window.onhashchange = () => {
             document.getElementById('news-content').classList.add('hidden');
             document.getElementById('loader').classList.remove('hidden');

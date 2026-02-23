@@ -198,25 +198,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 btn.innerText = 'Опублікувати новину';
                 window.showSection('section-list');
                 window.loadNews();
-
             } catch (err) {
                 alert("Помилка: " + err.message);
-            } finally {
                 btn.disabled = false;
             }
         };
     }
 
-    const CATEGORIES_UK = {
-        'politics': 'Політика',
-        'economy': 'Економіка',
-        'sport': 'Спорт',
-        'culture': 'Культура',
-        'tech': 'Технології',
-        'frankivsk': 'Франківськ',
-        'oblast': 'Область',
-        'war': 'Війна'
-    };
+    let CATEGORIES_UK = {};
+    let CITIES_UK = {};
 
     window.loadNews = async () => {
         const tbody = document.getElementById('news-table-body');
@@ -753,4 +743,150 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('stat-no-desc').innerText = data.filter(i => !i.meta_description || i.meta_description.length < 50).length;
         }
     };
+
+    // --- НАЛАШТУВАННЯ (РУБРИКИ ТА МІСТА) ---
+    window.loadSettings = async () => {
+        if (!_supabase) return;
+        try {
+            const [catRes, cityRes] = await Promise.all([
+                _supabase.from('categories').select('*').order('order_index', { ascending: true }),
+                _supabase.from('cities').select('*').order('order_index', { ascending: true })
+            ]);
+            if (catRes.error || cityRes.error) return;
+
+            const cats = catRes.data || [];
+            const cities = cityRes.data || [];
+
+            // Update Global Translation Maps
+            CATEGORIES_UK = {};
+            cats.forEach(c => CATEGORIES_UK[c.slug] = c.name);
+            CITIES_UK = {};
+            cities.forEach(c => CITIES_UK[c.slug] = c.name);
+
+            // Re-render news list to update category names if they changed
+            window.loadNews();
+
+            const catTable = document.getElementById('categories-table-body');
+            if (catTable) {
+                catTable.innerHTML = cats.map(c => `
+                    <tr class="hover:bg-slate-50 transition border-b border-slate-50">
+                        <td class="py-4 font-bold text-slate-700">${c.name}</td>
+                        <td class="py-4 text-slate-400 text-sm">${c.slug}</td>
+                        <td class="py-4 flex gap-2">
+                            <button onclick="window.openSettingsModal('category', '${c.id}', '${c.name}', '${c.slug}', ${c.order_index})" class="p-2 hover:bg-slate-100 rounded-lg">✏️</button>
+                            <button onclick="window.deleteSetting('category', '${c.id}')" class="p-2 hover:bg-slate-100 rounded-lg text-red-500">🗑️</button>
+                        </td>
+                    </tr>
+                `).join('') || '<tr><td colspan="3" class="py-8 text-center text-slate-400">Порожньо</td></tr>';
+            }
+
+            const cityTable = document.getElementById('cities-table-body');
+            if (cityTable) {
+                cityTable.innerHTML = cities.map(c => `
+                    <tr class="hover:bg-slate-50 transition border-b border-slate-50">
+                        <td class="py-4 font-bold text-slate-700">${c.name}</td>
+                        <td class="py-4 text-slate-400 text-sm">${c.slug}</td>
+                        <td class="py-4 flex gap-2">
+                            <button onclick="window.openSettingsModal('city', '${c.id}', '${c.name}', '${c.slug}', ${c.order_index})" class="p-2 hover:bg-slate-100 rounded-lg">✏️</button>
+                            <button onclick="window.deleteSetting('city', '${c.id}')" class="p-2 hover:bg-slate-100 rounded-lg text-red-500">🗑️</button>
+                        </td>
+                    </tr>
+                `).join('') || '<tr><td colspan="3" class="py-8 text-center text-slate-400">Порожньо</td></tr>';
+            }
+
+            // Update selects
+            const categorySelect = document.getElementById('category');
+            if (categorySelect) categorySelect.innerHTML = cats.map(c => `<option value="${c.slug}">${c.name}</option>`).join('');
+            const citySelect = document.getElementById('city');
+            if (citySelect) citySelect.innerHTML = '<option value="">Вся область</option>' + cities.map(c => `<option value="${c.slug}">${c.name}</option>`).join('');
+        } catch (e) { console.error(e); }
+    };
+
+    window.openSettingsModal = (type, id = '', name = '', slug = '', order = 0) => {
+        const modal = document.getElementById('settings-modal');
+        if (!modal) return;
+        modal.classList.remove('hidden');
+        document.getElementById('setting-type').value = type;
+        document.getElementById('setting-id').value = id;
+        document.getElementById('setting-name').value = name;
+        document.getElementById('setting-slug').value = slug;
+        document.getElementById('setting-order').value = order;
+        document.getElementById('settings-modal-title').innerText = id ? 'Редагувати' : 'Додати';
+    };
+
+    window.closeSettingsModal = () => document.getElementById('settings-modal')?.classList.add('hidden');
+
+    document.getElementById('settings-form')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const type = document.getElementById('setting-type').value;
+        const id = document.getElementById('setting-id').value;
+        const payload = {
+            name: document.getElementById('setting-name').value,
+            slug: document.getElementById('setting-slug').value,
+            order_index: parseInt(document.getElementById('setting-order').value) || 0
+        };
+        const table = type === 'category' ? 'categories' : 'cities';
+        try {
+            let res;
+            if (id) res = await _supabase.from(table).update(payload).eq('id', id);
+            else res = await _supabase.from(table).insert([payload]);
+
+            if (res.error) throw res.error;
+
+            alert("✅ Збережено!");
+            window.closeSettingsModal();
+            window.loadSettings();
+        } catch (err) {
+            alert("❌ Помилка: " + err.message);
+        }
+    });
+
+    window.deleteSetting = async (type, id) => {
+        if (!confirm("Ви впевнені, що хочете видалити цей елемент?")) return;
+        const table = type === 'category' ? 'categories' : 'cities';
+        try {
+            const { error } = await _supabase.from(table).delete().eq('id', id);
+            if (error) throw error;
+            window.loadSettings();
+        } catch (e) {
+            alert("❌ Помилка: " + e.message);
+        }
+    };
+
+    window.seedDefaults = async (type) => {
+        if (!_supabase || !confirm("Відновити стандартний список? Це оновить існуючі та додасть відсутні елементи.")) return;
+
+        const data = type === 'categories' ? [
+            { slug: 'politics', name: 'Політика', order_index: 0 },
+            { slug: 'economy', name: 'Економіка', order_index: 10 },
+            { slug: 'sport', name: 'Спорт', order_index: 20 },
+            { slug: 'culture', name: 'Культура', order_index: 30 },
+            { slug: 'tech', name: 'Технології', order_index: 40 },
+            { slug: 'frankivsk', name: 'Франківськ', order_index: 50 },
+            { slug: 'oblast', name: 'Область', order_index: 60 },
+            { slug: 'war', name: 'Війна', order_index: 70 }
+        ] : [
+            { slug: 'kalush', name: 'Калуш', order_index: 0 },
+            { slug: 'if', name: 'Івано-Франківськ', order_index: 10 },
+            { slug: 'kolomyya', name: 'Коломия', order_index: 20 },
+            { slug: 'dolyna', name: 'Долина', order_index: 30 },
+            { slug: 'bolekhiv', name: 'Болехів', order_index: 40 },
+            { slug: 'nadvirna', name: 'Надвірна', order_index: 50 },
+            { slug: 'burshtyn', name: 'Бурштин', order_index: 60 },
+            { slug: 'kosiv', name: 'Косів', order_index: 70 },
+            { slug: 'yaremche', name: 'Яремче', order_index: 80 }
+        ];
+
+        try {
+            const { error } = await _supabase.from(type).upsert(data, { onConflict: 'slug' });
+            if (error) throw error;
+            alert("✅ Стандартні налаштування завантажено!");
+            window.loadSettings();
+        } catch (err) {
+            alert("❌ Помилка: " + err.message);
+        }
+    };
+
+    setTimeout(() => { if (_supabase) window.loadSettings(); }, 1000);
+    window.loadStats();
 });
