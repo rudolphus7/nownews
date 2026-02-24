@@ -134,8 +134,14 @@ module.exports = async (req, res) => {
         // Replace <title> tag
         htmlContent = htmlContent.replace(/<title>.*?<\/title>/s, `<title>${escapeHtml(title)}</title>`);
 
+        // Inject SSR data so client JS always knows the slug/id
+        const ssrScript = `<script>
+    window.__SSR_SLUG__ = '${escapeJson(news.slug || '')}';
+    window.__SSR_ID__ = '${escapeJson(String(news.id || ''))}'; 
+<\/script>`;
+
         // Inject before </head>
-        htmlContent = htmlContent.replace('</head>', `${metaTags}\n</head>`);
+        htmlContent = htmlContent.replace('</head>', `${ssrScript}\n${metaTags}\n</head>`);
 
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
         res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=60');

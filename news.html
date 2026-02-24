@@ -378,11 +378,13 @@
         };
 
         // ── URL HELPERS ─────────────────────────────────────────────────
-        // Повертає slug із шляху/query/hash
         function getSlugFromUrl() {
+            // 0. SSR-інжектована змінна (найнадійніше)
+            if (window.__SSR_SLUG__) return window.__SSR_SLUG__;
+
             // 1. Шлях /news/my-slug
             const pathMatch = window.location.pathname.match(/\/news\/([^/?#]+)/);
-            if (pathMatch && pathMatch[1]) return pathMatch[1];
+            if (pathMatch && pathMatch[1]) return decodeURIComponent(pathMatch[1]);
 
             // 2. Query param ?slug=...
             const urlParams = new URLSearchParams(window.location.search);
@@ -396,6 +398,9 @@
         }
 
         function getIdFromUrl() {
+            // SSR-інжектована змінна
+            if (window.__SSR_ID__) return window.__SSR_ID__;
+
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('id')) return urlParams.get('id');
             const hashParams = new URLSearchParams(window.location.hash.substring(1));
@@ -408,41 +413,21 @@
             return `/news?id=${post.id}`;
         }
 
-        // ── MAIN LOADER ─────────────────────────────────────────────────
-        async function loadFullNews() {
-            let CATEGORIES_UK = {
-                'politics': 'Політика',
-                'economy': 'Економіка',
-                'sport': 'Спорт',
-                'culture': 'Культура',
-                'tech': 'Технології',
-                'frankivsk': 'Франківськ',
-                'oblast': 'Область',
-                'war': 'Війна'
-            };
+        // Словники (глобальні для доступу з обох функцій)
+        let CATEGORIES_UK = {
+            'politics': 'Політика', 'economy': 'Економіка', 'sport': 'Спорт',
+            'culture': 'Культура', 'tech': 'Технології', 'frankivsk': 'Франківськ',
+            'oblast': 'Область', 'war': 'Війна'
+        };
+        let CITIES_UK = {
+            'kalush': 'Калуш', 'if': 'Івано-Франківськ', 'kolomyya': 'Коломия',
+            'dolyna': 'Долина', 'bolekhiv': 'Болехів', 'nadvirna': 'Надвірна',
+            'burshtyn': 'Бурштин', 'kosiv': 'Косів', 'yaremche': 'Яремче'
+        };
 
-            let CITIES_UK = {
-                'kalush': 'Калуш',
-                'if': 'Івано-Франківськ',
-                'kolomyya': 'Коломия',
-                'dolyna': 'Долина',
-                'bolekhiv': 'Болехів',
-                'nadvirna': 'Надвірна',
-                'burshtyn': 'Бурштин',
-                'kosiv': 'Косів',
-                'yaremche': 'Яремче'
-            };
-
-            const slug = getSlugFromUrl();
-            const id = getIdFromUrl();
-
-            if (!slug && !id) {
-                document.getElementById('loader').innerHTML = `<div class="text-center py-20 text-slate-600">Оберіть новину на <a href="/" class="text-orange-600 underline font-bold">головній сторінці</a>.</div>`;
-                return;
-            }
-
+        // ── ШАПКА (завжди завантажується) ───────────────────────────────
+        async function initNav() {
             try {
-                // 1. Fetch Dynamic Data (Don't let failures block the site)
                 const [catRes, cityRes] = await Promise.all([
                     _supabase.from('categories').select('*').order('order_index', { ascending: true }),
                     _supabase.from('cities').select('*').order('order_index', { ascending: true })
@@ -463,33 +448,37 @@
                 } else {
                     renderDynamicCities(Object.keys(CITIES_UK).map(k => ({ slug: k, name: CITIES_UK[k] })));
                 }
+            } catch (e) {
+                // Fallback to static lists
+                renderDynamicNav(Object.keys(CATEGORIES_UK).map(k => ({ slug: k, name: CATEGORIES_UK[k] })));
+                renderDynamicCities(Object.keys(CITIES_UK).map(k => ({ slug: k, name: CITIES_UK[k] })));
+            }
 
-                // Mobile Burger logic
-                const burgerBtn = document.getElementById('mobile-menu-toggle');
-                const overlay = document.getElementById('mobile-menu-overlay');
-                const closeBtn = document.getElementById('close-mobile-menu');
+            // Mobile Burger logic
+            const burgerBtn = document.getElementById('mobile-menu-toggle');
+            const overlay = document.getElementById('mobile-menu-overlay');
+            const closeBtn = document.getElementById('close-mobile-menu');
+            if (burgerBtn && overlay && closeBtn) {
+                burgerBtn.onclick = () => { overlay.classList.remove('translate-x-full'); document.body.style.overflow = 'hidden'; };
+                closeBtn.onclick = () => { overlay.classList.add('translate-x-full'); document.body.style.overflow = ''; };
+                overlay.addEventListener('click', (e) => {
+                    if (e.target.closest('a')) { overlay.classList.add('translate-x-full'); document.body.style.overflow = ''; }
+                });
+            }
+        }
 
-                if (burgerBtn && overlay && closeBtn) {
-                    burgerBtn.onclick = () => {
-                        overlay.classList.remove('translate-x-full');
-                        document.body.style.overflow = 'hidden';
-                    };
+        // ── СТАТТЯ ───────────────────────────────────────────────────────
+        async function loadFullNews() {
+            const slug = getSlugFromUrl();
+            const id = getIdFromUrl();
 
-                    closeBtn.onclick = () => {
-                        overlay.classList.add('translate-x-full');
-                        document.body.style.overflow = '';
-                    };
+            if (!slug && !id) {
+                document.getElementById('loader').innerHTML = `<div class="text-center py-20 text-slate-600">Оберіть новину на <a href="/" class="text-orange-600 underline font-bold">головній сторінці</a>.</div>`;
+                return;
+            }
 
-                    // CRITICAL: Close and re-enable scroll on any link click in mobile menu
-                    overlay.addEventListener('click', (e) => {
-                        if (e.target.closest('a')) {
-                            overlay.classList.add('translate-x-full');
-                            document.body.style.overflow = '';
-                        }
-                    });
-                }
-
-                // 2. Fetch Article
+            try {
+                // Fetch Article from Supabase
                 let query = _supabase.from('news').select('*');
                 if (slug) query = query.eq('slug', slug);
                 else query = query.eq('id', id);
@@ -743,14 +732,14 @@
             const liveBtn = nav.querySelector('a.bg-orange-600');
 
             const html = categories.map(c => `
-                <a href="index.html?category=${c.slug}" class="hover:text-orange-600 transition-colors py-2 border-b-2 border-transparent font-black tracking-tight">${c.name}</a>
+                <a href="/?category=${c.slug}" class="hover:text-orange-600 transition-colors py-2 border-b-2 border-transparent font-black tracking-tight">${c.name}</a>
             `).join('');
 
             nav.innerHTML = html + (liveBtn ? liveBtn.outerHTML : '');
 
             if (mobileNav) {
                 mobileNav.innerHTML = categories.map(c => `
-                    <a href="index.html?category=${c.slug}" class="py-2 active:text-orange-600">${c.name}</a>
+                    <a href="/?category=${c.slug}" class="py-2 active:text-orange-600">${c.name}</a>
                 `).join('') + `<a href="#" class="text-orange-600 mt-4">LIVE • РЕПОРТАЖІ</a>`;
             }
         }
@@ -760,23 +749,24 @@
             const mobileCities = document.getElementById('mobile-city-list');
             if (!cityContainer) return;
 
-            const html = cities.map(c => `
-                <a href="index.html?city=${c.slug}" class="hover:text-orange-600 transition-colors py-1">${c.name}</a>
+            cityContainer.innerHTML = cities.map(c => `
+                <a href="/?city=${c.slug}" class="hover:text-orange-600 transition-colors py-1">${c.name}</a>
             `).join('');
 
-            cityContainer.innerHTML = html;
-
             if (mobileCities) {
-                mobileCities.innerHTML = `
-                    <a href="index.html" class="bg-slate-50 p-4 rounded-2xl flex items-center justify-center text-center hover:bg-orange-50 hover:text-orange-600 transition h-full font-black text-xs uppercase leading-tight">ВСЯ ОБЛАСТЬ</a>
-                    ${cities.map(c => `
-                        <a href="index.html?city=${c.slug}" class="bg-slate-50 p-4 rounded-2xl flex items-center justify-center text-center hover:bg-orange-50 hover:text-orange-600 transition h-full font-black text-xs uppercase leading-tight">${c.name}</a>
-                    `).join('')}
-                `;
+                mobileCities.innerHTML =
+                    `<a href="/" class="bg-slate-50 p-4 rounded-2xl flex items-center justify-center text-center hover:bg-orange-50 hover:text-orange-600 transition h-full font-black text-xs uppercase leading-tight">ВСЯ ОБЛАСТЬ</a>`
+                    + cities.map(c => `
+                        <a href="/?city=${c.slug}" class="bg-slate-50 p-4 rounded-2xl flex items-center justify-center text-center hover:bg-orange-50 hover:text-orange-600 transition h-full font-black text-xs uppercase leading-tight">${c.name}</a>
+                    `).join('');
             }
         }
 
-        window.onload = loadFullNews;
+        // Запускаємо шапку та статтю паралельно
+        window.onload = () => {
+            initNav();
+            loadFullNews();
+        };
 
         // Підтримка навігації браузера назад/вперед
         window.onpopstate = () => {
