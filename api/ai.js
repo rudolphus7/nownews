@@ -44,9 +44,9 @@ ${content.replace(/<[^>]*>/g, ' ')}
     }
 
     try {
-        const models = ['gemini-1.5-flash', 'gemini-1.5-flash-8b', 'gemini-pro'];
-        const versions = ['v1beta', 'v1'];
-        let lastError = "Could not find any working AI model";
+        const models = ['gemini-1.5-flash', 'gemini-1.5-flash-8b', 'gemini-1.5-pro'];
+        const versions = ['v1', 'v1beta'];
+        let errors = [];
         let successResponse = null;
 
         mainLoop: for (const model of models) {
@@ -56,23 +56,24 @@ ${content.replace(/<[^>]*>/g, ' ')}
                     contents: [{ parts: [{ text: prompt }] }]
                 });
 
-                if (response.ok) {
-                    const data = await response.json();
-                    if (!data.error) {
-                        successResponse = data;
-                        break mainLoop;
-                    } else {
-                        lastError = data.error.message;
-                    }
+                const data = await response.json().catch(() => ({}));
+
+                if (response.ok && !data.error) {
+                    successResponse = data;
+                    break mainLoop;
                 } else {
-                    const errData = await response.json().catch(() => ({}));
-                    lastError = errData.error?.message || response.statusText;
+                    const errMsg = data.error?.message || response.statusText || "Unknown error";
+                    console.warn(`Failed ${model} via ${ver}: ${errMsg}`);
+                    errors.push(`${model}(${ver}): ${errMsg}`);
                 }
             }
         }
 
         if (!successResponse) {
-            return res.status(500).json({ error: lastError });
+            return res.status(500).json({
+                error: "Всі спроби підключення до ШІ провалилися. Перевірте API ключ або ліміти.",
+                details: errors
+            });
         }
 
         const data = successResponse;

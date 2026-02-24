@@ -561,10 +561,10 @@ ${currentHtml.replace(/<[^>]*>/g, ' ')}`;
                 }
 
                 const payload = { contents: [{ parts: [{ text: prompt }] }] };
-                const models = ['gemini-1.5-flash', 'gemini-1.5-flash-8b', 'gemini-pro'];
-                const versions = ['v1beta', 'v1'];
+                const models = ['gemini-1.5-flash', 'gemini-1.5-flash-8b', 'gemini-1.5-pro'];
+                const versions = ['v1', 'v1beta'];
                 let finalData = null;
-                let lastErr = "AI models unavailable";
+                let clientErrors = [];
 
                 findModel: for (const model of models) {
                     for (const ver of versions) {
@@ -579,15 +579,18 @@ ${currentHtml.replace(/<[^>]*>/g, ' ')}`;
                                 finalData = data;
                                 break findModel;
                             }
-                            lastErr = data.error?.message || "Connection error";
+                            clientErrors.push(`${model}(${ver}): ${data.error?.message || "Connection error"}`);
                         } catch (e) {
-                            lastErr = e.message;
+                            clientErrors.push(`${model}(${ver}): ${e.message}`);
                         }
                     }
                 }
 
-                if (!finalData) throw new Error(lastErr);
+                if (!finalData) {
+                    throw new Error("Direct AI call failed: " + clientErrors.join(" | "));
+                }
                 const data = finalData;
+                const aiText = data.candidates[0].content.parts[0].text;
                 const lines = aiText.split('\n').filter(l => l.trim().length > 0);
 
                 let rewrittenTitle = currentTitle;
