@@ -200,12 +200,21 @@
             'war': 'Війна'
         };
 
+        let CITIES_UK = {
+            'kalush': 'Калуш', 'if': 'Івано-Франківськ', 'kolomyya': 'Коломия',
+            'dolyna': 'Долина', 'bolekhiv': 'Болехів', 'nadvirna': 'Надвірна',
+            'burshtyn': 'Бурштин', 'kosiv': 'Косів', 'yaremche': 'Yaremche'
         };
 
-        const isLocal = window.location.hostname === 'localhost' || window.location.hostname.includes('192.168.');
+        const isLocal = window.location.hostname === 'localhost' ||
+            window.location.hostname.startsWith('192.168.') ||
+            window.location.hostname.startsWith('127.0.0.1') ||
+            window.location.port !== '';
+
         function getNewsLink(post) {
-            if (isLocal) return post.slug ? `/news.html?slug=${post.slug}` : `/news.html?id=${post.id}`;
-            return post.slug ? `/news/${post.slug}` : `/news?id=${post.id}`;
+            const slug = post.slug || '';
+            const id = post.id || '';
+            return slug ? `/news/${slug}` : `/news?id=${id}`;
         }
 
         const PAGE_SIZE = 8;
@@ -221,6 +230,20 @@
                 category: urlParams.get('category'),
                 city: urlParams.get('city')
             };
+
+            // Localhost 404 Fix: Intercept /news/ links and route them through news.html
+            if (isLocal) {
+                document.addEventListener('click', (e) => {
+                    const link = e.target.closest('a');
+                    if (link && link.pathname.startsWith('/news/')) {
+                        const slug = link.pathname.split('/news/')[1];
+                        if (slug) {
+                            e.preventDefault();
+                            window.location.href = `/news.html?slug=${slug}`;
+                        }
+                    }
+                });
+            }
 
             // Listen for filter changes from the header component
             window.addEventListener('news-filter-changed', async (e) => {

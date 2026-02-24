@@ -25,7 +25,18 @@ class SiteHeader {
             city: new URLSearchParams(window.location.search).get('city')
         };
 
+        this.isLocal = window.location.hostname === 'localhost' ||
+            window.location.hostname.startsWith('192.168.') ||
+            window.location.hostname.startsWith('127.0.0.1') ||
+            window.location.port !== '';
+
         window.addEventListener('popstate', () => this.syncFilters());
+    }
+
+    getNewsLink(post) {
+        const slug = post.slug || '';
+        const id = post.id || '';
+        return slug ? `/news/${slug}` : `/news?id=${id}`;
     }
 
     syncFilters() {
@@ -248,6 +259,13 @@ class SiteHeader {
                     // Dispatch custom event for index page to reload news
                     window.dispatchEvent(new CustomEvent('news-filter-changed', { detail: this.currentFilters }));
                     window.scrollTo({ top: 0, behavior: 'smooth' });
+                } else if (this.isLocal && url.pathname.startsWith('/news/')) {
+                    // Localhost 404 Fix
+                    const slug = url.pathname.split('/news/')[1];
+                    if (slug) {
+                        e.preventDefault();
+                        window.location.href = `/news.html?slug=${slug}`;
+                    }
                 }
             };
         });
@@ -280,7 +298,7 @@ class SiteHeader {
 
             if (data && data.length > 0) {
                 const tickerItems = data.map(n => {
-                    const link = n.slug ? `/news/${n.slug}` : `/news?id=${n.id}`;
+                    const link = this.getNewsLink(n);
                     return `<a href="${link}" class="hover:text-orange-500 transition-colors mx-4">${n.title}</a>`;
                 });
                 const separator = `<span class="text-orange-600 font-bold px-2 mx-2">/</span>`;

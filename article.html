@@ -362,8 +362,16 @@
             return qId;
         }
 
+        const isLocal = window.location.hostname === 'localhost' ||
+            window.location.hostname.startsWith('192.168.') ||
+            window.location.hostname.startsWith('127.0.0.1') ||
+            window.location.hostname.startsWith('10.') ||
+            window.location.port !== '';
+
         function buildNewsUrl(post) {
-            return post.slug ? `/news/${post.slug}` : `/news?id=${post.id}`;
+            const slug = post.slug || '';
+            const id = post.id || '';
+            return slug ? `/news/${slug}` : `/news?id=${id}`;
         }
 
         let CATEGORIES_UK = {
@@ -381,6 +389,20 @@
         async function init() {
             // 1. Initialize Shared Header component
             window.initSiteHeader(_supabase);
+
+            // Localhost 404 Fix: Intercept /news/ links and route them through news.html
+            if (isLocal) {
+                document.addEventListener('click', (e) => {
+                    const link = e.target.closest('a');
+                    if (link && link.pathname.startsWith('/news/')) {
+                        const slug = link.pathname.split('/news/')[1];
+                        if (slug) {
+                            e.preventDefault();
+                            window.location.href = `/news.html?slug=${slug}`;
+                        }
+                    }
+                });
+            }
 
             // 2. Load the article content
             await loadFullNews();

@@ -11,6 +11,16 @@
             "has": [
                 {
                     "type": "query",
+                    "key": "slug"
+                }
+            ],
+            "destination": "/api/news"
+        },
+        {
+            "source": "/news",
+            "has": [
+                {
+                    "type": "query",
                     "key": "id"
                 }
             ],
@@ -18,7 +28,7 @@
         },
         {
             "source": "/news",
-            "destination": "/news.html"
+            "destination": "/index.html"
         }
     ]
 }
