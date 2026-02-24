@@ -561,8 +561,8 @@ ${currentHtml.replace(/<[^>]*>/g, ' ')}`;
                 }
 
                 const payload = { contents: [{ parts: [{ text: prompt }] }] };
-                const models = ['gemini-1.5-flash', 'gemini-1.5-flash-8b', 'gemini-1.5-pro'];
-                const versions = ['v1', 'v1beta'];
+                const models = ['gemini-3-flash', 'gemini-3-pro-preview', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-flash-8b', 'gemini-1.5-pro'];
+                const versions = ['v1beta', 'v1'];
                 let finalData = null;
                 let clientErrors = [];
 

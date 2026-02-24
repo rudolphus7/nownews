@@ -44,8 +44,8 @@ ${content.replace(/<[^>]*>/g, ' ')}
     }
 
     try {
-        const models = ['gemini-1.5-flash', 'gemini-1.5-flash-8b', 'gemini-1.5-pro'];
-        const versions = ['v1', 'v1beta'];
+        const models = ['gemini-3-flash', 'gemini-3-pro-preview', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-flash-8b', 'gemini-1.5-pro'];
+        const versions = ['v1beta', 'v1'];
         let errors = [];
         let successResponse = null;
 
@@ -77,7 +77,6 @@ ${content.replace(/<[^>]*>/g, ' ')}
         }
 
         const data = successResponse;
-
         const aiText = data.candidates[0].content.parts[0].text;
 
         // Split into title and body
