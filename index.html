@@ -181,10 +181,11 @@
             </a>
             <!-- Navigation -->
             <nav
-                class="hidden md:flex items-center gap-8 text-[11px] font-black uppercase tracking-widest text-slate-500">
+                class="hidden md:flex items-center gap-6 text-[12px] font-black uppercase tracking-wider text-slate-600">
                 <!-- Dynamic categories will be injected here -->
-                <button
-                    class="bg-orange-600 text-white px-5 py-2.5 rounded-xl hover:bg-orange-700 transition shadow-lg shadow-orange-200 ml-4">LIVE</button>
+                <a href="#"
+                    class="bg-orange-600 text-white px-6 py-3 rounded-2xl hover:bg-orange-700 transition shadow-xl shadow-orange-200 ml-4 font-black tracking-tighter">LIVE
+                    • ЕФІР</a>
             </nav>
 
             <!-- Mobile Burger Button -->
@@ -198,19 +199,24 @@
         </div>
         </div>
         <!-- City Filter Row -->
-        <div class="bg-slate-50 border-t border-slate-100 overflow-x-auto no-scrollbar">
+        <div class="bg-white border-t border-slate-100 overflow-x-auto no-scrollbar shadow-sm">
             <div
-                class="container mx-auto px-4 py-2.5 flex items-center space-x-6 text-[10px] font-bold uppercase tracking-wider text-slate-400 whitespace-nowrap">
-                <span class="text-slate-900 font-black flex items-center"><span
-                        class="w-1 h-3 bg-orange-600 mr-2"></span> МІСТА:</span>
-                <a href="index.html?city=if" class="hover:text-orange-600 transition-colors">Івано-Франківськ</a>
-                <a href="index.html?city=kalush" class="hover:text-orange-600 transition-colors">Калуш</a>
-                <a href="index.html?city=kolomyya" class="hover:text-orange-600 transition-colors">Коломия</a>
-                <a href="index.html?city=dolyna" class="hover:text-orange-600 transition-colors">Долина</a>
-                <a href="index.html?city=nadvirna" class="hover:text-orange-600 transition-colors">Надвірна</a>
-                <a href="index.html?city=burshtyn" class="hover:text-orange-600 transition-colors">Бурштин</a>
-                <a href="index.html?city=kosiv" class="hover:text-orange-600 transition-colors">Косів</a>
-                <a href="index.html?city=yaremche" class="hover:text-orange-600 transition-colors">Яремче</a>
+                class="container mx-auto px-4 py-4 flex items-center space-x-8 text-[11px] font-black uppercase tracking-[0.1em] text-slate-500 whitespace-nowrap">
+                <span class="text-slate-900 border-r border-slate-200 pr-6 mr-2 flex items-center">
+                    <span class="w-1.5 h-4 bg-orange-600 mr-3 rounded-full"></span>
+                    ВАШЕ МІСТО
+                </span>
+                <div class="flex items-center gap-6" id="city-nav-list">
+                    <a href="index.html?city=if"
+                        class="hover:text-orange-600 transition-colors py-1">Івано-Франківськ</a>
+                    <a href="index.html?city=kalush" class="hover:text-orange-600 transition-colors py-1">Калуш</a>
+                    <a href="index.html?city=kolomyya" class="hover:text-orange-600 transition-colors py-1">Коломия</a>
+                    <a href="index.html?city=dolyna" class="hover:text-orange-600 transition-colors py-1">Долина</a>
+                    <a href="index.html?city=nadvirna" class="hover:text-orange-600 transition-colors py-1">Надвірна</a>
+                    <a href="index.html?city=burshtyn" class="hover:text-orange-600 transition-colors py-1">Бурштин</a>
+                    <a href="index.html?city=kosiv" class="hover:text-orange-600 transition-colors py-1">Косів</a>
+                    <a href="index.html?city=yaremche" class="hover:text-orange-600 transition-colors py-1">Яремче</a>
+                </div>
             </div>
         </div>
     </header>
@@ -282,12 +288,11 @@
         <div class="flex flex-col lg:flex-row gap-8 lg:gap-16">
             <!-- Feed Column -->
             <div class="lg:w-2/3">
-                <div class="flex items-center justify-between mb-6 md:mb-12">
+                <div class="flex items-center justify-between mb-8 md:mb-12 border-b border-slate-200 pb-6">
                     <h2
-                        class="text-2xl md:text-4xl font-black text-slate-900 flex items-center tracking-tighter italic">
-                        <span
-                            class="w-1.5 h-6 md:w-2.5 md:h-10 bg-orange-600 rounded-full mr-3 md:mr-5 shadow-lg shadow-orange-200"></span>Свіжий
-                        потік
+                        class="text-3xl md:text-4xl font-black text-slate-900 flex items-center tracking-tighter italic">
+                        <span class="w-1.5 h-8 md:w-3 md:h-12 bg-slate-900 mr-4 md:mr-6"></span>
+                        СТРІЧКА НОВИН
                     </h2>
                     <div class="flex space-x-2">
                         <button
@@ -378,12 +383,6 @@
                 </div>
             </div>
 
-            <div class="flex flex-wrap justify-center gap-10 md:gap-20 mb-16 opacity-30 grayscale items-center">
-                <span class="font-black text-xl md:text-2xl">REUTERS</span>
-                <span class="font-black text-xl md:text-2xl">BBC NEWS</span>
-                <span class="font-black text-xl md:text-2xl">AFP</span>
-                <span class="font-black text-xl md:text-2xl">POLITICO</span>
-            </div>
 
             <div class="border-t border-white/5 pt-12 text-center">
                 <p class="text-[9px] font-black text-slate-600 uppercase tracking-[0.4em]">© 2026 Prykarpattya News
@@ -494,11 +493,8 @@
             if (!nav) return;
             const liveBtn = nav.querySelector('button');
 
-            let html = categories.map(c => `
-                <a href="index.html?category=${c.slug}"
-                   class="hover:text-orange-600 transition-colors border-b-2 border-transparent hover:border-orange-600 pb-1">
-                   ${c.name}
-                </a>
+            const html = categories.map(c => `
+                <a href="index.html?category=${c.slug}" class="hover:text-orange-600 transition-colors py-2 border-b-2 border-transparent font-black tracking-tight">${c.name}</a>
             `).join('');
 
             nav.innerHTML = html + (liveBtn ? liveBtn.outerHTML : '');
@@ -512,16 +508,14 @@
         }
 
         function renderDynamicCities(cities) {
-            const cityContainer = document.querySelector('.bg-slate-50 .container');
+            const cityContainer = document.getElementById('city-nav-list');
             const mobileCities = document.getElementById('mobile-city-list');
             if (!cityContainer) return;
 
-            let html = `
-                <span class="text-slate-900 font-bold flex items-center shrink-0"><span class="w-1 h-3 bg-orange-600 mr-2"></span> МІСТА:</span>
-                ${cities.map(c => `
-                    <a href="index.html?city=${c.slug}" class="hover:text-orange-600 transition-colors">${c.name}</a>
-                `).join('')}
-            `;
+            const html = cities.map(c => `
+                <a href="index.html?city=${c.slug}" class="hover:text-orange-600 transition-colors py-1">${c.name}</a>
+            `).join('');
+
             cityContainer.innerHTML = html;
 
             if (mobileCities) {
@@ -558,7 +552,9 @@
 
         function updateActiveHighlights() {
             // Reset all
-            document.querySelectorAll('nav a, .bg-slate-50 a').forEach(el => el.classList.remove('text-orange-600', 'border-orange-600', 'font-black'));
+            document.querySelectorAll('nav a, #city-nav-list a').forEach(el => {
+                el.classList.remove('text-orange-600', 'border-orange-600', 'font-black', 'text-slate-900');
+            });
 
             if (currentFilters.category) {
                 document.querySelectorAll(`nav a[href*="category=${currentFilters.category}"]`).forEach(el => {
@@ -566,8 +562,8 @@
                 });
             }
             if (currentFilters.city) {
-                document.querySelectorAll(`.bg-slate-50 a[href*="city=${currentFilters.city}"]`).forEach(el => {
-                    el.classList.add('text-orange-600', 'font-black');
+                document.querySelectorAll(`#city-nav-list a[href*="city=${currentFilters.city}"]`).forEach(el => {
+                    el.classList.add('text-orange-600', 'font-black', 'text-slate-900');
                 });
             }
         }
@@ -664,22 +660,23 @@
             const heroBait = `<span class="bait-highlight" onclick="window.location.href='${heroLink}'">Читати далі...</span>`;
 
             document.getElementById('hero-container').innerHTML = `
-                <a href="${heroLink}" class="relative group block overflow-hidden rounded-[2.5rem] shadow-2xl h-[450px] md:h-[600px] border-4 border-white bg-slate-100">
-                    <img src="${hero.image_url}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-[1.5s] group-hover:scale-110">
-                    <div class="absolute inset-0 hero-gradient"></div>
+                <a href="${heroLink}" class="group relative block h-[450px] md:h-[650px] overflow-hidden rounded-[2.5rem] md:rounded-[3.5rem] bg-slate-900 shadow-2xl transition-all duration-700">
+                    <img src="${hero.image_url}" class="news-image-scale absolute inset-0 w-full h-full object-cover opacity-60 grayscale-[0.2] transition-all duration-1000 group-hover:scale-105 group-hover:grayscale-0" alt="${hero.title}">
+                    <div class="hero-gradient absolute inset-0"></div>
                     
-                    <div class="absolute inset-0 p-8 md:p-16 flex flex-col justify-end">
-                        <div class="flex flex-wrap gap-2 mb-6 animate-in fade-in slide-in-from-left-4 duration-700">
-                            <div class="flex items-center gap-1.5 bg-orange-600 text-white px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest shadow-xl">
-                                 ${CITIES_UK[hero.city] || 'ОБЛАСТЬ'}
-                            </div>
-                            <div class="bg-white/20 backdrop-blur-md text-white border border-white/20 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest">
+                    <div class="absolute inset-0 p-6 md:p-16 flex flex-col justify-end max-w-5xl">
+                        <div class="flex items-center gap-3 mb-4 md:mb-6 animate-in fade-in slide-in-from-left-4 duration-700">
+                            <span class="px-4 py-1.5 bg-orange-600 text-white text-[10px] md:text-xs font-black uppercase tracking-widest rounded-full shadow-lg shadow-orange-600/20 leading-none">
+                                Головна новина
+                            </span>
+                            <div class="h-[1px] w-12 bg-white/20"></div>
+                            <div class="text-white/60 text-[10px] md:text-xs font-bold uppercase tracking-widest">
                                 ${CATEGORIES_UK[hero.category] || 'НОВИНИ'}
                             </div>
                         </div>
-                        <h1 class="text-2xl md:text-5xl lg:text-7xl text-white font-extrabold leading-[1.1] mb-4 md:mb-6 tracking-tighter drop-shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">${hero.title}</h1>
-                        <p class="text-slate-200 text-sm md:text-lg line-clamp-2 max-w-2xl font-medium opacity-90 leading-relaxed animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
-                            ${hero.meta_description} ${heroBait}
+                        <h1 class="text-3xl md:text-6xl lg:text-7xl text-white font-extrabold leading-[1.1] mb-4 md:mb-8 tracking-tighter drop-shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">${hero.title}</h1>
+                        <p class="text-slate-200 text-sm md:text-xl line-clamp-2 max-w-3xl font-medium opacity-90 leading-relaxed animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
+                             ${hero.meta_description} <span class="text-orange-400 font-extrabold hover:text-orange-300 ml-2">Читати далі →</span>
                         </p>
                     </div>
                 </a>`;
@@ -695,25 +692,22 @@
                 const link = `news.html#${new URLSearchParams({ slug: post.slug || '', id: post.id }).toString()}`;
 
                 return `
-                <a href="${link}" class="news-list-item group flex flex-col sm:flex-row gap-3 md:gap-10 items-start border-b border-slate-100 pb-3 md:pb-10 last:border-0 animate-in fade-in slide-in-from-bottom-4 duration-700" style="animation-delay: ${i * 0.05}s">
-                    <div class="relative w-full sm:w-64 md:w-80 h-48 md:h-56 rounded-[2rem] overflow-hidden flex-shrink-0 bg-slate-100">
-                        <img src="${post.image_url}" class="news-image-scale w-full h-full object-cover transition-all duration-700 grayscale-[0.3] group-hover:grayscale-0">
-                        <div class="absolute bottom-3 right-3 bg-black/40 backdrop-blur-md px-2 py-0.5 rounded-lg text-[8px] font-black text-white tracking-widest">👁️ ${post.views || 0}</div>
-                        <div class="absolute top-3 left-3 flex flex-wrap gap-1.5">
-                            <span class="bg-white/90 backdrop-blur px-2.5 py-1 rounded-lg text-[8px] font-black text-orange-600 uppercase tracking-widest shadow-sm">${(CITIES_UK[post.city] || post.city || 'Область').toUpperCase()}</span>
-                        </div>
+                <a href="${link}" class="news-list-item group flex flex-col sm:flex-row gap-6 md:gap-10 items-start border-b border-slate-100 pb-8 md:pb-12 last:border-0 animate-in fade-in slide-in-from-bottom-4 duration-700 hover:bg-white/50 -mx-4 px-4 rounded-3xl transition-all" style="animation-delay: ${i * 0.05}s">
+                    <div class="relative w-full sm:w-64 md:w-80 h-48 md:h-56 rounded-[2rem] overflow-hidden flex-shrink-0 bg-slate-100 shadow-md">
+                        <img src="${post.image_url}" class="news-image-scale w-full h-full object-cover transition-all duration-700 grayscale-[0.1] group-hover:grayscale-0 group-hover:scale-105">
+                        <div class="absolute bottom-3 right-3 bg-black/60 backdrop-blur-md px-3 py-1 rounded-lg text-[9px] font-black text-white tracking-widest shadow-xl">👁️ ${post.views || 0}</div>
                     </div>
-                    <div class="flex-grow pt-1">
+                    <div class="flex-1 py-1">
                          <div class="flex items-center gap-3 mb-3">
-                            <span class="text-[9px] font-black uppercase tracking-widest text-orange-500">${(CATEGORIES_UK[post.category] || post.category || 'Новини').toUpperCase()}</span>
+                            <span class="text-[10px] font-black text-orange-600 uppercase tracking-widest bg-orange-50 px-2 py-0.5 rounded-md border border-orange-100">${CATEGORIES_UK[post.category] || post.category}</span>
                             <span class="w-1 h-1 bg-slate-300 rounded-full"></span>
-                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">${new Date(post.created_at).toLocaleDateString('uk-UA')}</span>
+                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">${new Date(post.created_at).toLocaleDateString('uk-UA')}</span>
                          </div>
-                         <h3 class="text-base md:text-3xl font-extrabold leading-tight mb-1 md:mb-4 text-slate-900 transition-colors tracking-tight">${post.title}</h3>
-                         <p class="text-slate-500 text-[11px] md:text-base line-clamp-2 leading-relaxed mb-3 md:mb-6 font-medium text-editorial">${post.meta_description || 'Читати деталі новини на нашому порталі.'}</p>
-                         <div class="flex items-center gap-2 text-slate-400 font-bold text-[9px] uppercase tracking-widest group-hover:text-orange-600 transition-colors">
-                             Переглянути повністю 
-                             <svg class="w-3 h-3 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                         <h3 class="text-xl md:text-3xl font-extrabold leading-tight mb-3 text-slate-900 group-hover:text-orange-600 transition-colors tracking-tight">${post.title}</h3>
+                         <p class="text-slate-600 text-sm md:text-base line-clamp-2 leading-relaxed mb-6 font-medium">${post.meta_description || 'Читати деталі новини на нашому порталі.'}</p>
+                         <div class="flex items-center gap-2 text-slate-900 font-black text-xs uppercase tracking-widest group-hover:translate-x-1 transition-transform">
+                             ПОВНА СТАТТЯ 
+                             <svg class="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
                          </div>
                     </div>
                 </a>`;
@@ -735,17 +729,17 @@
                 document.getElementById('trending-list').innerHTML = data.map(post => {
                     const link = `news.html#${new URLSearchParams({ slug: post.slug || '', id: post.id }).toString()}`;
                     return `
-                    <a href="${link}" class="trending-item group flex gap-4 border-b border-slate-50 pb-4 mb-4 last:border-0 last:mb-0 p-2 md:p-3 -mx-2 md:-mx-3 rounded-2xl">
-                        <div class="w-20 h-20 flex-shrink-0 rounded-2xl overflow-hidden relative bg-slate-100">
-                            <img src="${post.image_url}" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-110">
-                            <div class="absolute bottom-1 right-1 bg-black/50 backdrop-blur-sm px-1.5 py-0.5 rounded-lg text-[7px] font-black text-white">👁️ ${post.views || 0}</div>
+                    <a href="${link}" class="trending-item group flex gap-5 border-b border-slate-100 pb-5 mb-5 last:border-0 last:mb-0 p-3 -mx-3 rounded-2xl hover:bg-white hover:shadow-xl transition-all duration-300">
+                        <div class="w-24 h-24 flex-shrink-0 rounded-2xl overflow-hidden relative bg-slate-100 shadow-sm">
+                            <img src="${post.image_url}" class="w-full h-full object-cover grayscale-[0.3] group-hover:grayscale-0 transition-all duration-700 group-hover:scale-110">
+                            <div class="absolute bottom-1 right-1 bg-black/60 backdrop-blur-sm px-2 py-0.5 rounded-lg text-[8px] font-black text-white shadow-xl">👁️ ${post.views || 0}</div>
                         </div>
-                        <div class="flex flex-col justify-center">
-                            <div class="flex items-center gap-2 mb-1.5">
-                                <span class="text-[8px] font-black text-orange-600 uppercase tracking-widest">${CATEGORIES_UK[post.category] || post.category}</span>
+                        <div class="flex flex-col justify-center gap-1.5">
+                            <span class="text-[10px] font-black text-orange-600 uppercase tracking-widest inline-block px-2 py-0.5 bg-orange-50 rounded-md self-start border border-orange-100/50">${CATEGORIES_UK[post.category] || post.category}</span>
+                            <h4 class="text-sm font-extrabold text-slate-900 leading-snug group-hover:text-orange-600 transition-colors tracking-tight line-clamp-2">${post.title}</h4>
+                            <div class="flex items-center gap-4 mt-1">
+                                <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Читати статтю →</span>
                             </div>
-                            <h4 class="text-xs font-bold text-slate-800 leading-snug group-hover:text-orange-600 transition-colors uppercase tracking-tight line-clamp-2 mb-1">${post.title}</h4>
-                            <p class="text-[10px] text-slate-400 line-clamp-1 font-medium leading-none">${post.meta_description || 'Деталі новини...'}</p>
                         </div>
                     </a>`;
                 }).join('');
