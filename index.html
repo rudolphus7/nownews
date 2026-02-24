@@ -534,6 +534,7 @@
             document.querySelectorAll('header a, #mobile-menu-overlay a').forEach(link => {
                 link.onclick = async (e) => {
                     const url = new URL(link.href, window.location.origin);
+                    console.log('Navigating to:', url.toString(), 'Params:', url.search);
                     if (url.pathname.endsWith('index.html') || url.pathname === '/' || url.pathname.includes('index.html')) {
                         e.preventDefault();
                         const params = new URLSearchParams(url.search);
@@ -623,7 +624,7 @@
 
                     // Ticker Logic (only first load)
                     const tickerItems = data.slice(0, 5).map(n => {
-                        const link = `news.html#${new URLSearchParams({ slug: n.slug || '', id: n.id }).toString()}`;
+                        const link = n.slug ? `/news/${n.slug}` : `/news?id=${n.id}`;
                         return `<a href="${link}" class="hover:text-orange-500 transition-colors mx-4">${n.title}</a>`;
                     });
                     const separator = `<span class="text-orange-600 font-bold px-2 mx-2">/</span>`;
@@ -656,7 +657,7 @@
         }
 
         function renderHero(hero) {
-            const heroLink = `news.html#${new URLSearchParams({ slug: hero.slug || '', id: hero.id }).toString()}`;
+            const heroLink = hero.slug ? `/news/${hero.slug}` : `/news?id=${hero.id}`;
             const heroBait = `<span class="bait-highlight" onclick="window.location.href='${heroLink}'">Читати далі...</span>`;
 
             document.getElementById('hero-container').innerHTML = `
@@ -689,7 +690,7 @@
             grid.className = "flex flex-col gap-3 md:gap-10 max-w-full";
 
             const html = posts.map((post, i) => {
-                const link = `news.html#${new URLSearchParams({ slug: post.slug || '', id: post.id }).toString()}`;
+                const link = post.slug ? `/news/${post.slug}` : `/news?id=${post.id}`;
 
                 return `
                 <a href="${link}" class="news-list-item group flex flex-col sm:flex-row gap-6 md:gap-10 items-start border-b border-slate-100 pb-8 md:pb-12 last:border-0 animate-in fade-in slide-in-from-bottom-4 duration-700 hover:bg-white/50 -mx-4 px-4 rounded-3xl transition-all" style="animation-delay: ${i * 0.05}s">
@@ -727,7 +728,7 @@
             const { data } = await _supabase.from('news').select('id, title, slug, image_url, views, category, meta_description').eq('is_published', true).order('views', { ascending: false }).limit(6);
             if (data) {
                 document.getElementById('trending-list').innerHTML = data.map(post => {
-                    const link = `news.html#${new URLSearchParams({ slug: post.slug || '', id: post.id }).toString()}`;
+                    const link = post.slug ? `/news/${post.slug}` : `/news?id=${post.id}`;
                     return `
                     <a href="${link}" class="trending-item group flex gap-5 border-b border-slate-100 pb-5 mb-5 last:border-0 last:mb-0 p-3 -mx-3 rounded-2xl hover:bg-white hover:shadow-xl transition-all duration-300">
                         <div class="w-24 h-24 flex-shrink-0 rounded-2xl overflow-hidden relative bg-slate-100 shadow-sm">

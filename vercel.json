@@ -1,0 +1,13 @@
+{
+    "cleanUrls": true,
+    "rewrites": [
+        {
+            "source": "/news/:slug",
+            "destination": "/api/news?slug=:slug"
+        },
+        {
+            "source": "/news",
+            "destination": "/api/news"
+        }
+    ]
+}

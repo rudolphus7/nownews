@@ -123,7 +123,7 @@
 
     <header class="bg-white/95 backdrop-blur-xl sticky top-0 z-[100] border-b border-slate-100">
         <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-            <a href="/" class="flex items-center space-x-3 group">
+            <a href="index.html" class="flex items-center space-x-3 group">
                 <span
                     class="bg-orange-600 text-white p-2.5 rounded-xl font-black text-2xl italic tracking-tighter shadow-xl shadow-orange-200 group-hover:rotate-3 transition-transform">IF</span>
                 <div class="leading-none text-left">
@@ -158,7 +158,7 @@
         class="fixed inset-0 z-[200] bg-white/95 backdrop-blur-xl translate-x-full transition-transform duration-500 md:hidden overflow-y-auto">
         <div class="p-8">
             <div class="flex justify-between items-center mb-12">
-                <a href="/" class="flex items-center space-x-3 group">
+                <a href="index.html" class="flex items-center space-x-3 group">
                     <span
                         class="bg-orange-600 text-white p-2.5 rounded-xl font-black text-2xl italic tracking-tighter shadow-sm group-hover:rotate-3 transition-transform">IF</span>
                     <div class="leading-none text-left">
@@ -228,7 +228,7 @@
                 <div class="lg:w-2/3">
                     <nav
                         class="flex text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3 md:mb-8 space-x-2">
-                        <a href="/" class="hover:text-orange-600">Головна</a>
+                        <a href="index.html" class="hover:text-orange-600">Головна</a>
                         <span>/</span>
                         <span id="breadcrumb-category" class="text-orange-600 opacity-70"></span>
                     </nav>
@@ -377,39 +377,8 @@
             document.getElementById("scroll-progress").style.width = scrolled + "%";
         };
 
-        // ── URL HELPERS ─────────────────────────────────────────────────
-        // Повертає slug із шляху/query/hash
-        function getSlugFromUrl() {
-            // 1. Шлях /news/my-slug
-            const pathMatch = window.location.pathname.match(/\/news\/([^/?#]+)/);
-            if (pathMatch && pathMatch[1]) return pathMatch[1];
-
-            // 2. Query param ?slug=...
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('slug')) return urlParams.get('slug');
-
-            // 3. Hash #slug=...
-            const hashParams = new URLSearchParams(window.location.hash.substring(1));
-            if (hashParams.get('slug')) return hashParams.get('slug');
-
-            return null;
-        }
-
-        function getIdFromUrl() {
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('id')) return urlParams.get('id');
-            const hashParams = new URLSearchParams(window.location.hash.substring(1));
-            if (hashParams.get('id')) return hashParams.get('id');
-            return null;
-        }
-
-        function buildNewsUrl(post) {
-            if (post.slug) return `/news/${post.slug}`;
-            return `/news?id=${post.id}`;
-        }
-
-        // ── MAIN LOADER ─────────────────────────────────────────────────
         async function loadFullNews() {
+            const urlParams = new URLSearchParams(window.location.search);
             let CATEGORIES_UK = {
                 'politics': 'Політика',
                 'economy': 'Економіка',
@@ -433,11 +402,30 @@
                 'yaremche': 'Яремче'
             };
 
-            const slug = getSlugFromUrl();
-            const id = getIdFromUrl();
+            const hashParams = new URLSearchParams(window.location.hash.substring(1));
+            const slug = urlParams.get('slug') || hashParams.get('slug');
+            const id = urlParams.get('id') || hashParams.get('id');
+
+            console.log('News Template Load:', {
+                url: window.location.href,
+                search: window.location.search,
+                hash: window.location.hash,
+                detectedSlug: slug,
+                detectedId: id
+            });
+
+            // URL Cleanup: Migrate hash to query params in the address bar
+            if (window.location.hash.includes('slug=') || window.location.hash.includes('id=')) {
+                console.log('Migrating hash parameters to query...');
+                const newUrl = new URL(window.location.href);
+                if (slug) newUrl.searchParams.set('slug', slug);
+                if (id) newUrl.searchParams.set('id', id);
+                newUrl.hash = ''; // Clear the hash
+                window.history.replaceState(null, '', newUrl.toString());
+            }
 
             if (!slug && !id) {
-                document.getElementById('loader').innerHTML = `<div class="text-center py-20 text-slate-600">Оберіть новину на <a href="/" class="text-orange-600 underline font-bold">головній сторінці</a>.</div>`;
+                document.getElementById('loader').innerHTML = `<div class="text-center py-20 text-slate-600">Оберіть новину на <a href="index.html" class="text-orange-600 underline font-bold">головній сторінці</a>.</div>`;
                 return;
             }
 
@@ -502,24 +490,6 @@
                 }
 
                 currentPost = data;
-
-                // Canonical URL для цієї статті
-                const canonicalUrl = data.slug
-                    ? `${window.location.origin}/news/${data.slug}`
-                    : `${window.location.origin}/news?id=${data.id}`;
-
-                // Оновити URL в адресному рядку на чисте /news/slug
-                if (data.slug && window.location.pathname !== `/news/${data.slug}`) {
-                    window.history.replaceState(null, '', `/news/${data.slug}`);
-                }
-
-                // Динамічно оновити/вставити OG та Twitter мета-теги
-                updateMetaTags({
-                    title: `${data.title} | IF News`,
-                    description: data.meta_description || '',
-                    image: data.image_url || '',
-                    url: canonicalUrl
-                });
 
                 // UI Fill
                 document.title = `${data.title} | IF News`;
@@ -652,38 +622,6 @@
             }
         };
 
-        // ── META TAG HELPERS ────────────────────────────────────────────
-        function updateMetaTags({ title, description, image, url }) {
-            const setMeta = (sel, attr, val) => {
-                let el = document.querySelector(sel);
-                if (!el) {
-                    el = document.createElement('meta');
-                    const [attrName, attrVal] = sel.replace('meta[', '').replace(']', '').split('="');
-                    el.setAttribute(attrName, attrVal.replace('"', ''));
-                    document.head.appendChild(el);
-                }
-                el.setAttribute(attr, val);
-            };
-            setMeta('meta[name="description"]', 'content', description);
-            setMeta('meta[property="og:title"]', 'content', title);
-            setMeta('meta[property="og:description"]', 'content', description);
-            setMeta('meta[property="og:image"]', 'content', image);
-            setMeta('meta[property="og:url"]', 'content', url);
-            setMeta('meta[property="og:type"]', 'content', 'article');
-            setMeta('meta[name="twitter:card"]', 'content', 'summary_large_image');
-            setMeta('meta[name="twitter:title"]', 'content', title);
-            setMeta('meta[name="twitter:description"]', 'content', description);
-            setMeta('meta[name="twitter:image"]', 'content', image);
-            // Canonical link
-            let canonical = document.querySelector('link[rel="canonical"]');
-            if (!canonical) {
-                canonical = document.createElement('link');
-                canonical.rel = 'canonical';
-                document.head.appendChild(canonical);
-            }
-            canonical.href = url;
-        }
-
         async function loadRelated(category, currentId) {
             const { data } = await _supabase.from('news')
                 .select('title, slug, id, image_url, views')
@@ -693,7 +631,7 @@
 
             if (data && data.length > 0) {
                 document.getElementById('related-list').innerHTML = data.map(post => {
-                    const link = buildNewsUrl(post);
+                    const link = post.slug ? `news.html?slug=${post.slug}` : `news.html?id=${post.id}`;
                     return `
                     <a href="${link}" class="group flex gap-4 items-center">
                         <div class="w-20 h-20 rounded-2xl overflow-hidden flex-shrink-0 relative">
@@ -707,8 +645,12 @@
         }
 
         window.share = (platform) => {
-            // Завжди використовуємо поточний чистий URL /news/slug
-            const cleanUrl = window.location.origin + window.location.pathname;
+            const slug = new URLSearchParams(window.location.search).get('slug') || new URLSearchParams(window.location.hash.substring(1)).get('slug');
+            const id = new URLSearchParams(window.location.search).get('id') || new URLSearchParams(window.location.hash.substring(1)).get('id');
+
+            // Construct canonical share URL
+            const baseUrl = window.location.origin + '/news.html';
+            const cleanUrl = slug ? `${baseUrl}?slug=${slug}` : `${baseUrl}?id=${id}`;
 
             const title = document.title;
             const summary = document.getElementById('news-title').innerText;
@@ -777,15 +719,6 @@
         }
 
         window.onload = loadFullNews;
-
-        // Підтримка навігації браузера назад/вперед
-        window.onpopstate = () => {
-            document.getElementById('news-content').classList.add('hidden');
-            document.getElementById('loader').classList.remove('hidden');
-            loadFullNews();
-        };
-
-        // Підтримка старого hash-навігації
         window.onhashchange = () => {
             document.getElementById('news-content').classList.add('hidden');
             document.getElementById('loader').classList.remove('hidden');

@@ -94,20 +94,29 @@ document.addEventListener('DOMContentLoaded', () => {
     const imagePreview = document.getElementById('image-preview');
 
     const updateSEO = () => {
-        const title = titleInput?.value || "";
-        const contentText = quill ? quill.getText() : "";
+        try {
+            const title = titleInput?.value || "";
+            const contentText = quill ? quill.getText() : "";
 
-        if (title) {
-            if (slugInput) slugInput.value = SEOEngine.generateSlug(title);
-            if (metaTitleInput) {
-                metaTitleInput.value = SEOEngine.generateMetaTitle(title);
-                document.getElementById('title-count').innerText = metaTitleInput.value.length;
+            if (title) {
+                const generatedSlug = SEOEngine.generateSlug(title);
+                if (slugInput) slugInput.value = generatedSlug;
+                const slugDisplay = document.getElementById('slug-display');
+                if (slugDisplay) slugDisplay.innerHTML = `<a href="/news/${generatedSlug}" target="_blank" class="text-orange-600 hover:underline">/news/${generatedSlug}</a>`;
+                if (metaTitleInput) {
+                    metaTitleInput.value = SEOEngine.generateMetaTitle(title);
+                    const titleCount = document.getElementById('title-count');
+                    if (titleCount) titleCount.innerText = metaTitleInput.value.length;
+                }
             }
-        }
 
-        if (contentText.trim().length > 10 && metaDescInput) {
-            metaDescInput.value = SEOEngine.generateMetaDesc(contentText);
-            document.getElementById('desc-count').innerText = metaDescInput.value.length;
+            if (contentText.trim().length > 10 && metaDescInput) {
+                metaDescInput.value = SEOEngine.generateMetaDesc(contentText);
+                const descCount = document.getElementById('desc-count');
+                if (descCount) descCount.innerText = metaDescInput.value.length;
+            }
+        } catch (e) {
+            console.warn("SEO update failed:", e);
         }
     };
 
@@ -182,7 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     await _supabase.from('rss_articles').update({ is_imported: true }).eq('link', newsForm.dataset.rssLink);
                 }
 
-                // สารสภาพ
+                // Скидання форми
                 currentEditingId = null;
                 currentTags = [];
                 newsForm.reset();
@@ -198,12 +207,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 imagePreview.innerHTML = '<span class="text-slate-600 text-[10px] uppercase font-bold text-center px-4">Зображення не вибрано</span>';
                 renderTags();
-                btn.innerText = 'Опублікувати новину';
                 window.showSection('section-list');
                 window.loadNews();
             } catch (err) {
+                console.error("Publication error:", err);
                 alert("Помилка: " + err.message);
+            } finally {
                 btn.disabled = false;
+                btn.innerText = currentEditingId ? 'Зберегти зміни' : 'Опублікувати новину';
             }
         };
     }
@@ -269,7 +280,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Заповнюємо поля форми
         document.getElementById('title').value = data.title;
         document.getElementById('slug').value = data.slug;
-        document.getElementById('slug-display').innerText = data.slug;
+        const slugDisplay = document.getElementById('slug-display');
+        if (slugDisplay) slugDisplay.innerHTML = `<a href="/news/${data.slug}" target="_blank" class="text-orange-600 hover:underline">/news/${data.slug} ↗</a>`;
         document.getElementById('meta_title').value = data.meta_title;
         document.getElementById('meta_description').value = data.meta_description;
         document.getElementById('category').value = data.category;
@@ -479,6 +491,226 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     window.clearDismissedRSS = clearDismissedRSS;
 
+    // --- AI REWRITING LOGIC ---
+    async function rewriteWithAI() {
+        const titleInput = document.getElementById('title');
+        const btn = document.getElementById('btn-ai-rewrite');
+        const bar = document.getElementById('ai-loading-bar');
+
+        if (!quill || !titleInput) return;
+
+        const currentHtml = quill.root.innerHTML;
+        const currentTitle = titleInput.value;
+
+        if (currentHtml.length < 100) {
+            alert("⚠️ Текст занадто короткий для перепису. Спочатку завантажте або напишіть контент.");
+            return;
+        }
+
+        if (!confirm("🧙 ШІ перепише статтю у нашому стилі. Продовжити?")) return;
+
+        btn.disabled = true;
+        const originalBtnText = btn.innerHTML;
+        btn.innerHTML = '<span>🪄</span> ШІ думає...';
+
+        if (bar) {
+            bar.classList.remove('hidden');
+            bar.style.width = '10%';
+        }
+
+        try {
+            const apiKey = localStorage.getItem('gemini_api_key');
+            if (!apiKey) {
+                alert("⚠️ Не знайдено API ключ Gemini. Будь ласка, додайте його в налаштуваннях.");
+                window.showSection('section-settings');
+                return;
+            }
+
+            console.log("AI Rewrite triggered with Gemini API...");
+            if (bar) bar.style.width = '40%';
+
+            const prompt = `Ти професійний український журналіст. Перепиши наступну новину у стилі видання "IF News". 
+            Вимоги:
+            1. Професійний, стриманий, але динамічний тон.
+            2. Збережи всі важливі факти та цифри.
+            3. Додай влучний та потужний заголовок на початку (перший рядок).
+            4. Використовуй HTML теги для структурування (p, h2, strong).
+            5. Додай логічний висновок або підсумок.
+            
+            Текст для обробки: ${currentTitle}\n\n${currentHtml.replace(/<[^>]*>/g, ' ')}`;
+
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }]
+                })
+            });
+
+            if (bar) bar.style.width = '80%';
+            const data = await response.json();
+
+            if (data.error) throw new Error(data.error.message);
+
+            const aiText = data.candidates[0].content.parts[0].text;
+
+            // Extract the first line as the potential new title
+            const lines = aiText.split('\n').filter(l => l.trim().length > 0);
+            let newTitle = currentTitle;
+            let bodyContent = aiText;
+
+            if (lines.length > 1) {
+                newTitle = lines[0].replace(/#/g, '').trim();
+                bodyContent = lines.slice(1).join('\n');
+            }
+
+            if (bar) bar.style.width = '100%';
+
+            const signature = `<p><br></p><p><strong>Стаття підготовлена редакцією "IF News"</strong>.</p>`;
+
+            titleInput.value = newTitle;
+            quill.clipboard.dangerouslyPasteHTML(bodyContent + signature);
+
+            // Re-detect category and SEO
+            document.getElementById('category').value = autoTagArticle(bodyContent, newTitle);
+            updateSEO();
+
+        } catch (e) {
+            console.error("AI Error:", e);
+            alert("❌ Помилка ШІ: " + e.message);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalBtnText;
+            if (bar) {
+                setTimeout(() => {
+                    bar.classList.add('hidden');
+                    bar.style.width = '0';
+                }, 500);
+            }
+        }
+    }
+    window.rewriteWithAI = rewriteWithAI;
+
+    // --- AI CONFIG MANAGEMENT ---
+    window.saveAIConfig = () => {
+        const key = document.getElementById('gemini-api-key').value.trim();
+        if (!key) { alert("⚠️ Будь ласка, введіть API ключ."); return; }
+
+        localStorage.setItem('gemini_api_key', key);
+        alert("✅ Конфігурацію ШІ збережено успішно!");
+    };
+
+    window.toggleKeyVisibility = () => {
+        const input = document.getElementById('gemini-api-key');
+        if (input) input.type = input.type === 'password' ? 'text' : 'password';
+    };
+
+    function loadAIConfig() {
+        const key = localStorage.getItem('gemini_api_key');
+        if (key && document.getElementById('gemini-api-key')) {
+            document.getElementById('gemini-api-key').value = key;
+        }
+    }
+    // Initialize AI config after some delay to ensure DOM is ready
+    setTimeout(loadAIConfig, 1000);
+
+    // --- RSS SCRAPER HELPER ---
+    async function scrapeFullContent(link) {
+        try {
+            let htmlContent = null;
+            // Primary Proxy: AllOrigins
+            try {
+                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(link)}&_=${Date.now()}`;
+                const response = await fetch(proxyUrl);
+                const data = await response.json();
+                if (data && data.contents) htmlContent = data.contents;
+            } catch (e) { console.warn("Primary scraper proxy failed"); }
+
+            // Secondary Proxy: CORSProxy.io
+            if (!htmlContent) {
+                try {
+                    const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(link)}`;
+                    const response = await fetch(proxyUrl);
+                    htmlContent = await response.text();
+                } catch (e) { console.warn("Secondary scraper proxy failed"); }
+            }
+
+            if (htmlContent) {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(htmlContent, "text/html");
+                const selectors = [
+                    '.post-content', '.entry-content', '.article-content',
+                    '.td-post-content', '.article__text', '.article-body',
+                    '.wp-block-post-content', '.single-post-content',
+                    'article', '[itemprop="articleBody"]', '.content-main',
+                    '.post-item-content', '.entry', '.item-content', '.entry-wrapper',
+                    '.post-content-inner', '.article-main'
+                ];
+
+                let candidates = [];
+                for (const s of selectors) {
+                    doc.querySelectorAll(s).forEach(node => {
+                        if (node && node.innerText.trim().length > 250) {
+                            candidates.push(node);
+                        }
+                    });
+                }
+
+                let contentNode = null;
+                if (candidates.length > 0) {
+                    // Pick candidate with MAXIMUM text length (helps with nested wrappers)
+                    contentNode = candidates.reduce((prev, current) =>
+                        (prev.innerText.length > current.innerText.length) ? prev : current
+                    ).cloneNode(true);
+                }
+
+                if (contentNode) {
+                    // Informator-specific and general junk
+                    const junkSelectors = [
+                        'script', 'style', '.adsbygoogle', '.related', '.social-share',
+                        'noscript', '.sidebar', '.comments', '.newsletter-signup',
+                        '.wp-block-embed', '.sharedaddy', '.jp-relatedposts', '.printfriendly',
+                        'blockquote.wp-embedded-content', '.post-navigation', '.author-box'
+                    ];
+                    junkSelectors.forEach(s => {
+                        contentNode.querySelectorAll(s).forEach(j => j.remove());
+                    });
+
+                    console.log("✅ Scraped content from:", link, "Length:", contentNode.innerText.length);
+
+                    // Remove "Читайте також" (Read Also) blocks common in UA news
+                    contentNode.querySelectorAll('p, div').forEach(el => {
+                        const txt = el.innerText.toLowerCase();
+                        if (txt.includes('читайте також') || txt.includes('також читайте') || txt.includes('дивіться також')) {
+                            // If it's a short paragraph with a link, it's likely a "read also" block
+                            if (el.innerText.length < 200 && el.querySelector('a')) {
+                                el.remove();
+                            }
+                        }
+                    });
+
+                    // Normalize image URLs in content
+                    contentNode.querySelectorAll('img').forEach(img => {
+                        let src = img.getAttribute('src') || img.getAttribute('data-src');
+                        if (src && (src.startsWith('/') || !src.startsWith('http'))) {
+                            try {
+                                const origin = new URL(link).origin;
+                                img.setAttribute('src', origin + (src.startsWith('/') ? src : '/' + src));
+                            } catch (e) { }
+                        }
+                        // Remove very small icons/decorations
+                        if (img.width > 0 && img.width < 50) img.remove();
+                    });
+
+                    return contentNode.innerHTML;
+                }
+            }
+        } catch (e) {
+            console.warn("Scraping failed for:", link, e);
+        }
+        return null;
+    }
+
     async function fetchRSSArticles() {
         console.log("fetchRSSArticles logic started...");
         const grid = document.getElementById('rss-items-grid');
@@ -553,12 +785,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const itemsToStaging = [];
 
-                items.forEach(item => {
+                for (const item of items) {
                     const title = item.querySelector("title")?.textContent || "Без заголовка";
                     const link = (item.querySelector("link")?.textContent || item.querySelector("link")?.getAttribute("href") || "").trim();
                     const description = item.querySelector("description, summary")?.textContent || "";
 
-                    if (!link || dbLinks.has(link)) return;
+                    if (!link || dbLinks.has(link)) continue;
 
                     let fullContent = "";
                     try {
@@ -570,6 +802,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         else if (encodedTag) fullContent = encodedTag.textContent;
                         else if (encodedQuery) fullContent = encodedQuery.textContent;
                     } catch (e) { }
+
+                    // PRE-SCRAPE if missing from feed
+                    if (!fullContent || fullContent.length < 500) {
+                        const scraped = await scrapeFullContent(link);
+                        if (scraped) fullContent = scraped;
+                    }
 
                     const pubDateString = item.querySelector("pubDate, published, updated")?.textContent || "";
                     let pubDate = null;
@@ -597,7 +835,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         source_name: sourceHost
                     });
                     dbLinks.add(link);
-                });
+                }
 
                 if (itemsToStaging.length > 0) {
                     await _supabase.from('rss_articles').upsert(itemsToStaging, { onConflict: 'link' });
@@ -750,55 +988,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 50);
 
         // 4. BACKGROUND SCRAPER (If content missing/short)
-        if (!art.fullContent || art.fullContent.length < 500) {
+        if (!art.full_content || art.full_content.length < 500) {
             const btn = document.querySelector(`button[onclick*="importFromRSS('${id}')"]`);
             if (btn) btn.innerHTML = '⌛ Завантаження повного тексту...';
 
-            try {
-                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(art.link)}&_=${Date.now()}`;
-                const response = await fetch(proxyUrl);
-                const data = await response.json();
+            const scraped = await scrapeFullContent(art.link);
+            if (scraped) {
+                // Update editor ONLY IF the user hasn't changed much (safe overwrite)
+                const currentHtml = quill.root.innerHTML;
+                if (currentHtml.length < initialText.length + 500) {
+                    const fullHtml = `<h2>${art.title}</h2>${scraped}<p><br></p><hr><p>Джерело: <a href="${art.link}" target="_blank">${art.source_name}</a></p>`;
+                    quill.clipboard.dangerouslyPasteHTML(fullHtml);
 
-                if (data && data.contents) {
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(data.contents, "text/html");
-                    const selectors = ['.entry-content', '.post-content', '.article-content', '.td-post-content', '.article__text', 'article', '[itemprop="articleBody"]', '.content-main'];
-
-                    let contentNode = null;
-                    for (const s of selectors) {
-                        const found = doc.querySelector(s);
-                        if (found && found.innerText.length > 200) { contentNode = found; break; }
-                    }
-
-                    if (contentNode) {
-                        const junk = contentNode.querySelectorAll('script, style, .adsbygoogle, .related, .social-share, noscript, .sidebar, .comments');
-                        junk.forEach(j => j.remove());
-
-                        // Normalize image URLs in content
-                        contentNode.querySelectorAll('img').forEach(img => {
-                            let src = img.getAttribute('src');
-                            if (src && (src.startsWith('/') || !src.startsWith('http'))) {
-                                try {
-                                    const origin = new URL(art.link).origin;
-                                    img.setAttribute('src', origin + (src.startsWith('/') ? src : '/' + src));
-                                } catch (e) { }
-                            }
-                        });
-
-                        // Update editor ONLY IF the user hasn't changed much (safe overwrite)
-                        const currentHtml = quill.root.innerHTML;
-                        if (currentHtml.length < initialText.length + 500) {
-                            const fullHtml = `<h2>${art.title}</h2>${contentNode.innerHTML}<p><br></p><hr><p>Джерело: <a href="${art.link}" target="_blank">${art.source_name}</a></p>`;
-                            quill.clipboard.dangerouslyPasteHTML(fullHtml);
-
-                            // Re-trigger category detection with full text
-                            document.getElementById('category').value = autoTagArticle(contentNode.innerHTML, art.title);
-                            console.log("⚡ Hot-swapped content and updated category");
-                        }
-                    }
+                    // Re-trigger category detection with full text
+                    document.getElementById('category').value = autoTagArticle(scraped, art.title);
+                    console.log("⚡ Hot-swapped content and updated category");
                 }
-            } catch (e) {
-                console.warn("Background fetch failed");
+
+                // Also update the staging record so next time it's immediate
+                await _supabase.from('rss_articles').update({ full_content: scraped }).eq('id', id);
             }
 
             if (btn) btn.innerHTML = 'Редагувати та публікувати';

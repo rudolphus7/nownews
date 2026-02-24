@@ -1,0 +1,161 @@
+const fs = require('fs');
+const path = require('path');
+
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kgrxlznhimwuvwhjfzhv.supabase.co';
+const SUPABASE_KEY = process.env.SUPABASE_KEY || 'sb_publishable_L4_HhLhbj_m6wbEc3ZqhcQ_QNGOLWXU';
+const SITE_URL = process.env.SITE_URL || 'https://ifnews-omega.vercel.app';
+
+module.exports = async (req, res) => {
+    // slug може прийти як /news/:slug через rewrite або як ?slug= query param
+    const { slug, id } = req.query;
+
+    console.log('SSR Request:', {
+        url: req.url,
+        query: req.query,
+        slug,
+        id
+    });
+
+    let htmlContent = '';
+    try {
+        const filePath = path.join(process.cwd(), 'news.html');
+        htmlContent = fs.readFileSync(filePath, 'utf8');
+    } catch (e) {
+        console.error('Error reading news.html:', e);
+        // Fallback to news-template.html if it exists
+        try {
+            const fallbackPath = path.join(process.cwd(), 'news-template.html');
+            htmlContent = fs.readFileSync(fallbackPath, 'utf8');
+        } catch (e2) {
+            return res.status(500).send('Configuration Error: news.html missing');
+        }
+    }
+
+    // If no specific news is requested, just return the static page
+    if (!slug && !id) {
+        console.log('No slug/id provided, serving template only');
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        return res.status(200).send(htmlContent);
+    }
+
+    try {
+        const filter = slug ? `slug=eq.${encodeURIComponent(slug)}` : `id=eq.${id}`;
+        const apiUrl = `${SUPABASE_URL}/rest/v1/news?${filter}&select=*`;
+
+        const response = await fetch(apiUrl, {
+            headers: {
+                'apikey': SUPABASE_KEY,
+                'Authorization': `Bearer ${SUPABASE_KEY}`,
+                'Accept': 'application/vnd.pgrst.object+json'
+            }
+        });
+
+        if (!response.ok) {
+            console.warn('Supabase fetch failed:', response.statusText);
+            res.setHeader('Content-Type', 'text/html; charset=utf-8');
+            return res.status(200).send(htmlContent);
+        }
+
+        const news = await response.json();
+
+        if (!news || Object.keys(news).length === 0) {
+            res.setHeader('Content-Type', 'text/html; charset=utf-8');
+            return res.status(200).send(htmlContent);
+        }
+
+        // Canonical URL — завжди /news/slug (чисте SEO-посилання)
+        const canonicalUrl = news.slug
+            ? `${SITE_URL}/news/${news.slug}`
+            : `${SITE_URL}/news?id=${news.id}`;
+
+        const title = `${news.title} | IF News`;
+        const description = (news.meta_description || news.content || '')
+            .replace(/<[^>]*>/g, '')
+            .replace(/\s+/g, ' ')
+            .trim()
+            .substring(0, 160);
+        const image = news.image_url || `${SITE_URL}/og-default.jpg`;
+        const publishedDate = news.created_at ? new Date(news.created_at).toISOString() : '';
+        const author = news.author || 'Редакція IF News';
+        const siteName = 'Прикарпаття News | IF News';
+
+        // Inject SEO meta tags before </head>
+        const metaTags = `
+    <!-- SEO & Open Graph Meta Tags -->
+    <meta name="description" content="${escapeAttr(description)}">
+    <meta name="author" content="${escapeAttr(author)}">
+    <link rel="canonical" href="${escapeAttr(canonicalUrl)}">
+
+    <!-- Open Graph (Facebook, Telegram, Viber) -->
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="${escapeAttr(siteName)}">
+    <meta property="og:title" content="${escapeAttr(title)}">
+    <meta property="og:description" content="${escapeAttr(description)}">
+    <meta property="og:image" content="${escapeAttr(image)}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:url" content="${escapeAttr(canonicalUrl)}">
+    <meta property="og:locale" content="uk_UA">
+    ${publishedDate ? `<meta property="article:published_time" content="${publishedDate}">` : ''}
+    ${news.category ? `<meta property="article:section" content="${news.category}">` : ''}
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="${escapeAttr(title)}">
+    <meta name="twitter:description" content="${escapeAttr(description)}">
+    <meta name="twitter:image" content="${escapeAttr(image)}">
+
+    <!-- Schema.org JSON-LD -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "NewsArticle",
+        "headline": "${escapeJson(news.title)}",
+        "description": "${escapeJson(description)}",
+        "image": "${escapeJson(image)}",
+        "datePublished": "${publishedDate}",
+        "author": {
+            "@type": "Organization",
+            "name": "${escapeJson(siteName)}"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "${escapeJson(siteName)}",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "${SITE_URL}/logo.png"
+            }
+        },
+        "url": "${escapeJson(canonicalUrl)}"
+    }
+    <\/script>
+    <!-- End SEO Meta Tags -->`;
+
+        // Replace <title> tag
+        htmlContent = htmlContent.replace(/<title>.*?<\/title>/s, `<title>${escapeHtml(title)}</title>`);
+
+        // Inject before </head>
+        htmlContent = htmlContent.replace('</head>', `${metaTags}\n</head>`);
+
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=60');
+        return res.status(200).send(htmlContent);
+
+    } catch (err) {
+        console.error('SSR Error:', err);
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        return res.status(200).send(htmlContent);
+    }
+};
+
+function escapeAttr(str) {
+    return String(str || '').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function escapeHtml(str) {
+    return String(str || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function escapeJson(str) {
+    return String(str || '').replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r');
+}
