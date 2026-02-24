@@ -518,18 +518,17 @@ document.addEventListener('DOMContentLoaded', () => {
             bar.style.width = '10%';
         }
 
-        const prompt = `Ти професійний український журналіст. Твоє завдання - переписати надану статтю у фірмовому стилі видання "IF News". Ми цінуємо динамічність, об'єктивність та влучні заголовки.
+        // Покращений промпт (синхронізовано з api/ai.js)
+        const prompt = `Ти професійний український журналіст видання "IF News". 
+Перепиши статтю, зберігаючи факти, але додаючи динаміки.
 
-Вимоги до результату:
-1. Залиш зміст повністю ідентичним оригіналу, не вигадуй нових фактів.
-2. Тон: Професійний, стриманий, але енергійний.
-3. Перший рядок має бути новим потужним заголовком (без символів #).
-4. Решта тексту - основний зміст статті.
-5. Використовуй HTML теги (p, h2, strong) для структурування.
+Вимоги:
+1. Перший рядок — новий заголовок (без знаків #).
+2. Далі — текст у форматі HTML (p, h2, strong).
+3. В кінці підпис: ПЕРЕПИСАНО ШІ.
 
 Оригінальний заголовок: ${currentTitle}
-Оригінальний текст публікації:
-${currentHtml.replace(/<[^>]*>/g, ' ')}`;
+Текст: ${currentHtml.replace(/<[^>]*>/g, ' ')}`;
 
         try {
             if (bar) bar.style.width = '30%';
@@ -544,9 +543,9 @@ ${currentHtml.replace(/<[^>]*>/g, ' ')}`;
                     body: JSON.stringify({ title: currentTitle, content: currentHtml })
                 });
 
-                const contentType = response.headers.get("content-type");
-                if (response.ok && contentType && contentType.includes("application/json")) {
-                    resultData = await response.json();
+                const data = await response.json().catch(() => ({}));
+                if (response.ok && data.title && data.content) {
+                    resultData = data;
                     console.log("AI result from Server Proxy");
                 }
             } catch (e) { console.warn("Server AI Proxy failed, trying direct call..."); }
@@ -557,29 +556,37 @@ ${currentHtml.replace(/<[^>]*>/g, ' ')}`;
                 const key = localStorage.getItem('gemini_api_key');
 
                 if (!key) {
-                    throw new Error("API ключ не знайдено. Будь ласка, додайте його в налаштуваннях (Settings) для локальної роботи.");
+                    throw new Error("Завантажте API ключ у налаштуваннях для прямої роботи.");
                 }
 
                 const payload = { contents: [{ parts: [{ text: prompt }] }] };
-                const models = ['gemini-3-flash', 'gemini-3-pro-preview', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-flash-8b', 'gemini-1.5-pro'];
-                const versions = ['v1beta', 'v1'];
+                const models = [
+                    'gemini-1.5-flash-latest',
+                    'gemini-1.5-flash',
+                    'gemini-1.5-pro-latest',
+                    'gemini-2.0-flash-exp',
+                    'gemini-3-flash'
+                ];
+                const versions = ['v1', 'v1beta'];
                 let finalData = null;
                 let clientErrors = [];
 
                 findModel: for (const model of models) {
                     for (const ver of versions) {
                         try {
-                            const response = await fetch(`https://generativelanguage.googleapis.com/${ver}/models/${model}:generateContent?key=${key}`, {
+                            const url = `https://generativelanguage.googleapis.com/${ver}/models/${model}:generateContent?key=${key}`;
+                            const response = await fetch(url, {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify(payload)
                             });
                             const data = await response.json();
-                            if (response.ok && !data.error) {
+                            if (response.ok && data.candidates?.[0]?.content?.parts?.[0]?.text) {
                                 finalData = data;
                                 break findModel;
                             }
-                            clientErrors.push(`${model}(${ver}): ${data.error?.message || "Connection error"}`);
+                            const errMsg = data.error?.message || response.statusText || "Unknown error";
+                            clientErrors.push(`${model}(${ver}): ${errMsg}`);
                         } catch (e) {
                             clientErrors.push(`${model}(${ver}): ${e.message}`);
                         }
@@ -587,28 +594,28 @@ ${currentHtml.replace(/<[^>]*>/g, ' ')}`;
                 }
 
                 if (!finalData) {
-                    throw new Error("Direct AI call failed: " + clientErrors.join(" | "));
+                    throw new Error("Всі моделі ШІ недоступні: " + clientErrors.slice(0, 3).join(" | ") + "...");
                 }
-                const data = finalData;
-                const aiText = data.candidates[0].content.parts[0].text;
+
+                const aiText = finalData.candidates[0].content.parts[0].text;
                 const lines = aiText.split('\n').filter(l => l.trim().length > 0);
 
                 let rewrittenTitle = currentTitle;
                 let bodyLines = lines;
                 if (lines.length > 0) {
-                    rewrittenTitle = lines[0].replace(/#/g, '').trim();
+                    rewrittenTitle = lines[0].replace(/[*#]/g, '').trim();
                     bodyLines = lines.slice(1);
                 }
 
                 let formattedBody = bodyLines.join('\n')
-                    .replace(/^# (.*$)/gim, '<h2>$1</h2>')
                     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
                     .replace(/\n\n/g, '</p><p>')
                     .replace(/\n/g, '<br>');
 
                 resultData = {
                     title: rewrittenTitle,
-                    content: (formattedBody.startsWith('<') ? formattedBody : '<p>' + formattedBody + '</p>') +
+                    content: (formattedBody.startsWith('<p') ? formattedBody : '<p>' + formattedBody + '</p>') +
                         `<p><br></p><hr><p><strong>Матеріал відредаговано за допомогою ШІ для "IF News".</strong></p>`
                 };
                 console.log("AI result from Direct Client call");
