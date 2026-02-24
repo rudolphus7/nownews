@@ -502,16 +502,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const currentHtml = quill.root.innerHTML;
         const currentTitle = titleInput.value;
 
-        if (currentHtml.length < 100) {
-            alert("⚠️ Текст занадто короткий для перепису. Спочатку завантажте або напишіть контент.");
+        if (currentHtml.length < 50 && currentTitle.length < 10) {
+            alert("⚠️ Текст занадто короткий. Спочатку введіть заголовок або контент.");
             return;
         }
 
-        if (!confirm("🧙 ШІ перепише статтю у нашому стилі. Продовжити?")) return;
+        if (!confirm("🧙 ШІ перепише статтю у фірмовому стилі IF News. Зміст залишиться незмінним. Продовжити?")) return;
 
         btn.disabled = true;
         const originalBtnText = btn.innerHTML;
-        btn.innerHTML = '<span>🪄</span> ШІ думає...';
+        btn.innerHTML = '<span>🪄</span> ШІ працює...';
 
         if (bar) {
             bar.classList.remove('hidden');
@@ -519,65 +519,37 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            const apiKey = localStorage.getItem('gemini_api_key');
-            if (!apiKey) {
-                alert("⚠️ Не знайдено API ключ Gemini. Будь ласка, додайте його в налаштуваннях.");
-                window.showSection('section-settings');
-                return;
-            }
-
-            console.log("AI Rewrite triggered with Gemini API...");
             if (bar) bar.style.width = '40%';
 
-            const prompt = `Ти професійний український журналіст. Перепиши наступну новину у стилі видання "IF News". 
-            Вимоги:
-            1. Професійний, стриманий, але динамічний тон.
-            2. Збережи всі важливі факти та цифри.
-            3. Додай влучний та потужний заголовок на початку (перший рядок).
-            4. Використовуй HTML теги для структурування (p, h2, strong).
-            5. Додай логічний висновок або підсумок.
-            
-            Текст для обробки: ${currentTitle}\n\n${currentHtml.replace(/<[^>]*>/g, ' ')}`;
-
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
+            const response = await fetch('/api/ai', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    contents: [{ parts: [{ text: prompt }] }]
+                    title: currentTitle,
+                    content: currentHtml
                 })
             });
 
-            if (bar) bar.style.width = '80%';
+            if (bar) bar.style.width = '70%';
             const data = await response.json();
 
-            if (data.error) throw new Error(data.error.message);
-
-            const aiText = data.candidates[0].content.parts[0].text;
-
-            // Extract the first line as the potential new title
-            const lines = aiText.split('\n').filter(l => l.trim().length > 0);
-            let newTitle = currentTitle;
-            let bodyContent = aiText;
-
-            if (lines.length > 1) {
-                newTitle = lines[0].replace(/#/g, '').trim();
-                bodyContent = lines.slice(1).join('\n');
-            }
+            if (data.error) throw new Error(data.error);
 
             if (bar) bar.style.width = '100%';
 
-            const signature = `<p><br></p><p><strong>Стаття підготовлена редакцією "IF News"</strong>.</p>`;
+            // Оновлюємо заголовок та контент
+            titleInput.value = data.title;
+            quill.clipboard.dangerouslyPasteHTML(data.content);
 
-            titleInput.value = newTitle;
-            quill.clipboard.dangerouslyPasteHTML(bodyContent + signature);
-
-            // Re-detect category and SEO
-            document.getElementById('category').value = autoTagArticle(bodyContent, newTitle);
+            // Автоматично оновлюємо теги та SEO
+            document.getElementById('category').value = autoTagArticle(data.content, data.title);
             updateSEO();
+
+            alert("✨ Статтю успішно переписано ШІ!");
 
         } catch (e) {
             console.error("AI Error:", e);
-            alert("❌ Помилка ШІ: " + e.message);
+            alert("❌ Помилка: " + e.message);
         } finally {
             btn.disabled = false;
             btn.innerHTML = originalBtnText;
@@ -607,8 +579,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function loadAIConfig() {
         const key = localStorage.getItem('gemini_api_key');
-        if (key && document.getElementById('gemini-api-key')) {
-            document.getElementById('gemini-api-key').value = key;
+        const input = document.getElementById('gemini-api-key');
+        if (input) {
+            if (key) {
+                input.value = key;
+            } else {
+                input.placeholder = "Ключ встановлено системою (Gemini 2.0 Flash)";
+            }
         }
     }
     // Initialize AI config after some delay to ensure DOM is ready
