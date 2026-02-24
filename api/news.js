@@ -16,6 +16,7 @@ module.exports = async (req, res) => {
 
     console.log('SSR Request:', { url: req.url, slug, id });
 
+    let htmlContent = '';
     try {
         // У Vercel файли знаходяться у корені проекту, доступному через __dirname або process.cwd()
         const possiblePaths = [
