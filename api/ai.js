@@ -31,32 +31,51 @@ ${content.replace(/<[^>]*>/g, ' ')}
 
     async function tryGemini(version, model, key, payload) {
         const url = `https://generativelanguage.googleapis.com/${version}/models/${model}:generateContent?key=${key}`;
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        return response;
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            return response;
+        } catch (e) {
+            return { ok: false, statusText: e.message };
+        }
     }
 
     try {
-        let response = await tryGemini('v1beta', 'gemini-1.5-flash-latest', GEMINI_API_KEY, {
-            contents: [{ parts: [{ text: prompt }] }]
-        });
+        const models = ['gemini-1.5-flash', 'gemini-1.5-flash-8b', 'gemini-pro'];
+        const versions = ['v1beta', 'v1'];
+        let lastError = "Could not find any working AI model";
+        let successResponse = null;
 
-        if (!response.ok) {
-            console.log("v1beta failed, trying v1...");
-            response = await tryGemini('v1', 'gemini-1.5-flash-latest', GEMINI_API_KEY, {
-                contents: [{ parts: [{ text: prompt }] }]
-            });
+        mainLoop: for (const model of models) {
+            for (const ver of versions) {
+                console.log(`Trying ${model} via ${ver}...`);
+                const response = await tryGemini(ver, model, GEMINI_API_KEY, {
+                    contents: [{ parts: [{ text: prompt }] }]
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (!data.error) {
+                        successResponse = data;
+                        break mainLoop;
+                    } else {
+                        lastError = data.error.message;
+                    }
+                } else {
+                    const errData = await response.json().catch(() => ({}));
+                    lastError = errData.error?.message || response.statusText;
+                }
+            }
         }
 
-        const data = await response.json();
-
-        if (data.error) {
-            console.error('Gemini API Error:', data.error);
-            return res.status(500).json({ error: data.error.message || "AI Model error" });
+        if (!successResponse) {
+            return res.status(500).json({ error: lastError });
         }
+
+        const data = successResponse;
 
         const aiText = data.candidates[0].content.parts[0].text;
 
