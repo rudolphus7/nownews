@@ -1,0 +1,43 @@
+/* Shared Header Styles */
+.ticker-mask {
+    mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+}
+
+.ticker-animate {
+    display: inline-block;
+    white-space: nowrap;
+    animation: ticker 45s linear infinite;
+    cursor: pointer;
+    padding-left: 2rem;
+}
+
+.ticker-animate:hover {
+    animation-play-state: paused;
+}
+
+@keyframes ticker {
+    0% {
+        transform: translateX(100vw);
+    }
+    100% {
+        transform: translateX(-100%);
+    }
+}
+
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.news-image-scale {
+    transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.news-list-item:hover .news-image-scale {
+    transform: scale(1.05);
+}
