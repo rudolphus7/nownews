@@ -285,17 +285,17 @@
                         </div>
                         <h3 class="text-2xl font-black mb-8 relative">Як вам цей матеріал?</h3>
                         <div class="flex gap-4 relative">
-                            <button onclick="handleReaction('like')"
+                            <button onclick="handleReaction(event, 'like')"
                                 class="reaction-btn bg-white/10 hover:bg-white/20 px-6 py-4 rounded-2xl flex flex-col items-center transition min-w-[100px]">
                                 <span class="text-3xl mb-2">👍</span>
                                 <span id="count-like" class="text-xs font-bold font-mono">0</span>
                             </button>
-                            <button onclick="handleReaction('fire')"
+                            <button onclick="handleReaction(event, 'fire')"
                                 class="reaction-btn bg-white/10 hover:bg-white/20 px-6 py-4 rounded-2xl flex flex-col items-center transition min-w-[100px]">
                                 <span class="text-3xl mb-2">🔥</span>
                                 <span id="count-fire" class="text-xs font-bold font-mono">0</span>
                             </button>
-                            <button onclick="handleReaction('wow')"
+                            <button onclick="handleReaction(event, 'wow')"
                                 class="reaction-btn bg-white/10 hover:bg-white/20 px-6 py-4 rounded-2xl flex flex-col items-center transition min-w-[100px]">
                                 <span class="text-3xl mb-2">😮</span>
                                 <span id="count-wow" class="text-xs font-bold font-mono">0</span>
@@ -540,6 +540,8 @@
 
                 fillUI(data);
                 loadRelated(data.category, data.id);
+                loadReactions(data.id);
+                subscribeToReactions(data.id);
 
                 document.getElementById('loader').classList.add('hidden');
                 document.getElementById('news-content').classList.remove('hidden');
@@ -652,8 +654,33 @@
             if (shareUrl) window.open(shareUrl, '_blank');
         };
 
-        window.handleReaction = async (type) => {
-            const btn = event.currentTarget;
+        async function loadReactions(id) {
+            try {
+                const { data, error } = await _supabase.from('news').select('likes, fire, wow').eq('id', id).single();
+                if (error) throw error;
+                if (data) {
+                    document.getElementById('count-like').innerText = data.likes || 0;
+                    document.getElementById('count-fire').innerText = data.fire || 0;
+                    document.getElementById('count-wow').innerText = data.wow || 0;
+                }
+            } catch (e) { console.warn("Reactions load error:", e); }
+        }
+
+        function subscribeToReactions(id) {
+            _supabase.channel(`news-reactions-${id}`)
+                .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'news', filter: `id=eq.${id}` }, payload => {
+                    const data = payload.new;
+                    if (data) {
+                        document.getElementById('count-like').innerText = data.likes || 0;
+                        document.getElementById('count-fire').innerText = data.fire || 0;
+                        document.getElementById('count-wow').innerText = data.wow || 0;
+                    }
+                })
+                .subscribe();
+        }
+
+        window.handleReaction = async (e, type) => {
+            const btn = e.currentTarget;
             btn.style.transform = 'scale(0.9)';
             setTimeout(() => btn.style.transform = '', 100);
 
@@ -661,43 +688,35 @@
             const storageKey = `reacted_${currentPost.id}_${type}`;
 
             if (localStorage.getItem(storageKey)) {
-                // Shake effect if already reacted
                 btn.classList.add('animate-shake');
                 setTimeout(() => btn.classList.remove('animate-shake'), 400);
                 return;
             }
 
             try {
-                // Use RPC for atomic increment
                 const { error } = await _supabase.rpc('increment_reaction', {
                     post_id: currentPost.id,
                     reaction_type: dbField
                 });
 
                 if (error) {
-                    // Fallback to fetch-and-update if RPC doesn't exist
-                    const { data: currentData, error: fetchError } = await _supabase.from('news').select(dbField).eq('id', currentPost.id).single();
-                    if (!fetchError && currentData) {
-                        await _supabase.from('news').update({ [dbField]: (currentData[dbField] || 0) + 1 }).eq('id', currentPost.id);
-                    } else {
-                        throw new Error("Missing reaction columns in database. Please run supabase_setup.sql");
+                    console.warn("RPC failed, falling back to manual update", error);
+                    const { data: cur, error: fErr } = await _supabase.from('news').select(dbField).eq('id', currentPost.id).single();
+                    if (!fErr && cur) {
+                        await _supabase.from('news').update({ [dbField]: (cur[dbField] || 0) + 1 }).eq('id', currentPost.id);
                     }
                 }
 
                 localStorage.setItem(storageKey, 'true');
-                // No need to call loadReactions here, as the views are updated by RPC
-                // and the reaction counts are not immediately visible on the page.
-                // If they were, we'd need to fetch them again.
-                // For now, we'll just update the local count for visual feedback.
 
-                // Pop effect
+                // Visual feedback
                 const countElem = document.getElementById(`count-${type}`);
-                countElem.classList.add('scale-150', 'text-orange-500');
-                setTimeout(() => countElem.classList.remove('scale-150', 'text-orange-500'), 300);
-
-            } catch (err) {
-                console.error("Reaction error:", err);
-            }
+                if (countElem) {
+                    countElem.innerText = parseInt(countElem.innerText) + 1;
+                    countElem.classList.add('scale-150', 'text-orange-500');
+                    setTimeout(() => countElem.classList.remove('scale-150', 'text-orange-500'), 300);
+                }
+            } catch (err) { console.error("Reaction error:", err); }
         };
 
         // ── META TAG HELPERS ────────────────────────────────────────────
