@@ -18,7 +18,7 @@
         },
         {
             "source": "/news",
-            "destination": "/index.html"
+            "destination": "/news.html"
         }
     ]
 }

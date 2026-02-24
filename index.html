@@ -200,17 +200,13 @@
             'war': 'Війна'
         };
 
-        let CITIES_UK = {
-            'kalush': 'Калуш',
-            'if': 'Івано-Франківськ',
-            'kolomyya': 'Коломия',
-            'dolyna': 'Долина',
-            'bolekhiv': 'Болехів',
-            'nadvirna': 'Надвірна',
-            'burshtyn': 'Бурштин',
-            'kosiv': 'Косів',
-            'yaremche': 'Яремче'
         };
+
+        const isLocal = window.location.hostname === 'localhost' || window.location.hostname.includes('192.168.');
+        function getNewsLink(post) {
+            if (isLocal) return post.slug ? `/news.html?slug=${post.slug}` : `/news.html?id=${post.id}`;
+            return post.slug ? `/news/${post.slug}` : `/news?id=${post.id}`;
+        }
 
         const PAGE_SIZE = 8;
         let currentPage = 0;
@@ -318,7 +314,7 @@
         }
 
         function renderHero(hero) {
-            const heroLink = hero.slug ? `/news/${hero.slug}` : `/news?id=${hero.id}`;
+            const heroLink = getNewsLink(hero);
             const heroBait = `<span class="bait-highlight" onclick="window.location.href='${heroLink}'">Читати далі...</span>`;
 
             document.getElementById('hero-container').innerHTML = `
@@ -351,7 +347,7 @@
             grid.className = "flex flex-col gap-3 md:gap-10 max-w-full";
 
             const html = posts.map((post, i) => {
-                const link = post.slug ? `/news/${post.slug}` : `/news?id=${post.id}`;
+                const link = getNewsLink(post);
 
                 return `
                 <a href="${link}" class="news-list-item group flex flex-col sm:flex-row gap-6 md:gap-10 items-start border-b border-slate-100 pb-8 md:pb-12 last:border-0 animate-in fade-in slide-in-from-bottom-4 duration-700 hover:bg-white/50 -mx-4 px-4 rounded-3xl transition-all" style="animation-delay: ${i * 0.05}s">
@@ -389,7 +385,7 @@
             const { data } = await _supabase.from('news').select('id, title, slug, image_url, views, category, meta_description').eq('is_published', true).order('views', { ascending: false }).limit(6);
             if (data) {
                 document.getElementById('trending-list').innerHTML = data.map(post => {
-                    const link = post.slug ? `/news/${post.slug}` : `/news?id=${post.id}`;
+                    const link = getNewsLink(post);
                     return `
                     <a href="${link}" class="trending-item group flex gap-5 border-b border-slate-100 pb-5 mb-5 last:border-0 last:mb-0 p-3 -mx-3 rounded-2xl hover:bg-white hover:shadow-xl transition-all duration-300">
                         <div class="w-24 h-24 flex-shrink-0 rounded-2xl overflow-hidden relative bg-slate-100 shadow-sm">
