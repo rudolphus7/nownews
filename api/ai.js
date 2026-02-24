@@ -29,20 +29,33 @@ ${content.replace(/<[^>]*>/g, ' ')}
 ЗАГОЛОВОК
 Текст у форматі HTML`;
 
-    try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+    async function tryGemini(version, model, key, payload) {
+        const url = `https://generativelanguage.googleapis.com/${version}/models/${model}:generateContent?key=${key}`;
+        const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }]
-            })
+            body: JSON.stringify(payload)
         });
+        return response;
+    }
+
+    try {
+        let response = await tryGemini('v1beta', 'gemini-1.5-flash-latest', GEMINI_API_KEY, {
+            contents: [{ parts: [{ text: prompt }] }]
+        });
+
+        if (!response.ok) {
+            console.log("v1beta failed, trying v1...");
+            response = await tryGemini('v1', 'gemini-1.5-flash-latest', GEMINI_API_KEY, {
+                contents: [{ parts: [{ text: prompt }] }]
+            });
+        }
 
         const data = await response.json();
 
         if (data.error) {
             console.error('Gemini API Error:', data.error);
-            return res.status(500).json({ error: data.error.message });
+            return res.status(500).json({ error: data.error.message || "AI Model error" });
         }
 
         const aiText = data.candidates[0].content.parts[0].text;

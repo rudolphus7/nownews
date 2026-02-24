@@ -560,13 +560,25 @@ ${currentHtml.replace(/<[^>]*>/g, ' ')}`;
                     throw new Error("API ключ не знайдено. Будь ласка, додайте його в налаштуваннях (Settings) для локальної роботи.");
                 }
 
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${key}`, {
+                const payload = { contents: [{ parts: [{ text: prompt }] }] };
+                let response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${key}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                    body: JSON.stringify(payload)
                 });
 
-                const data = await response.json();
+                let data = await response.json();
+
+                if (data.error && (data.error.message.includes("not found") || data.error.code === 404)) {
+                    console.log("v1beta not found, trying v1...");
+                    response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-latest:generateContent?key=${key}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    data = await response.json();
+                }
+
                 if (data.error) throw new Error(data.error.message);
 
                 const aiText = data.candidates[0].content.parts[0].text;
