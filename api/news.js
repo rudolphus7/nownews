@@ -7,14 +7,14 @@ const SITE_URL = process.env.SITE_URL || 'https://ifnews-omega.vercel.app';
 
 module.exports = async (req, res) => {
     // slug може прийти як /news/:slug через rewrite або як ?slug= query param
-    const { slug, id } = req.query;
+    let slug = req.query.slug;
+    let id = req.query.id;
 
-    console.log('SSR Request:', {
-        url: req.url,
-        query: req.query,
-        slug,
-        id
-    });
+    // Якщо прийшов масив (наприклад, через декілька параметрів), беремо перший елемент
+    if (Array.isArray(slug)) slug = slug[0];
+    if (Array.isArray(id)) id = id[0];
+
+    console.log('SSR Request:', { url: req.url, slug, id });
 
     let htmlContent = '';
     try {
