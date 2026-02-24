@@ -20,9 +20,9 @@ module.exports = async (req, res) => {
     try {
         // У Vercel файли знаходяться у корені проекту, доступному через __dirname або process.cwd()
         const possiblePaths = [
-            path.join(process.cwd(), 'news.html'),
-            path.join(__dirname, '..', 'news.html'),
-            path.join(__dirname, 'news.html')
+            path.join(process.cwd(), 'article.html'),
+            path.join(__dirname, '..', 'article.html'),
+            path.join(__dirname, 'article.html')
         ];
 
         for (const p of possiblePaths) {
