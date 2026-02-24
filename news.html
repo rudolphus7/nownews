@@ -380,24 +380,42 @@
 
         // ── URL HELPERS ─────────────────────────────────────────────────
         function getSlugFromUrl() {
-            // Priority 0: SSR Data
-            if (window.__SSR_SLUG__) return window.__SSR_SLUG__;
+            const ssrSlug = window.__SSR_SLUG__;
+            if (ssrSlug && ssrSlug !== 'undefined' && ssrSlug !== '') {
+                console.log("Found SSR Slug:", ssrSlug);
+                return ssrSlug;
+            }
 
-            // Priority 1: Path /news/my-slug
-            const pathMatch = window.location.pathname.match(/\/news\/([^/?#]+)/);
-            if (pathMatch && pathMatch[1]) return decodeURIComponent(pathMatch[1]);
+            // Надійніший regex для шляху
+            const path = window.location.pathname;
+            console.log("Current Pathname:", path);
+            const pathMatch = path.match(/\/news\/([^/?#]+)/i) || path.match(/^\/([^/?#]+)$/i);
 
-            // Priority 2: Query param
+            if (pathMatch && pathMatch[1] && pathMatch[1] !== 'news.html' && pathMatch[1] !== 'news') {
+                const s = decodeURIComponent(pathMatch[1]);
+                console.log("Found Path Slug:", s);
+                return s;
+            }
+
             const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('slug')) return urlParams.get('slug');
+            const qSlug = urlParams.get('slug');
+            if (qSlug) {
+                console.log("Found Query Slug:", qSlug);
+                return qSlug;
+            }
 
             return null;
         }
 
         function getIdFromUrl() {
-            if (window.__SSR_ID__ && window.__SSR_ID__ !== 'undefined') return window.__SSR_ID__;
+            if (window.__SSR_ID__ && window.__SSR_ID__ !== 'undefined' && window.__SSR_ID__ !== '') {
+                console.log("Found SSR ID:", window.__SSR_ID__);
+                return window.__SSR_ID__;
+            }
             const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get('id');
+            const qId = urlParams.get('id');
+            if (qId) console.log("Found Query ID:", qId);
+            return qId;
         }
 
         function buildNewsUrl(post) {
@@ -474,26 +492,40 @@
 
         // ── Content ─────────────────────────────────────────────────────
         async function loadFullNews() {
+            console.log("Starting loadFullNews...");
             const slug = getSlugFromUrl();
             const id = getIdFromUrl();
 
+            console.log("Detected keys:", { slug, id });
+
             if (!slug && !id) {
+                console.warn("No slug or ID found!");
                 const loader = document.getElementById('loader');
                 if (loader) loader.innerHTML = `<div class="text-center py-20 text-slate-600 italic">Оберіть новину на <a href="/" class="text-orange-600 underline font-bold">головній сторінці</a>.</div>`;
                 return;
             }
 
             try {
+                console.log("Fetching from Supabase...");
                 let query = _supabase.from('news').select('*');
                 if (slug) query = query.eq('slug', slug);
                 else query = query.eq('id', id);
 
                 const { data, error } = await query.single();
-                if (error || !data) {
+
+                if (error) {
+                    console.error("Supabase error:", error);
+                    document.getElementById('loader').innerHTML = `<div class="text-center py-20 text-red-500 font-bold uppercase tracking-widest">Помилка бази даних: ${error.message}</div>`;
+                    return;
+                }
+
+                if (!data) {
+                    console.warn("No data returned for this slug/id");
                     document.getElementById('loader').innerHTML = `<div class="text-center py-20 text-slate-400 font-bold uppercase tracking-widest">Статтю не знайдено</div>`;
                     return;
                 }
 
+                console.log("Article data received:", data.title);
                 currentPost = data;
                 document.title = `${data.title} | IF News`;
 
