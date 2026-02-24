@@ -138,7 +138,7 @@
                 </div>
             </a>
             <!-- Navigation -->
-            <nav
+            <nav id="desktop-nav"
                 class="hidden md:flex items-center gap-6 text-[12px] font-black uppercase tracking-wider text-slate-600">
                 <!-- Dynamic categories will be injected here -->
                 <div class="flex items-center ml-4">
@@ -477,7 +477,7 @@
         }
 
         function renderDynamicNav(categories) {
-            const nav = document.querySelector('nav div.hidden.md\\:flex');
+            const nav = document.getElementById('desktop-nav');
             const mobileNav = document.getElementById('mobile-nav-list');
             const liveHtml = `
                 <div class="flex items-center ml-4">
