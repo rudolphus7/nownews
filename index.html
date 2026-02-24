@@ -29,8 +29,14 @@
         h3,
         h4 {
             font-family: 'Inter', sans-serif;
-            letter-spacing: -0.04em;
-            font-weight: 900;
+            letter-spacing: -0.02em;
+            font-weight: 800;
+            line-height: 1.2;
+        }
+
+        .text-editorial {
+            letter-spacing: -0.02em;
+            line-height: 1.5;
         }
 
         .logo-font {
@@ -102,10 +108,41 @@
             }
         }
 
+        .trending-item {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .trending-item:hover {
+            background-color: white;
+            transform: scale(1.02);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05);
+        }
+
         /* Ticker Mask for smooth fade */
         .ticker-mask {
             mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
             -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+        }
+
+        .news-list-item {
+            transition: all 0.3s ease;
+        }
+
+        .news-list-item:hover .news-image-scale {
+            transform: scale(1.05);
+        }
+
+        .news-list-item:hover h3 {
+            color: #ea580c;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
     </style>
 </head>
@@ -128,14 +165,18 @@
 
     <header class="bg-white/95 backdrop-blur-xl sticky top-0 z-[100] border-b border-slate-100">
         <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-            <a href="index.html" class="flex items-center space-x-3 group">
-                <span
-                    class="bg-orange-600 text-white p-2.5 rounded-xl font-black text-2xl italic tracking-tighter shadow-xl shadow-orange-200 group-hover:rotate-3 transition-transform">IF</span>
+            <a href="index.html" class="flex items-center space-x-4 group">
+                <div class="relative">
+                    <span
+                        class="bg-orange-600 text-white w-12 h-12 flex items-center justify-center rounded-2xl font-black text-2xl italic tracking-tighter shadow-2xl shadow-orange-200 group-hover:rotate-6 transition-transform duration-500">IF</span>
+                    <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-slate-900 border-2 border-white rounded-full">
+                    </div>
+                </div>
                 <div class="leading-none text-left">
-                    <span class="text-2xl font-black uppercase tracking-tighter text-slate-900 block mt-1">Прикарпаття
-                        <span class="text-orange-600">News</span></span>
-                    <span class="text-[9px] font-black uppercase tracking-[0.3em] text-slate-400">Перше незалежне
-                        медіа</span>
+                    <span class="text-2xl font-black uppercase tracking-tighter text-slate-900 block">Прикарпаття <span
+                            class="text-orange-600">News</span></span>
+                    <span class="text-[9px] font-black uppercase tracking-[0.4em] text-slate-400 opacity-80">Незалежна
+                        журналістика</span>
                 </div>
             </a>
             <!-- Navigation -->
@@ -215,10 +256,10 @@
         </div>
     </div>
 
-    <main class="container mx-auto px-4 py-12 max-w-7xl">
+    <main class="container mx-auto px-4 py-6 md:py-12 max-w-7xl">
         <!-- Section Header (Only for filters) -->
-        <div id="section-header" class="hidden mb-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <div class="mb-8 flex items-center gap-4">
+        <div id="section-header" class="hidden mb-6 md:mb-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <div class="mb-4 md:mb-8 flex items-center gap-4">
                 <a href="index.html"
                     class="bg-white p-3 rounded-2xl shadow-sm border border-slate-100 hover:bg-slate-50 transition">
                     <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -234,17 +275,18 @@
         </div>
 
         <!-- Hero Section Upgrade -->
-        <div id="hero-container" class="mb-20">
+        <div id="hero-container" class="mb-8 md:mb-20">
             <div class="animate-pulse bg-slate-200 h-[600px] rounded-[3rem]"></div>
         </div>
 
-        <div class="flex flex-col lg:flex-row gap-16">
+        <div class="flex flex-col lg:flex-row gap-8 lg:gap-16">
             <!-- Feed Column -->
             <div class="lg:w-2/3">
-                <div class="flex items-center justify-between mb-12">
-                    <h2 class="text-4xl font-black text-slate-900 flex items-center tracking-tighter italic">
+                <div class="flex items-center justify-between mb-6 md:mb-12">
+                    <h2
+                        class="text-2xl md:text-4xl font-black text-slate-900 flex items-center tracking-tighter italic">
                         <span
-                            class="w-2.5 h-10 bg-orange-600 rounded-full mr-5 shadow-lg shadow-orange-200"></span>Свіжий
+                            class="w-1.5 h-6 md:w-2.5 md:h-10 bg-orange-600 rounded-full mr-3 md:mr-5 shadow-lg shadow-orange-200"></span>Свіжий
                         потік
                     </h2>
                     <div class="flex space-x-2">
@@ -378,7 +420,7 @@
             'yaremche': 'Яремче'
         };
 
-        const PAGE_SIZE = 6;
+        const PAGE_SIZE = 8;
         let currentPage = 0;
         let currentFilters = {};
 
@@ -464,7 +506,7 @@
             if (mobileNav) {
                 mobileNav.innerHTML = categories.map(c => `
                     <a href="index.html?category=${c.slug}" class="py-2 active:text-orange-600 border-b border-slate-50">${c.name}</a>
-                `).join('') + `<a href="#" class="text-orange-600 mt-4 font-black">LIVE • РЕПОРТАЖІ</a>`;
+                `).join('') + `<a href="#" class="text-orange-600 mt-4 font-bold">LIVE • РЕПОРТАЖІ</a>`;
             }
             bindFastNavigation();
         }
@@ -475,7 +517,7 @@
             if (!cityContainer) return;
 
             let html = `
-                <span class="text-slate-900 font-black flex items-center shrink-0"><span class="w-1 h-3 bg-orange-600 mr-2"></span> МІСТА:</span>
+                <span class="text-slate-900 font-bold flex items-center shrink-0"><span class="w-1 h-3 bg-orange-600 mr-2"></span> МІСТА:</span>
                 ${cities.map(c => `
                     <a href="index.html?city=${c.slug}" class="hover:text-orange-600 transition-colors">${c.name}</a>
                 `).join('')}
@@ -588,7 +630,7 @@
                         const link = `news.html#${new URLSearchParams({ slug: n.slug || '', id: n.id }).toString()}`;
                         return `<a href="${link}" class="hover:text-orange-500 transition-colors mx-4">${n.title}</a>`;
                     });
-                    const separator = `<span class="text-orange-600 font-black px-2 mx-2">/</span>`;
+                    const separator = `<span class="text-orange-600 font-bold px-2 mx-2">/</span>`;
                     document.getElementById('news-ticker').innerHTML = tickerItems.join(separator);
 
                     if (data.length > 0) {
@@ -619,25 +661,24 @@
 
         function renderHero(hero) {
             const heroLink = `news.html#${new URLSearchParams({ slug: hero.slug || '', id: hero.id }).toString()}`;
-            const heroBait = `<span class="bait-highlight" onclick="window.location.href='${heroLink}'">Читайте подробиці.</span>`;
+            const heroBait = `<span class="bait-highlight" onclick="window.location.href='${heroLink}'">Читати далі...</span>`;
 
             document.getElementById('hero-container').innerHTML = `
-                <a href="${heroLink}" class="relative group block overflow-hidden rounded-[3rem] shadow-2xl h-[550px] md:h-[700px] border-8 border-white">
-                    <img src="${hero.image_url}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110">
+                <a href="${heroLink}" class="relative group block overflow-hidden rounded-[2.5rem] shadow-2xl h-[450px] md:h-[600px] border-4 border-white bg-slate-100">
+                    <img src="${hero.image_url}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-[1.5s] group-hover:scale-110">
                     <div class="absolute inset-0 hero-gradient"></div>
-                    <div class="absolute top-10 left-10 flex flex-wrap gap-3 z-10">
-                        <div class="flex items-center gap-1.5 bg-orange-50 text-orange-600 border border-orange-100 px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-sm">
-                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                             ${CITIES_UK[hero.city] || (hero.city ? hero.city.toUpperCase() : 'ОБЛАСТЬ')}
+                    
+                    <div class="absolute inset-0 p-8 md:p-16 flex flex-col justify-end">
+                        <div class="flex flex-wrap gap-2 mb-6 animate-in fade-in slide-in-from-left-4 duration-700">
+                            <div class="flex items-center gap-1.5 bg-orange-600 text-white px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest shadow-xl">
+                                 ${CITIES_UK[hero.city] || 'ОБЛАСТЬ'}
+                            </div>
+                            <div class="bg-white/20 backdrop-blur-md text-white border border-white/20 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest">
+                                ${CATEGORIES_UK[hero.category] || 'НОВИНИ'}
+                            </div>
                         </div>
-                        <div class="bg-indigo-50 text-indigo-600 border border-indigo-100 px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-sm">
-                            ${CATEGORIES_UK[hero.category] || (hero.category ? hero.category.toUpperCase() : 'НОВИНИ')}
-                        </div>
-                        ${(hero.tags || []).slice(0, 1).map(t => `<div class="bg-slate-50 text-slate-500 border border-slate-100 px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-sm">#${t.toUpperCase()}</div>`).join('')}
-                    </div>
-                    <div class="absolute bottom-0 left-0 p-10 md:p-20 w-full lg:w-4/5">
-                        <h1 class="text-4xl md:text-7xl text-white font-black leading-[1] mb-8 italic tracking-tighter drop-shadow-2xl">${hero.title}</h1>
-                        <p class="text-slate-200 text-lg md:text-xl line-clamp-2 max-w-3xl font-medium opacity-90 leading-relaxed">
+                        <h1 class="text-2xl md:text-5xl lg:text-7xl text-white font-extrabold leading-[1.1] mb-4 md:mb-6 tracking-tighter drop-shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">${hero.title}</h1>
+                        <p class="text-slate-200 text-sm md:text-lg line-clamp-2 max-w-2xl font-medium opacity-90 leading-relaxed animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
                             ${hero.meta_description} ${heroBait}
                         </p>
                     </div>
@@ -646,58 +687,34 @@
 
         function renderGrid(posts, append = false) {
             const grid = document.getElementById('news-grid');
-            const isFiltered = currentFilters.category || currentFilters.city;
 
-            if (isFiltered) {
-                grid.className = "flex flex-col gap-10 max-w-5xl mx-auto";
-            } else {
-                grid.className = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10";
-            }
+            // Professional List Style for both Grid and Filtered views
+            grid.className = "flex flex-col gap-3 md:gap-10 max-w-full";
 
             const html = posts.map((post, i) => {
                 const link = `news.html#${new URLSearchParams({ slug: post.slug || '', id: post.id }).toString()}`;
 
-                if (isFiltered) {
-                    // Vertical List Style (Screen 1 request)
-                    return `
-                    <a href="${link}" class="group flex flex-col md:flex-row gap-8 items-start animate-in fade-in slide-in-from-bottom-4 duration-700" style="animation-delay: ${i * 0.1}s">
-                        <div class="relative w-full md:w-80 h-60 rounded-3xl overflow-hidden flex-shrink-0 shadow-lg">
-                            <img src="${post.image_url}" class="w-full h-full object-cover grayscale transition-all duration-700 group-hover:grayscale-0 group-hover:scale-110">
-                            <div class="absolute bottom-4 right-4 bg-black/60 backdrop-blur px-3 py-1 rounded-xl text-[9px] font-black text-white">👁️ ${post.views || 0}</div>
-                        </div>
-                        <div class="flex-grow pt-2">
-                             <div class="flex flex-wrap gap-2 mb-4">
-                                <span class="bg-orange-50 text-orange-600 text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-lg border border-orange-100">${(CITIES_UK[post.city] || post.city || 'Область').toUpperCase()}</span>
-                                <span class="bg-indigo-50 text-indigo-600 text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-lg border border-indigo-100">${(CATEGORIES_UK[post.category] || post.category || 'Новини').toUpperCase()}</span>
-                             </div>
-                             <h3 class="text-2xl md:text-3xl font-black leading-tight mb-4 text-slate-900 group-hover:text-orange-600 transition-colors tracking-tight italic">${post.title}</h3>
-                             <p class="text-slate-500 text-lg line-clamp-2 leading-relaxed mb-6 font-medium">${post.meta_description}</p>
-                             <div class="flex items-center gap-2 text-slate-400 font-black text-[10px] uppercase tracking-widest group-hover:text-orange-600 transition-colors">
-                                 Читати далі 
-                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
-                             </div>
-                        </div>
-                    </a>`;
-                }
-
-                // Default Grid Style
                 return `
-                <a href="${link}" class="post-card bg-white rounded-[2.5rem] p-4 md:p-5 shadow-sm hover:shadow-2xl transition-all border border-slate-100 group block" style="animation-delay: ${i * 0.1}s">
-                    <div class="relative overflow-hidden rounded-[2rem] h-60 md:h-64 mb-6 md:mb-8">
-                        <img src="${post.image_url}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 group-hover:rotate-1">
-                        <div class="absolute top-4 left-4 flex flex-wrap gap-2">
-                             ${post.city ? `<div class="bg-white/95 backdrop-blur px-3 py-1 rounded-xl text-[9px] font-black uppercase text-orange-600 tracking-widest shadow-sm">${CITIES_UK[post.city] || post.city.toUpperCase()}</div>` : ''}
-                             <div class="bg-indigo-600 px-3 py-1 rounded-xl text-[9px] font-black uppercase text-white tracking-widest shadow-sm">${CATEGORIES_UK[post.category] || post.category.toUpperCase()}</div>
+                <a href="${link}" class="news-list-item group flex flex-col sm:flex-row gap-3 md:gap-10 items-start border-b border-slate-100 pb-3 md:pb-10 last:border-0 animate-in fade-in slide-in-from-bottom-4 duration-700" style="animation-delay: ${i * 0.05}s">
+                    <div class="relative w-full sm:w-64 md:w-80 h-48 md:h-56 rounded-[2rem] overflow-hidden flex-shrink-0 bg-slate-100">
+                        <img src="${post.image_url}" class="news-image-scale w-full h-full object-cover transition-all duration-700 grayscale-[0.3] group-hover:grayscale-0">
+                        <div class="absolute bottom-3 right-3 bg-black/40 backdrop-blur-md px-2 py-0.5 rounded-lg text-[8px] font-black text-white tracking-widest">👁️ ${post.views || 0}</div>
+                        <div class="absolute top-3 left-3 flex flex-wrap gap-1.5">
+                            <span class="bg-white/90 backdrop-blur px-2.5 py-1 rounded-lg text-[8px] font-black text-orange-600 uppercase tracking-widest shadow-sm">${(CITIES_UK[post.city] || post.city || 'Область').toUpperCase()}</span>
                         </div>
-                        <div class="absolute bottom-4 right-4 bg-black/60 backdrop-blur px-3 py-1 rounded-xl text-[9px] font-black text-white tracking-widest shadow-xl">👁️ ${post.views || 0}</div>
                     </div>
-                    <div class="px-2">
-                        <div class="flex flex-wrap gap-2 mb-4">
-                            ${(post.tags || []).slice(0, 2).map(t => `<span class="bg-slate-50 text-slate-400 text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-lg border border-slate-100">#${t}</span>`).join('')}
-                        </div>
-                        <h3 class="text-xl md:text-2xl font-black leading-tight mb-4 text-slate-900 group-hover:text-orange-600 transition-colors tracking-tighter">${post.title}</h3>
-                        <p class="text-slate-500 text-sm line-clamp-2 leading-relaxed mb-4">${post.meta_description}</p>
-                        <div class="w-1/4 h-1 bg-slate-50 group-hover:w-full group-hover:bg-orange-600 transition-all duration-500 rounded-full"></div>
+                    <div class="flex-grow pt-1">
+                         <div class="flex items-center gap-3 mb-3">
+                            <span class="text-[9px] font-black uppercase tracking-widest text-orange-500">${(CATEGORIES_UK[post.category] || post.category || 'Новини').toUpperCase()}</span>
+                            <span class="w-1 h-1 bg-slate-300 rounded-full"></span>
+                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">${new Date(post.created_at).toLocaleDateString('uk-UA')}</span>
+                         </div>
+                         <h3 class="text-base md:text-3xl font-extrabold leading-tight mb-1 md:mb-4 text-slate-900 transition-colors tracking-tight">${post.title}</h3>
+                         <p class="text-slate-500 text-[11px] md:text-base line-clamp-2 leading-relaxed mb-3 md:mb-6 font-medium text-editorial">${post.meta_description || 'Читати деталі новини на нашому порталі.'}</p>
+                         <div class="flex items-center gap-2 text-slate-400 font-bold text-[9px] uppercase tracking-widest group-hover:text-orange-600 transition-colors">
+                             Переглянути повністю 
+                             <svg class="w-3 h-3 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                         </div>
                     </div>
                 </a>`;
             }).join('');
@@ -713,19 +730,22 @@
 
         // Sidebar trending (can stay simple or fetch top views)
         async function loadTrending() {
-            const { data } = await _supabase.from('news').select('*').eq('is_published', true).order('views', { ascending: false }).limit(6);
+            const { data } = await _supabase.from('news').select('id, title, slug, image_url, views, category, meta_description').eq('is_published', true).order('views', { ascending: false }).limit(6);
             if (data) {
                 document.getElementById('trending-list').innerHTML = data.map(post => {
                     const link = `news.html#${new URLSearchParams({ slug: post.slug || '', id: post.id }).toString()}`;
                     return `
-                    <a href="${link}" class="flex gap-6 group border-b border-slate-50 pb-8 last:border-0 block">
-                        <div class="w-24 h-24 flex-shrink-0 rounded-[1.5rem] overflow-hidden rotate-2 group-hover:rotate-0 transition-transform relative">
-                            <img src="${post.image_url}" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500">
-                            <div class="absolute bottom-1 right-1 bg-black/60 backdrop-blur px-1.5 py-0.5 rounded-lg text-[8px] font-black text-white">👁️ ${post.views || 0}</div>
+                    <a href="${link}" class="trending-item group flex gap-4 border-b border-slate-50 pb-4 mb-4 last:border-0 last:mb-0 p-2 md:p-3 -mx-2 md:-mx-3 rounded-2xl">
+                        <div class="w-20 h-20 flex-shrink-0 rounded-2xl overflow-hidden relative bg-slate-100">
+                            <img src="${post.image_url}" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-110">
+                            <div class="absolute bottom-1 right-1 bg-black/50 backdrop-blur-sm px-1.5 py-0.5 rounded-lg text-[7px] font-black text-white">👁️ ${post.views || 0}</div>
                         </div>
-                        <div class="flex flex-col justify-center text-left">
-                            <h4 class="text-sm font-black text-slate-800 leading-tight group-hover:text-orange-600 transition-colors uppercase tracking-tight line-clamp-2">${post.title}</h4>
-                            <span class="text-[10px] font-black text-slate-400 mt-2 uppercase tracking-widest">${CATEGORIES_UK[post.category] || post.category}</span>
+                        <div class="flex flex-col justify-center">
+                            <div class="flex items-center gap-2 mb-1.5">
+                                <span class="text-[8px] font-black text-orange-600 uppercase tracking-widest">${CATEGORIES_UK[post.category] || post.category}</span>
+                            </div>
+                            <h4 class="text-xs font-bold text-slate-800 leading-snug group-hover:text-orange-600 transition-colors uppercase tracking-tight line-clamp-2 mb-1">${post.title}</h4>
+                            <p class="text-[10px] text-slate-400 line-clamp-1 font-medium leading-none">${post.meta_description || 'Деталі новини...'}</p>
                         </div>
                     </a>`;
                 }).join('');

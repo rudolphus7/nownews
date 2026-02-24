@@ -29,8 +29,9 @@
         h3,
         h4 {
             font-family: 'Inter', sans-serif;
-            letter-spacing: -0.04em;
-            font-weight: 900;
+            letter-spacing: -0.02em;
+            font-weight: 800;
+            line-height: 1.2;
         }
 
         .progress-bar {
@@ -58,12 +59,18 @@
         }
 
         .content-body h2 {
-            font-size: 2.5rem;
-            font-weight: 900;
-            margin-top: 4rem;
-            margin-bottom: 1.5rem;
+            font-size: 2rem;
+            font-weight: 800;
+            margin-top: 3.5rem;
+            margin-bottom: 1.25rem;
             color: #0f172a;
-            letter-spacing: -0.04em;
+            letter-spacing: -0.02em;
+        }
+
+        @media (min-width: 768px) {
+            .content-body h2 {
+                font-size: 2.5rem;
+            }
         }
 
         .content-body p {
@@ -211,7 +218,7 @@
     </div>
     </header>
 
-    <main class="container mx-auto px-4 py-8 max-w-7xl">
+    <main class="container mx-auto px-4 py-4 md:py-8 max-w-7xl">
         <div id="loader" class="animate-pulse space-y-8 max-w-4xl mx-auto py-20">
             <div class="h-4 bg-slate-200 rounded w-24"></div>
             <div class="h-16 bg-slate-200 rounded-2xl w-full"></div>
@@ -223,7 +230,7 @@
                 <!-- Main Content Column -->
                 <div class="lg:w-2/3">
                     <nav
-                        class="flex text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4 md:mb-8 space-x-2">
+                        class="flex text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3 md:mb-8 space-x-2">
                         <a href="index.html" class="hover:text-orange-600">Головна</a>
                         <span>/</span>
                         <span id="breadcrumb-category" class="text-orange-600 opacity-70"></span>
@@ -231,44 +238,34 @@
 
                     <header class="mb-6 md:mb-12">
                         <h1 id="news-title"
-                            class="text-4xl md:text-6xl font-black text-slate-900 leading-[1.1] mb-6 md:mb-8 italic">
+                            class="text-2xl md:text-5xl lg:text-6xl font-extrabold text-slate-900 leading-[1.2] md:leading-[1.15] mb-4 md:mb-8">
                         </h1>
-                        <div id="news-meta-tags" class="flex flex-wrap gap-2 md:gap-3 mb-6 md:mb-10"></div>
+                        <div id="news-meta-tags" class="flex flex-wrap gap-2 md:gap-3 mb-4 md:mb-10"></div>
 
                         <div
-                            class="flex flex-wrap items-center gap-x-6 gap-y-4 py-4 md:py-8 border-y border-slate-100 mb-6 md:mb-12">
-                            <div class="flex items-center gap-2">
-                                <span class="text-lg">🕒</span>
-                                <div class="flex flex-col sm:flex-row sm:items-center sm:gap-2">
-                                    <p class="text-[10px] text-slate-400 font-black uppercase tracking-tighter sm:mb-0">
-                                        Час читання:</p>
-                                    <p id="reading-time" class="text-sm font-bold text-slate-700"></p>
-                                </div>
+                            class="flex flex-wrap items-center gap-x-4 md:gap-x-6 gap-y-2 py-3 md:py-8 border-y border-slate-100 mb-4 md:mb-12">
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-base">🕒</span>
+                                <p id="reading-time"
+                                    class="text-xs md:text-sm font-bold text-slate-700 whitespace-nowrap"></p>
                             </div>
                             <div class="hidden sm:block w-px h-6 bg-slate-100"></div>
-                            <div class="flex items-center gap-2">
-                                <span class="text-lg">🗓️</span>
-                                <div class="flex flex-col sm:flex-row sm:items-center sm:gap-2">
-                                    <p class="text-[10px] text-slate-400 font-black uppercase tracking-tighter sm:mb-0">
-                                        Опубліковано:</p>
-                                    <p id="news-date" class="text-sm font-bold text-slate-700"></p>
-                                </div>
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-base">🗓️</span>
+                                <p id="news-date" class="text-xs md:text-sm font-bold text-slate-700 whitespace-nowrap">
+                                </p>
                             </div>
                             <div class="hidden sm:block w-px h-6 bg-slate-100"></div>
-                            <div class="flex items-center gap-2">
-                                <span class="text-lg">👁️</span>
-                                <div class="flex flex-col sm:flex-row sm:items-center sm:gap-2">
-                                    <p class="text-[10px] text-slate-400 font-black uppercase tracking-tighter sm:mb-0">
-                                        Переглядів:</p>
-                                    <p id="view-count" class="text-sm font-bold text-slate-700">...</p>
-                                </div>
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-base">👁️</span>
+                                <p id="view-count" class="text-xs md:text-sm font-bold text-slate-700">...</p>
                             </div>
                         </div>
                     </header>
 
                     <div class="relative group">
                         <img id="news-image" src="" alt=""
-                            class="w-full h-auto rounded-[2rem] md:rounded-[3rem] shadow-2xl mb-8 md:mb-16 object-cover max-h-[650px]">
+                            class="w-full h-auto rounded-[1.5rem] md:rounded-[3rem] shadow-2xl mb-6 md:mb-16 object-cover max-h-[650px]">
                         <div id="image-caption"
                             class="absolute bottom-6 left-6 bg-white/90 backdrop-blur px-4 py-2 rounded-xl text-xs font-bold text-slate-700 opacity-0 group-hover:opacity-100 transition-opacity">
                             Головне фото матеріалу
@@ -276,12 +273,12 @@
                     </div>
 
                     <div id="news-text"
-                        class="content-body text-lg md:text-xl text-slate-800 mb-10 md:mb-20 prose prose-orange max-w-none">
+                        class="content-body text-lg md:text-xl text-slate-800 mb-6 md:mb-20 prose prose-orange max-w-none">
                     </div>
 
                     <!-- Reactions -->
                     <div
-                        class="bg-slate-900 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-12 text-white mb-10 md:mb-20 overflow-hidden relative">
+                        class="bg-slate-900 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-12 text-white mb-6 md:mb-20 overflow-hidden relative">
                         <div
                             class="absolute top-0 right-0 w-64 h-64 bg-orange-600 rounded-full blur-[100px] opacity-20 -mr-32 -mt-32">
                         </div>
@@ -308,7 +305,7 @@
 
                 <!-- Sidebar column -->
                 <aside class="lg:w-1/3">
-                    <div class="sticky top-32 space-y-12">
+                    <div class="sticky top-32 space-y-8 md:space-y-12">
                         <!-- Share Toolkit -->
                         <div
                             class="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-100 shadow-slate-200/50">

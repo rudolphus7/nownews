@@ -179,11 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // AUTO-DISMISS RSS IF NEEDED
                 if (newsForm.dataset.rssLink) {
-                    const dismissed = JSON.parse(localStorage.getItem('rss_dismissed') || '[]');
-                    if (!dismissed.includes(newsForm.dataset.rssLink)) {
-                        dismissed.push(newsForm.dataset.rssLink);
-                        localStorage.setItem('rss_dismissed', JSON.stringify(dismissed));
-                    }
+                    await _supabase.from('rss_articles').update({ is_imported: true }).eq('link', newsForm.dataset.rssLink);
                 }
 
                 // สารสภาพ
@@ -192,7 +188,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 newsForm.reset();
                 if (document.getElementById('city')) document.getElementById('city').value = "";
                 delete newsForm.dataset.rssLink;
-                quill.setContents([]);
+                if (quill) {
+                    try {
+                        quill.setContents([]);
+                    } catch (qe) {
+                        console.warn("Quill reset failed:", qe);
+                        quill.root.innerHTML = ""; // Fallback
+                    }
+                }
                 imagePreview.innerHTML = '<span class="text-slate-600 text-[10px] uppercase font-bold text-center px-4">Зображення не вибрано</span>';
                 renderTags();
                 btn.innerText = 'Опублікувати новину';
@@ -301,108 +304,156 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // --- RSS АГРЕГАТОР ---
-    let rssSources = JSON.parse(localStorage.getItem('rss_sources') || '[]');
+    // --- RSS АГРЕГАТОР (ДАНІ) ---
+    let rssSources = [];
     let rssInterval = null;
+
+    async function loadRSSSources() {
+        if (!_supabase) return;
+        const { data, error } = await _supabase.from('rss_sources').select('*').order('created_at', { ascending: true });
+        if (!error && data) {
+            rssSources = data;
+            renderRSSSources();
+        }
+    }
 
     function renderRSSSources() {
         const list = document.getElementById('rss-sources-list');
         if (!list) return;
-        list.innerHTML = rssSources.map((url, index) => `
-        <div class="bg-white/50 p-4 rounded-2xl flex justify-between items-center shadow-sm border border-slate-50 transition-all hover:bg-white">
-            <span class="text-[10px] font-black text-slate-400 truncate mr-4 uppercase tracking-widest">${url}</span>
-            <button onclick="window.removeRSSSource(${index})" class="w-8 h-8 flex items-center justify-center rounded-full text-slate-300 hover:bg-red-50 hover:text-red-500 transition-all">✕</button>
-        </div>
-    `).join('');
+
+        if (rssSources.length === 0) {
+            list.innerHTML = '<div class="text-[10px] text-slate-400 font-bold uppercase tracking-widest text-center py-4 opacity-50">Джерела відсутні</div>';
+            return;
+        }
+
+        list.innerHTML = rssSources.map((source) => {
+            const statusColor = source.last_status === 'online' ? 'bg-green-500' : (source.last_status === 'error' ? 'bg-red-500' : 'bg-slate-300');
+            const sourceHost = new URL(source.url).hostname;
+
+            return `
+            <div class="bg-white p-4 rounded-3xl flex justify-between items-center shadow-lg border border-white transition-all hover:border-orange-200 group relative overflow-hidden">
+                <div class="flex flex-col min-w-0 pr-8">
+                    <span class="text-[10px] font-black text-slate-800 truncate uppercase tracking-widest">${sourceHost}</span>
+                    <div class="flex items-center gap-2 mt-1">
+                        <span class="w-1.5 h-1.5 rounded-full ${statusColor} animate-pulse"></span>
+                        <span class="text-[9px] font-bold text-slate-400 truncate">${source.url}</span>
+                    </div>
+                </div>
+                <button onclick="window.removeRSSSource('${source.id}')" class="w-10 h-10 flex items-center justify-center rounded-2xl bg-slate-50 text-slate-300 hover:bg-red-50 hover:text-red-500 transition-all absolute right-2">✕</button>
+            </div>`;
+        }).join('');
     }
 
     const rssForm = document.getElementById('rss-source-form');
     if (rssForm) {
-        rssForm.onsubmit = (e) => {
+        rssForm.onsubmit = async (e) => {
             e.preventDefault();
             const urlInp = document.getElementById('rss-url');
             const url = urlInp.value.trim();
-            if (url && !rssSources.includes(url)) {
-                rssSources.push(url);
-                localStorage.setItem('rss_sources', JSON.stringify(rssSources));
-                urlInp.value = '';
-                renderRSSSources();
-                fetchRSSArticles();
+            if (url && _supabase) {
+                const { error } = await _supabase.from('rss_sources').insert([{ url }]);
+                if (error) {
+                    if (error.code === '23505') alert("Це джерело вже додано!");
+                    else alert("Помилка: " + error.message);
+                } else {
+                    urlInp.value = '';
+                    await loadRSSSources();
+                    fetchRSSArticles();
+                }
             }
         };
     }
 
-    window.removeRSSSource = (index) => {
-        if (confirm("Видалити це джерело?")) {
-            rssSources.splice(index, 1);
-            localStorage.setItem('rss_sources', JSON.stringify(rssSources));
-            renderRSSSources();
-            fetchRSSArticles();
+    async function removeRSSSource(id) {
+        if (confirm("Видалити це джерело?") && _supabase) {
+            const { error } = await _supabase.from('rss_sources').delete().eq('id', id);
+            if (!error) {
+                await loadRSSSources();
+                await fetchRSSArticles();
+            }
         }
-    };
+    }
+    window.removeRSSSource = removeRSSSource;
 
-    window.loadRSS = () => {
-        renderRSSSources();
-        renderRSSCache(); // Show what we have immediately
-        fetchRSSArticles();
+    async function refreshRSS() {
+        const btn = document.querySelector('[onclick="window.refreshRSS()"]');
+        if (!btn) return fetchRSSArticles(); // Fallback if button not found
 
-        // Auto-refresh every 5 minutes while on this section
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span>⏳</span> Завантаження...';
+
+        console.log("RSS Refresh started via refreshRSS...");
+        try {
+            await fetchRSSArticles();
+            console.log("RSS Refresh completed.");
+        } catch (e) {
+            console.error("RSS Refresh failed:", e);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    }
+    window.refreshRSS = refreshRSS;
+
+    async function loadRSS() {
+        await loadRSSSources();
+        renderRSSArticles();
+        await fetchRSSArticles();
+
         if (rssInterval) clearInterval(rssInterval);
         rssInterval = setInterval(fetchRSSArticles, 300000);
-    };
-
-    // --- RSS CACHE MANAGEMENT ---
-    function getRSSCache() {
-        return JSON.parse(localStorage.getItem('rss_cache') || '[]');
     }
+    window.loadRSS = loadRSS;
 
-    function saveRSSCache(articles) {
-        localStorage.setItem('rss_cache', JSON.stringify(articles));
-    }
+    // --- RSS DB MANAGEMENT ---
+    async function renderRSSArticles() {
+        const grid = document.getElementById('rss-items-grid');
+        if (!grid || !_supabase) return;
 
-    function renderRSSCache() {
-        const itemsGrid = document.getElementById('rss-items-grid');
-        if (!itemsGrid) return;
+        const { data: articles, error } = await _supabase
+            .from('rss_articles')
+            .select('*')
+            .eq('is_dismissed', false)
+            .eq('is_imported', false)
+            .order('pub_date', { ascending: false })
+            .limit(50);
 
-        const articles = getRSSCache();
-        const dismissed = JSON.parse(localStorage.getItem('rss_dismissed') || '[]');
-        const visible = articles.filter(a => !dismissed.includes(a.id)).sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
-
-        if (visible.length === 0) {
-            const hasDismissed = dismissed.length > 0;
-            itemsGrid.innerHTML = `
-            <div class="text-center py-24 bg-white rounded-[3rem] border border-dashed border-slate-200">
-                <p class="text-slate-400 italic mb-6">Нових новин поки немає у ваших джерелах.</p>
-                ${hasDismissed ? `
-                <button onclick="window.clearDismissedRSS()" class="text-[10px] font-black uppercase tracking-widest text-orange-600 hover:underline">
-                    Повернути приховані новини (${dismissed.length})
-                </button>
-                ` : ''}
-            </div>
-        `;
+        if (error || !articles || articles.length === 0) {
+            grid.innerHTML = `
+                <div class="text-center py-32 bg-white rounded-[3rem] border border-dashed border-slate-200">
+                     <div class="text-5xl mb-6 opacity-20">📭</div>
+                     <p class="text-slate-400 italic font-medium">Нових новин поки немає...</p>
+                     <button onclick="window.fetchRSSArticles()" class="mt-8 px-8 py-4 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-orange-600 transition shadow-xl">Перевірити зараз</button>
+                </div>`;
             return;
         }
 
-        itemsGrid.innerHTML = visible.map((art, idx) => `
-        <div id="rss-item-${idx}" class="bg-white p-6 md:p-8 rounded-[2.5rem] shadow-xl border border-white flex flex-col md:flex-row gap-8 items-start transition-all hover:border-orange-200 group">
-            ${art.image ? `
-            <div class="w-full md:w-48 h-48 flex-shrink-0 rounded-[2rem] overflow-hidden shadow-lg">
-                <img src="${art.image}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+        grid.innerHTML = articles.map((art, idx) => `
+        <div id="rss-item-${art.id}" class="bg-white p-6 md:p-10 rounded-[3rem] shadow-xl border border-white flex flex-col md:flex-row gap-8 items-start transition-all hover:border-orange-200 group relative">
+            ${art.image_url ? `
+            <div class="w-full md:w-56 h-56 flex-shrink-0 rounded-[2.5rem] overflow-hidden shadow-2xl relative">
+                <img src="${art.image_url}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
             </div>
-            ` : ''}
-            <div class="flex-1">
-                <div class="flex items-center justify-between mb-4">
+            ` : `
+            <div class="w-full md:w-56 h-56 flex-shrink-0 rounded-[2.5rem] bg-slate-50 flex items-center justify-center text-slate-200 border-2 border-dashed border-slate-100 italic text-xs">Немає фото</div>
+            `}
+            <div class="flex-1 pt-2">
+                <div class="flex items-center justify-between mb-6">
                     <div class="flex items-center gap-3">
-                        <span class="bg-orange-600 text-white px-3 py-1 rounded-xl text-[9px] font-black uppercase tracking-widest">${art.source}</span>
-                        <span class="text-[9px] text-slate-300 font-bold italic">${art.pubDate ? new Date(art.pubDate).toLocaleString() : 'Нещодавно'}</span>
+                        <span class="bg-slate-900 text-white px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest shadow-lg">${art.source_name}</span>
+                        <span class="w-1 h-1 bg-slate-200 rounded-full"></span>
+                        <span class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">${art.pub_date ? new Date(art.pub_date).toLocaleString('uk-UA', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : 'Нещодавно'}</span>
                     </div>
-                    <button onclick="window.dismissRSSArticle('${art.id}', ${idx})" class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-50 text-slate-300 hover:bg-red-50 hover:text-red-500 transition-all">✕</button>
                 </div>
-                <h3 class="text-2xl font-black text-slate-800 mb-4 tracking-tight leading-tight group-hover:text-orange-600 transition-colors">${art.title}</h3>
-                <div class="text-sm text-slate-500 line-clamp-2 mb-8 leading-relaxed">${art.description ? art.description.replace(/<[^>]*>/g, '').substring(0, 200) : 'Без опису'}...</div>
-                <div class="flex items-center gap-4">
-                    <button onclick="window.importFromRSS('${art.id}')" class="bg-slate-900 text-white px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-orange-600 transition shadow-2xl shadow-slate-200">Редагувати та публікувати</button>
-                    <a href="${art.link}" target="_blank" class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-slate-900 transition flex items-center gap-2">Оригінал <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></a>
+                <h3 class="text-2xl md:text-3xl font-black text-slate-800 mb-4 tracking-tighter leading-[1.1] group-hover:text-orange-600 transition-colors italic">${art.title}</h3>
+                <div class="text-sm md:text-base text-slate-500 line-clamp-2 mb-10 leading-relaxed font-medium">${art.description ? art.description.replace(/<[^>]*>/g, '').substring(0, 200) : 'Опис відсутній'}...</div>
+                
+                <div class="flex flex-wrap items-center gap-4">
+                    <button onclick="window.importFromRSS('${art.id}')" class="bg-orange-600 text-white px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-orange-500 transition shadow-xl shadow-orange-100 active:scale-95">Створити статтю</button>
+                    <a href="${art.link}" target="_blank" class="px-6 py-4 rounded-2xl bg-slate-50 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 transition flex items-center gap-2">Оригінал ↗</a>
+                    <button onclick="window.dismissRSSArticle('${art.id}')" class="ml-auto w-12 h-12 flex items-center justify-center rounded-2xl bg-slate-50 text-slate-300 hover:bg-red-50 hover:text-red-500 transition-all active:scale-90">✕</button>
                 </div>
             </div>
         </div>
@@ -419,57 +470,54 @@ document.addEventListener('DOMContentLoaded', () => {
         originalShowSection(id);
     };
 
-    window.clearDismissedRSS = () => {
+    async function clearDismissedRSS() {
         if (confirm("Повернути всі приховані новини у список?")) {
-            localStorage.removeItem('rss_dismissed');
-            renderRSSCache(); // Re-render to show previously dismissed articles
+            if (!_supabase) return;
+            await _supabase.from('rss_articles').update({ is_dismissed: false }).eq('is_dismissed', true);
+            renderRSSArticles();
         }
-    };
+    }
+    window.clearDismissedRSS = clearDismissedRSS;
 
-    window.fetchRSSArticles = async () => {
-        const container = document.getElementById('rss-articles-container');
-        if (!container) return;
+    async function fetchRSSArticles() {
+        console.log("fetchRSSArticles logic started...");
+        const grid = document.getElementById('rss-items-grid');
+        if (!grid || !_supabase) {
+            console.warn("RSS Grid or Supabase not found. Grid:", !!grid, "Supabase:", !!_supabase);
+            return;
+        }
 
         // 0. FETCH EXISTING LINKS FROM SUPABASE TO FILTER DUPLICATES
         let dbLinks = new Set();
         try {
             const { data: existing, error } = await _supabase.from('news').select('link');
-            if (error) {
-                console.warn("DB cross-reference skipped (Link column might be missing)");
-            } else if (existing) {
-                existing.forEach(row => { if (row.link) dbLinks.add(row.link); });
-            }
+            if (existing) existing.forEach(row => { if (row.link) dbLinks.add(row.link); });
+
+            const { data: staged, error: sError } = await _supabase.from('rss_articles').select('link');
+            if (staged) staged.forEach(row => { if (row.link) dbLinks.add(row.link); });
         } catch (e) {
             console.warn("DB cross-reference failed:", e);
         }
 
-        const rssSources = JSON.parse(localStorage.getItem('rss_sources') || '[]');
-        const dismissed = JSON.parse(localStorage.getItem('rss_dismissed') || '[]');
-
         if (rssSources.length === 0) {
-            container.innerHTML = '<div class="text-center py-20 text-slate-400 italic font-medium">Додайте джерела RSS ліворуч, щоб стрічка ожила 📡</div>';
+            console.log("No RSS sources found to fetch.");
+            grid.innerHTML = '<div class="text-center py-20 text-slate-400 italic font-medium">Додайте джерела RSS ліворуч, щоб стрічка ожила 📡</div>';
             return;
         }
 
-        // Initial structure if empty
-        if (!document.getElementById('rss-items-grid')) {
-            container.innerHTML = '<div id="rss-status-list" class="mb-10 space-y-3"></div><div id="rss-items-grid" class="grid grid-cols-1 gap-8"></div>';
-        }
-
+        // Local UI Structure Management (only if needed)
         const statusList = document.getElementById('rss-status-list');
-        statusList.innerHTML = ''; // Fresh status each time
+        if (statusList) statusList.innerHTML = '';
 
-        let cachedArticles = getRSSCache();
-        const existingLinks = new Set(cachedArticles.map(a => a.link));
-
-        for (const url of rssSources) {
+        for (const source of rssSources) {
+            const url = source.url;
             const sourceHost = new URL(url).hostname;
             const statusId = `status-${sourceHost.replace(/\./g, '-')}`;
             statusList.insertAdjacentHTML('beforeend', `
             <div id="${statusId}" class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center justify-between bg-white/50 p-3 rounded-2xl border border-slate-50">
                 <div class="flex items-center gap-3">
-                    <span class="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></span>
-                    Оновлення завантажується: ${sourceHost}
+                    <span class="w-1.5 h-1.5 bg-orange-500 rounded-full animate-pulse"></span>
+                    Синхронізація: ${sourceHost}
                 </div>
             </div>
         `);
@@ -503,15 +551,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     items = html.querySelectorAll("item, entry");
                 }
 
-                const existingLinks = new Set(cachedArticles.map(a => a.link)); // Links already collected in this fetch session
+                const itemsToStaging = [];
 
                 items.forEach(item => {
-                    const title = item.querySelector("title")?.textContent || "Без заголовка"; // Added default title
+                    const title = item.querySelector("title")?.textContent || "Без заголовка";
                     const link = (item.querySelector("link")?.textContent || item.querySelector("link")?.getAttribute("href") || "").trim();
                     const description = item.querySelector("description, summary")?.textContent || "";
 
-                    // FILTER: Skip if link is missing, already in cache, dismissed, OR ALREADY IN DATABASE
-                    if (!link || existingLinks.has(link) || dismissed.includes(link) || dbLinks.has(link)) return;
+                    if (!link || dbLinks.has(link)) return;
 
                     let fullContent = "";
                     try {
@@ -522,12 +569,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (encodedNS) fullContent = encodedNS.textContent;
                         else if (encodedTag) fullContent = encodedTag.textContent;
                         else if (encodedQuery) fullContent = encodedQuery.textContent;
-                    } catch (e) {
-                        console.warn("Error extracting fullContent:", e); // Added console.warn
+                    } catch (e) { }
+
+                    const pubDateString = item.querySelector("pubDate, published, updated")?.textContent || "";
+                    let pubDate = null;
+                    if (pubDateString) {
+                        try { pubDate = new Date(pubDateString).toISOString(); } catch (e) { }
                     }
 
-                    const pubDate = item.querySelector("pubDate, published, updated")?.textContent || ""; // Added pubDate
-                    const id = item.querySelector("guid, id")?.textContent || link;
                     let image = "";
                     const enclosure = item.querySelector("enclosure[type^='image']");
                     if (enclosure) {
@@ -538,52 +587,80 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (imgMatch) image = imgMatch[1];
                     }
 
-                    cachedArticles.push({ id, title, link, description, fullContent, pubDate, image, source: sourceHost }); // Added pubDate
-                    existingLinks.add(link);
+                    itemsToStaging.push({
+                        title,
+                        link,
+                        description,
+                        full_content: fullContent,
+                        pub_date: pubDate,
+                        image_url: image,
+                        source_name: sourceHost
+                    });
+                    dbLinks.add(link);
                 });
+
+                if (itemsToStaging.length > 0) {
+                    await _supabase.from('rss_articles').upsert(itemsToStaging, { onConflict: 'link' });
+                }
+
+                // Update Status in Supabase
+                await _supabase.from('rss_sources').update({
+                    last_status: 'online',
+                    last_fetch: new Date().toISOString()
+                }).eq('id', source.id);
 
                 document.getElementById(statusId).innerHTML = `
                 <div class="flex items-center gap-3 text-green-600">
-                    <span class="w-2 h-2 bg-green-500 rounded-full"></span>
-                    ${sourceHost}: Отримано ${items.length} елементів
+                    <span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+                    ${sourceHost}: +${itemsToStaging.length} нових
                 </div>
-                <span class="text-[8px] opacity-50">${new Date().toLocaleTimeString()}</span>
-            `; // Reverted status message to original, but kept green color
+                <span class="text-[8px] opacity-50 font-black tracking-widest">${new Date().toLocaleTimeString()}</span>
+            `;
+                renderRSSSources();
+                renderRSSArticles(); // Refresh the grid
             } catch (err) {
+                await _supabase.from('rss_sources').update({
+                    last_status: 'error',
+                    last_fetch: new Date().toISOString()
+                }).eq('id', source.id);
+
                 document.getElementById(statusId).innerHTML = `
                 <div class="flex items-center gap-3 text-red-500">
-                    <span class="w-2 h-2 bg-red-500 rounded-full"></span>
-                    ${sourceHost}: Помилка підключення
+                    <span class="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
+                    ${sourceHost}: Помилка з'єднання
                 </div>
             `;
+                renderRSSSources();
                 console.error(err);
             }
         }
 
-        saveRSSCache(cachedArticles);
-        renderRSSCache();
-
-        // UI Feedback for "No new items"
-        if (cachedArticles.length === 0) {
-            const itemsGrid = document.getElementById('rss-items-grid');
-            if (itemsGrid) {
-                itemsGrid.innerHTML = `
-                <div class="p-20 text-center animate-fadeIn">
-                    <div class="text-6xl mb-6 opacity-30">📭</div>
-                    <h3 class="text-xl font-black text-slate-500 uppercase tracking-widest">Нових новин не знайдено</h3>
-                    <p class="text-slate-600 mt-2 text-sm italic">Ми перевірили базу даних — усі актуальні новини вже додані або відхилені.</p>
-                    <button onclick="window.fetchRSSArticles()" class="mt-8 px-6 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-[10px] font-bold uppercase tracking-widest transition">Повторити пошук</button>
-                </div>`;
-            }
-        }
+        // UI Feedback for "No new items" - this will be handled by renderRSSArticles now
+        // if (cachedArticles.length === 0) {
+        //     const itemsGrid = document.getElementById('rss-items-grid');
+        //     if (itemsGrid) {
+        //         itemsGrid.innerHTML = `
+        //         <div class="p-20 text-center animate-fadeIn">
+        //             <div class="text-6xl mb-6 opacity-30">📭</div>
+        //             <h3 class="text-xl font-black text-slate-500 uppercase tracking-widest">Нових новин не знайдено</h3>
+        //             <p class="text-slate-600 mt-2 text-sm italic">Ми перевірили базу даних — усі актуальні новини вже додані або відхилені.</p>
+        //             <button onclick="window.fetchRSSArticles()" class="mt-8 px-6 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-[10px] font-bold uppercase tracking-widest transition">Повторити пошук</button>
+        //         </div>`;
+        //     }
+        // }
 
         // PRE-FETCH FULL CONTENT FOR TOP ARTICLES (Background)
-        preFetchFullContent(cachedArticles.slice(0, 10));
+        // This will now operate on articles from the DB, not a local cache
+        const { data: articlesToPreFetch } = await _supabase.from('rss_articles').select('*').eq('is_dismissed', false).eq('is_imported', false).order('pub_date', { ascending: false }).limit(10);
+        if (articlesToPreFetch) {
+            preFetchFullContent(articlesToPreFetch);
+        }
     }
+    window.fetchRSSArticles = fetchRSSArticles;
 
     async function preFetchFullContent(articles) {
         for (const art of articles) {
-            if (art.fullContent && art.fullContent.length > 500) continue;
+            if (art.full_content && art.full_content.length > 500) continue;
 
             // Skip if recently fetched to avoid spam
             const cacheKey = `pfetch_${art.id}`;
@@ -625,25 +702,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    window.dismissRSSArticle = (id, index) => {
-        const dismissed = JSON.parse(localStorage.getItem('rss_dismissed') || '[]');
-        if (!dismissed.includes(id)) {
-            dismissed.push(id);
-            localStorage.setItem('rss_dismissed', JSON.stringify(dismissed));
-        }
+    async function dismissRSSArticle(id) {
+        if (!_supabase) return;
+        await _supabase.from('rss_articles').update({ is_dismissed: true }).eq('id', id);
+        renderRSSArticles();
+    }
+    window.dismissRSSArticle = dismissRSSArticle;
 
-        // Smooth removal from UI
-        const elem = document.getElementById(`rss-item-${index}`);
-        if (elem) {
-            elem.style.opacity = '0';
-            elem.style.transform = 'scale(0.95)';
-            setTimeout(renderRSSCache, 300); // Re-render to update list
-        }
-    };
-
-    window.importFromRSS = async (id) => {
-        const articles = getRSSCache();
-        const art = articles.find(a => a.id === id);
+    async function importFromRSS(id) {
+        if (!_supabase) return;
+        const { data: art } = await _supabase.from('rss_articles').select('*').eq('id', id).single();
         if (!art) return;
 
         // 1. INSTANT NAVIGATION & BASIC POPULATION
@@ -656,16 +724,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         document.getElementById('title').value = art.title;
-        document.getElementById('image_url').value = art.image || '';
+        document.getElementById('image_url').value = art.image_url || '';
 
-        if (art.image) {
-            document.getElementById('image-preview').innerHTML = `<img src="${art.image}" class="w-full h-full object-cover rounded-xl shadow-md">`;
+        if (art.image_url) {
+            document.getElementById('image-preview').innerHTML = `<img src="${art.image_url}" class="w-full h-full object-cover rounded-xl shadow-md">`;
         }
 
         // 2. OPTIMISTIC EDITOR CONTENT
-        let initialText = art.fullContent || art.description || 'Завантаження змісту...';
+        let initialText = art.full_content || art.description || 'Завантаження змісту...';
         if (quill) {
-            quill.root.innerHTML = `<h2>${art.title}</h2>${initialText}<p><br></p><hr><p>Джерело: <a href="${art.link}" target="_blank">${art.source}</a></p>`;
+            const html = `<h2>${art.title}</h2>${initialText}<p><br></p><hr><p>Джерело: <a href="${art.link}" target="_blank">${art.source_name}</a></p>`;
+            quill.clipboard.dangerouslyPasteHTML(html);
         }
 
         // 3. FAST SEO AUTO-FILL & CATEGORY DETECTION
@@ -719,7 +788,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         // Update editor ONLY IF the user hasn't changed much (safe overwrite)
                         const currentHtml = quill.root.innerHTML;
                         if (currentHtml.length < initialText.length + 500) {
-                            quill.root.innerHTML = `<h2>${art.title}</h2>${contentNode.innerHTML}<p><br></p><hr><p>Джерело: <a href="${art.link}" target="_blank">${art.source}</a></p>`;
+                            const fullHtml = `<h2>${art.title}</h2>${contentNode.innerHTML}<p><br></p><hr><p>Джерело: <a href="${art.link}" target="_blank">${art.source_name}</a></p>`;
+                            quill.clipboard.dangerouslyPasteHTML(fullHtml);
 
                             // Re-trigger category detection with full text
                             document.getElementById('category').value = autoTagArticle(contentNode.innerHTML, art.title);
@@ -733,7 +803,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (btn) btn.innerHTML = 'Редагувати та публікувати';
         }
-    };
+    }
+    window.importFromRSS = importFromRSS;
 
     window.loadStats = async () => {
         if (!_supabase) return;
