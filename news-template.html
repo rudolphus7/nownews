@@ -544,8 +544,18 @@
                 document.getElementById('loader').classList.add('hidden');
                 document.getElementById('news-content').classList.remove('hidden');
 
-                // Increment Views
-                await _supabase.rpc('increment_views', { row_id: data.id });
+                // Increment Views (with session guard)
+                const viewedKey = `viewed_${data.id}`;
+                if (!sessionStorage.getItem(viewedKey)) {
+                    await _supabase.rpc('increment_views', { post_id: data.id });
+                    sessionStorage.setItem(viewedKey, 'true');
+
+                    // Fetch updated count to show in UI
+                    const { data: updatedPost } = await _supabase.from('news').select('views').eq('id', data.id).single();
+                    if (updatedPost && document.getElementById('view-count')) {
+                        document.getElementById('view-count').innerText = updatedPost.views || 0;
+                    }
+                }
             } catch (err) {
                 console.error("Load failed", err);
                 document.getElementById('loader').innerHTML = `<div class="p-10 text-center text-red-500 font-bold">Помилка завантаження: ${err.message}</div>`;
