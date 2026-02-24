@@ -1,4 +1,4 @@
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyB-DsR4-TWdraaYZruMGMUxSMbajHi1SDA';
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 module.exports = async (req, res) => {
     if (req.method !== 'POST') {

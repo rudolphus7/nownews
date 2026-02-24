@@ -518,31 +518,89 @@ document.addEventListener('DOMContentLoaded', () => {
             bar.style.width = '10%';
         }
 
+        const prompt = `Ти професійний український журналіст. Твоє завдання - переписати надану статтю у фірмовому стилі видання "IF News". Ми цінуємо динамічність, об'єктивність та влучні заголовки.
+
+Вимоги до результату:
+1. Залиш зміст повністю ідентичним оригіналу, не вигадуй нових фактів.
+2. Тон: Професійний, стриманий, але енергійний.
+3. Перший рядок має бути новим потужним заголовком (без символів #).
+4. Решта тексту - основний зміст статті.
+5. Використовуй HTML теги (p, h2, strong) для структурування.
+
+Оригінальний заголовок: ${currentTitle}
+Оригінальний текст публікації:
+${currentHtml.replace(/<[^>]*>/g, ' ')}`;
+
         try {
-            if (bar) bar.style.width = '40%';
+            if (bar) bar.style.width = '30%';
 
-            const response = await fetch('/api/ai', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    title: currentTitle,
-                    content: currentHtml
-                })
-            });
+            let resultData = null;
 
-            if (bar) bar.style.width = '70%';
-            const data = await response.json();
+            // 1. Спроба через серверний проксі (працює на Vercel)
+            try {
+                const response = await fetch('/api/ai', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title: currentTitle, content: currentHtml })
+                });
 
-            if (data.error) throw new Error(data.error);
+                const contentType = response.headers.get("content-type");
+                if (response.ok && contentType && contentType.includes("application/json")) {
+                    resultData = await response.json();
+                    console.log("AI result from Server Proxy");
+                }
+            } catch (e) { console.warn("Server AI Proxy failed, trying direct call..."); }
+
+            // 2. Фолбек на прямий виклик (якщо ми на Localhost або проксі не працює)
+            if (!resultData) {
+                if (bar) bar.style.width = '50%';
+                const key = localStorage.getItem('gemini_api_key');
+
+                if (!key) {
+                    throw new Error("API ключ не знайдено. Будь ласка, додайте його в налаштуваннях (Settings) для локальної роботи.");
+                }
+
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                });
+
+                const data = await response.json();
+                if (data.error) throw new Error(data.error.message);
+
+                const aiText = data.candidates[0].content.parts[0].text;
+                const lines = aiText.split('\n').filter(l => l.trim().length > 0);
+
+                let rewrittenTitle = currentTitle;
+                let bodyLines = lines;
+                if (lines.length > 0) {
+                    rewrittenTitle = lines[0].replace(/#/g, '').trim();
+                    bodyLines = lines.slice(1);
+                }
+
+                let formattedBody = bodyLines.join('\n')
+                    .replace(/^# (.*$)/gim, '<h2>$1</h2>')
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\n\n/g, '</p><p>')
+                    .replace(/\n/g, '<br>');
+
+                resultData = {
+                    title: rewrittenTitle,
+                    content: (formattedBody.startsWith('<') ? formattedBody : '<p>' + formattedBody + '</p>') +
+                        `<p><br></p><hr><p><strong>Матеріал відредаговано за допомогою ШІ для "IF News".</strong></p>`
+                };
+                console.log("AI result from Direct Client call");
+            }
 
             if (bar) bar.style.width = '100%';
 
             // Оновлюємо заголовок та контент
-            titleInput.value = data.title;
-            quill.clipboard.dangerouslyPasteHTML(data.content);
+            titleInput.value = resultData.title;
+            quill.clipboard.dangerouslyPasteHTML(resultData.content);
 
             // Автоматично оновлюємо теги та SEO
-            document.getElementById('category').value = autoTagArticle(data.content, data.title);
+            document.getElementById('category').value = autoTagArticle(resultData.content, resultData.title);
             updateSEO();
 
             alert("✨ Статтю успішно переписано ШІ!");
