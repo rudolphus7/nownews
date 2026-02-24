@@ -553,6 +553,20 @@
             document.getElementById('breadcrumb-category').innerText = CATEGORIES_UK[data.category] || data.category;
             document.getElementById('news-date').innerText = new Date(data.created_at).toLocaleDateString('uk-UA', { day: 'numeric', month: 'long', year: 'numeric' });
 
+            // Reading Time
+            const words = (data.content || '').replace(/<[^>]*>/g, '').split(/\s+/).filter(Boolean).length;
+            const min = Math.max(1, Math.round(words / 200));
+            const readingTimeElem = document.getElementById('reading-time');
+            if (readingTimeElem) {
+                readingTimeElem.innerText = `${min} ${min === 1 ? 'хвилина' : (min < 5 ? 'хвилини' : 'хвилин')}`;
+            }
+
+            // View Count
+            const viewCountElem = document.getElementById('view-count');
+            if (viewCountElem) {
+                viewCountElem.innerText = data.views || 0;
+            }
+
             const img = document.getElementById('news-image');
             if (data.image_url) img.src = data.image_url;
             else img.classList.add('hidden');
