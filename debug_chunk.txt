@@ -1,6 +1,0 @@
-window.__SSR_SLUG__ = 'na-aleyi-pamyati-v-bolekhovi-vidbulosya-viche-do-natsionalnoho-dnya-molytvy';
-    window.__SSR_ID__ = '6531736a-6c1e-4458-a7dc-ee78e6fcb316'; 
-</script>
-
-    <!-- SEO & Open Graph Meta Tags -->
-    <meta name="description" content="На Алеї пам’яті в Болехові відбулося віче до Національного дня молитви ДОЛИНАНа Алеї пам’яті в Болехові відбулося віче до Національного дня... Чи

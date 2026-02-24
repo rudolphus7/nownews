@@ -1,6 +1,0 @@
-  transform: scale(0.95);
-        }
-    </style>
-<script>
-    window.__SSR_SLUG__ = 'na-aleyi-pamyati-v-bolekhovi-vidbulosya-viche-do-natsionalnoho-dnya-molytvy';
-    window.__SSR_ID__ = '6531736a-6c1

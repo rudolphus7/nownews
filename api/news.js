@@ -16,19 +16,41 @@ module.exports = async (req, res) => {
 
     console.log('SSR Request:', { url: req.url, slug, id });
 
-    let htmlContent = '';
     try {
-        const filePath = path.join(process.cwd(), 'news.html');
-        htmlContent = fs.readFileSync(filePath, 'utf8');
-    } catch (e) {
-        console.error('Error reading news.html:', e);
-        // Fallback to news-template.html if it exists
-        try {
-            const fallbackPath = path.join(process.cwd(), 'news-template.html');
-            htmlContent = fs.readFileSync(fallbackPath, 'utf8');
-        } catch (e2) {
-            return res.status(500).send('Configuration Error: news.html missing');
+        // У Vercel файли знаходяться у корені проекту, доступному через __dirname або process.cwd()
+        const possiblePaths = [
+            path.join(process.cwd(), 'news.html'),
+            path.join(__dirname, '..', 'news.html'),
+            path.join(__dirname, 'news.html')
+        ];
+
+        for (const p of possiblePaths) {
+            if (fs.existsSync(p)) {
+                htmlContent = fs.readFileSync(p, 'utf8');
+                console.log('Successfully read news.html from:', p);
+                break;
+            }
         }
+
+        if (!htmlContent) {
+            // Fallback to news-template.html
+            const templatePaths = [
+                path.join(process.cwd(), 'news-template.html'),
+                path.join(__dirname, '..', 'news-template.html')
+            ];
+            for (const p of templatePaths) {
+                if (fs.existsSync(p)) {
+                    htmlContent = fs.readFileSync(p, 'utf8');
+                    console.log('Successfully read news-template.html from:', p);
+                    break;
+                }
+            }
+        }
+
+        if (!htmlContent) throw new Error('No template file found');
+    } catch (e) {
+        console.error('Template Read Error:', e);
+        return res.status(500).send('Configuration Error: HTML template missing');
     }
 
     // If no specific news is requested, just return the static page
