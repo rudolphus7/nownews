@@ -30,5 +30,11 @@
             "source": "/news",
             "destination": "/index.html"
         }
-    ]
+    ],
+    "functions": {
+        "api/admin-auth.js": {
+            "memory": 128,
+            "maxDuration": 10
+        }
+    }
 }
