@@ -681,22 +681,12 @@ document.addEventListener('DOMContentLoaded', () => {
     async function scrapeFullContent(link) {
         try {
             let htmlContent = null;
-            // Primary Proxy: AllOrigins
+            // Internal RSS/Page Proxy (Vercel serverless — no CORS issues)
             try {
-                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(link)}&_=${Date.now()}`;
+                const proxyUrl = `/api/rss-proxy?url=${encodeURIComponent(link)}`;
                 const response = await fetch(proxyUrl);
-                const data = await response.json();
-                if (data && data.contents) htmlContent = data.contents;
-            } catch (e) { console.warn("Primary scraper proxy failed"); }
-
-            // Secondary Proxy: CORSProxy.io
-            if (!htmlContent) {
-                try {
-                    const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(link)}`;
-                    const response = await fetch(proxyUrl);
-                    htmlContent = await response.text();
-                } catch (e) { console.warn("Secondary scraper proxy failed"); }
-            }
+                if (response.ok) htmlContent = await response.text();
+            } catch (e) { console.warn("RSS proxy (scraper) failed:", e.message); }
 
             if (htmlContent) {
                 const parser = new DOMParser();
@@ -819,20 +809,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
             try {
                 let data = null;
-                // Primary Proxy
+                // Internal RSS Proxy (Vercel serverless — no CORS issues)
                 try {
-                    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}&_=${Date.now()}`;
+                    const proxyUrl = `/api/rss-proxy?url=${encodeURIComponent(url)}`;
                     const response = await fetch(proxyUrl);
-                    const json = await response.json();
-                    if (json && json.contents) data = json.contents;
-                } catch (e) { console.warn(`Fallback for ${sourceHost}`); }
-
-                // Secondary Proxy
-                if (!data) {
-                    const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
-                    const response = await fetch(proxyUrl);
-                    data = await response.text();
-                }
+                    if (response.ok) {
+                        data = await response.text();
+                    } else {
+                        console.warn(`RSS proxy returned ${response.status} for ${sourceHost}`);
+                    }
+                } catch (e) { console.warn(`RSS proxy failed for ${sourceHost}:`, e.message); }
 
                 if (!data) throw new Error("Connection failed");
 
@@ -968,9 +954,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (localStorage.getItem(cacheKey)) continue;
 
             try {
-                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(art.link)}`;
+                const proxyUrl = `/api/rss-proxy?url=${encodeURIComponent(art.link)}`;
                 const response = await fetch(proxyUrl);
-                const data = await response.json();
+                const data = response.ok ? { contents: await response.text() } : null;
 
                 if (data && data.contents) {
                     const parser = new DOMParser();
