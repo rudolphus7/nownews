@@ -6,12 +6,11 @@ ADD COLUMN IF NOT EXISTS likes INTEGER DEFAULT 0,
 ADD COLUMN IF NOT EXISTS fire INTEGER DEFAULT 0,
 ADD COLUMN IF NOT EXISTS wow INTEGER DEFAULT 0;
 
--- 2. Create an RPC function for atomic increments
--- This prevents race conditions when multiple users react at once
-CREATE OR REPLACE FUNCTION increment_reaction(post_id UUID, reaction_type TEXT)
+-- 2. Create an RPC function for atomic updates (increment/decrement)
+CREATE OR REPLACE FUNCTION update_reaction(post_id UUID, reaction_type TEXT, delta INTEGER)
 RETURNS void AS $$
 BEGIN
-  EXECUTE format('UPDATE news SET %I = COALESCE(%I, 0) + 1 WHERE id = %L', reaction_type, reaction_type, post_id);
+  EXECUTE format('UPDATE news SET %I = GREATEST(0, COALESCE(%I, 0) + %L) WHERE id = %L', reaction_type, reaction_type, delta, post_id);
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
