@@ -638,6 +638,7 @@
                 fillUI(data);
                 loadRelated(data.category, data.id);
                 loadReactions(data.id);
+                loadComments(data.id);
                 subscribeToReactions(data.id);
 
                 document.getElementById('loader').classList.add('hidden');
