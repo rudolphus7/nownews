@@ -355,6 +355,41 @@
                             </button>
                         </div>
                     </div>
+
+                    <!-- Comments Section -->
+                    <div id="comments-section"
+                        class="bg-white rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-12 shadow-xl border border-slate-100 mb-6 md:mb-20">
+                        <h3 class="text-2xl font-black text-slate-900 mb-8 flex items-center tracking-tighter italic">
+                            <span class="w-2 h-6 bg-orange-600 rounded-full mr-3"></span>Коментарі
+                            <span id="comments-count"
+                                class="ml-3 text-sm font-bold bg-slate-100 px-3 py-1 rounded-full text-slate-500">0</span>
+                        </h3>
+
+                        <!-- Comment Form -->
+                        <form id="comment-form" class="mb-12 space-y-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <input type="text" id="comment-user-name" placeholder="Ваше ім'я" required
+                                    class="w-full px-6 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:border-orange-500 focus:outline-none font-bold text-sm transition">
+                            </div>
+                            <textarea id="comment-content" rows="3" placeholder="Напишіть ваш коментар..." required
+                                class="w-full px-6 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:border-orange-500 focus:outline-none font-medium text-sm transition"></textarea>
+                            <div class="flex justify-end">
+                                <button type="submit" id="btn-submit-comment"
+                                    class="bg-orange-600 text-white px-8 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-orange-500 transition shadow-xl shadow-orange-100 active:scale-95">
+                                    Надіслати
+                                </button>
+                            </div>
+                            <p id="comment-status"
+                                class="text-[10px] font-bold text-slate-400 uppercase text-center hidden">Коментар
+                                відправлено на модерацію ✨</p>
+                        </form>
+
+                        <!-- Comments List -->
+                        <div id="comments-list" class="space-y-8">
+                            <div class="text-center py-10 text-slate-400 italic font-medium">Завантаження коментарів...
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Sidebar column -->
@@ -743,6 +778,116 @@
                 })
                 .subscribe();
         }
+
+        async function loadComments(postId) {
+            const container = document.getElementById('comments-list');
+            const countElem = document.getElementById('comments-count');
+            if (!container) return;
+
+            try {
+                const { data, error } = await _supabase
+                    .from('comments')
+                    .select('*')
+                    .eq('post_id', postId)
+                    .eq('is_approved', true)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                if (countElem) countElem.innerText = data.length;
+
+                if (data.length === 0) {
+                    container.innerHTML = '<div class="text-center py-10 text-slate-400 italic font-medium">Поки що немає коментарів. Будьте першим! 📣</div>';
+                    return;
+                }
+
+                container.innerHTML = data.map(comment => `
+                    <div class="bg-slate-50 p-6 rounded-3xl border border-slate-100 transition hover:border-orange-200 group">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h4 class="font-black text-slate-900 text-sm uppercase tracking-tight">${comment.user_name}</h4>
+                                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">${new Date(comment.created_at).toLocaleString('uk-UA')}</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="handleCommentReaction('${comment.id}', 'likes')" 
+                                    class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-slate-100 text-[11px] font-bold text-slate-600 hover:text-orange-600 hover:border-orange-200 transition">
+                                    👍 <span id="comment-likes-${comment.id}">${comment.likes || 0}</span>
+                                </button>
+                                <button onclick="handleCommentReaction('${comment.id}', 'dislikes')" 
+                                    class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-slate-100 text-[11px] font-bold text-slate-600 hover:text-red-600 hover:border-red-200 transition">
+                                    👎 <span id="comment-dislikes-${comment.id}">${comment.dislikes || 0}</span>
+                                </button>
+                            </div>
+                        </div>
+                        <p class="text-slate-700 text-sm leading-relaxed">${comment.content}</p>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error("Comments load error:", err);
+                container.innerHTML = '<div class="text-center py-10 text-red-400 italic font-medium">Не вдалося завантажити коментарі.</div>';
+            }
+        }
+
+        async function handleCommentReaction(commentId, type) {
+            const storageKey = `reacted_comment_${commentId}_${type}`;
+            if (localStorage.getItem(storageKey)) {
+                alert("Ви вже відреагували на цей коментар!");
+                return;
+            }
+
+            try {
+                const { error } = await _supabase.rpc('increment_comment_reaction', {
+                    comment_id: commentId,
+                    reaction_type: type
+                });
+
+                if (error) throw error;
+
+                localStorage.setItem(storageKey, 'true');
+                const countElem = document.getElementById(`comment-${type}-${commentId}`);
+                if (countElem) {
+                    countElem.innerText = parseInt(countElem.innerText) + 1;
+                    countElem.classList.add('text-orange-600', 'scale-110');
+                }
+            } catch (err) {
+                console.error("Comment reaction error:", err);
+            }
+        }
+
+        // Initialize Comment Form
+        document.getElementById('comment-form')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!currentPost) return;
+
+            const btn = document.getElementById('btn-submit-comment');
+            const status = document.getElementById('comment-status');
+            const userName = document.getElementById('comment-user-name');
+            const content = document.getElementById('comment-content');
+
+            btn.disabled = true;
+            btn.innerText = 'Надсилаємо...';
+
+            try {
+                const { error } = await _supabase.from('comments').insert([{
+                    post_id: currentPost.id,
+                    user_name: userName.value,
+                    content: content.value,
+                    is_approved: false
+                }]);
+
+                if (error) throw error;
+
+                userName.value = '';
+                content.value = '';
+                status.classList.remove('hidden');
+                setTimeout(() => status.classList.add('hidden'), 5000);
+            } catch (err) {
+                alert("Помилка при відправці коментаря: " + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Надіслати';
+            }
+        });
 
         window.handleReaction = async (e, type) => {
             const btn = e.currentTarget;
