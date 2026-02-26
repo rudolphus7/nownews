@@ -86,9 +86,11 @@
                         СТРІЧКА НОВИН
                     </h2>
                     <div class="flex space-x-2">
-                        <button onclick="header.openMenu()"
+                        <button id="view-toggle-btn" onclick="toggleViewMode()"
                             class="p-2 rounded-xl bg-white border border-slate-100 text-slate-400 hover:text-orange-600 hover:border-orange-200 transition">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <!-- Icon updated via JS -->
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                id="view-toggle-icon">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
                                     d="M4 6h16M4 12h16m-7 6h7"></path>
                             </svg>
@@ -220,6 +222,7 @@
         const PAGE_SIZE = 8;
         let currentPage = 0;
         let currentFilters = {};
+        let currentViewMode = localStorage.getItem('newsViewMode') || 'detailed'; // 'detailed' or 'compact'
 
         async function init() {
             // 1. Initialize Shared Header component
@@ -252,6 +255,29 @@
             });
 
             await loadNews();
+            updateViewToggleUI();
+        }
+
+        window.toggleViewMode = () => {
+            currentViewMode = currentViewMode === 'detailed' ? 'compact' : 'detailed';
+            localStorage.setItem('newsViewMode', currentViewMode);
+            updateViewToggleUI();
+
+            // Re-render only the current visible news
+            loadNews(false);
+        };
+
+        function updateViewToggleUI() {
+            const icon = document.getElementById('view-toggle-icon');
+            if (!icon) return;
+
+            if (currentViewMode === 'compact') {
+                // List icon
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h16"></path>';
+            } else {
+                // Grid/Detail icon
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16m-7 6h7"></path>';
+            }
         }
 
         window.addEventListener('popstate', async () => {
@@ -366,12 +392,37 @@
         function renderGrid(posts, append = false) {
             const grid = document.getElementById('news-grid');
 
-            // Professional List Style for both Grid and Filtered views
-            grid.className = "flex flex-col gap-3 md:gap-10 max-w-full";
+            if (currentViewMode === 'compact') {
+                grid.className = "flex flex-col gap-4 max-w-full";
+            } else {
+                grid.className = "flex flex-col gap-3 md:gap-10 max-w-full";
+            }
 
             const html = posts.map((post, i) => {
                 const link = getNewsLink(post);
 
+                if (currentViewMode === 'compact') {
+                    // Compact Style: Small image + Title + Category
+                    return `
+                    <a href="${link}" class="news-list-item group flex items-center gap-4 border-b border-slate-50 pb-4 last:border-0 animate-in fade-in slide-in-from-bottom-2 duration-500 hover:bg-white/50 -mx-4 px-4 rounded-2xl transition-all" style="animation-delay: ${i * 0.03}s">
+                        <div class="relative w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-slate-100">
+                            <img src="${post.image_url}" class="w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-transform duration-500 group-hover:scale-110">
+                        </div>
+                        <div class="flex-1 min-w-0">
+                             <div class="flex items-center gap-2 mb-1">
+                                <span class="text-[8px] font-black text-orange-600 uppercase tracking-widest">${CATEGORIES_UK[post.category] || post.category}</span>
+                                <span class="w-0.5 h-0.5 bg-slate-300 rounded-full"></span>
+                                <span class="text-[8px] font-bold text-slate-400 uppercase tracking-widest">${new Date(post.created_at).toLocaleDateString('uk-UA')}</span>
+                             </div>
+                             <h3 class="text-sm md:text-lg font-bold leading-tight text-slate-900 group-hover:text-orange-600 transition-colors tracking-tight truncate">${post.title}</h3>
+                        </div>
+                        <div class="text-[10px] font-bold text-slate-300 group-hover:text-orange-600 transition-colors">
+                            →
+                        </div>
+                    </a>`;
+                }
+
+                // Detailed Style (Default)
                 return `
                 <a href="${link}" class="news-list-item group flex flex-col sm:flex-row gap-6 md:gap-10 items-start border-b border-slate-100 pb-8 md:pb-12 last:border-0 animate-in fade-in slide-in-from-bottom-4 duration-700 hover:bg-white/50 -mx-4 px-4 rounded-3xl transition-all" style="animation-delay: ${i * 0.05}s">
                     <div class="relative w-full sm:w-64 md:w-80 h-48 md:h-56 rounded-[2rem] overflow-hidden flex-shrink-0 bg-slate-100 shadow-md">
