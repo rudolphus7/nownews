@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS public.comments (
     content text NOT NULL,
     likes integer DEFAULT 0,
     dislikes integer DEFAULT 0,
-    is_approved boolean DEFAULT false,
+    is_approved boolean DEFAULT true,
     created_at timestamptz DEFAULT now()
 );
 

@@ -632,23 +632,31 @@
         <section id="section-comments" class="admin-section hidden">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 gap-4">
                 <div>
-                    <h2 class="text-3xl font-extrabold text-slate-800 tracking-tight">Модерація коментарів</h2>
-                    <p class="text-slate-500 mt-2 font-medium">Перевіряйте та схвалюйте коментарі читачів</p>
+                    <h2 class="text-3xl font-extrabold text-slate-800 tracking-tight">Керування коментарями</h2>
+                    <p class="text-slate-500 mt-2 font-medium">Переглядайте та видаляйте коментарі читачів</p>
                 </div>
-                <button onclick="window.loadCommentsAdmin()"
-                    class="bg-slate-900 text-white px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-orange-600 shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2">
-                    <span>🔄</span> Оновити список
-                </button>
+                <div class="flex items-center gap-3 w-full sm:w-auto">
+                    <div class="relative flex-1 sm:w-64">
+                        <input type="text" id="comment-search" oninput="window.filterCommentsAdmin()"
+                            placeholder="Пошук по тексту або автору..."
+                            class="w-full pl-10 pr-4 py-4 rounded-2xl bg-white border border-slate-100 focus:outline-none focus:ring-2 focus:ring-orange-500/20 transition-all font-bold text-[10px] uppercase tracking-widest">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 opacity-30 text-xs">🔍</span>
+                    </div>
+                    <button onclick="window.loadCommentsAdmin()"
+                        class="bg-slate-900 text-white px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-orange-600 shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2">
+                        <span>🔄</span>
+                    </button>
+                </div>
             </div>
 
             <div class="bg-white rounded-3xl shadow-xl overflow-x-auto border border-white">
                 <table class="w-full text-left border-collapse min-w-[800px]">
-                    <thead class="bg-slate-50 text-slate-400 uppercase text-[10px] font-black tracking-widest">
+                    <thead
+                        class="bg-slate-50 text-slate-400 uppercase text-[10px] font-black tracking-widest border-b border-slate-100">
                         <tr>
                             <th class="p-6">Користувач / Дата</th>
                             <th class="p-6">Коментар</th>
                             <th class="p-6">Стаття</th>
-                            <th class="p-6 text-center">Статус</th>
                             <th class="p-6 text-right">Дії</th>
                         </tr>
                     </thead>
