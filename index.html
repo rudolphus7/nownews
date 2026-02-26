@@ -86,7 +86,7 @@
                         СТРІЧКА НОВИН
                     </h2>
                     <div class="flex space-x-2">
-                        <button
+                        <button onclick="header.openMenu()"
                             class="p-2 rounded-xl bg-white border border-slate-100 text-slate-400 hover:text-orange-600 hover:border-orange-200 transition">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
@@ -223,7 +223,7 @@
 
         async function init() {
             // 1. Initialize Shared Header component
-            const header = window.initSiteHeader(_supabase);
+            window.header = window.initSiteHeader(_supabase);
 
             const urlParams = new URLSearchParams(window.location.search);
             currentFilters = {

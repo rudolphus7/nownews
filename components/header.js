@@ -211,23 +211,33 @@ class SiteHeader {
         }
     }
 
+    openMenu() {
+        const overlay = document.getElementById('mobile-menu-overlay');
+        if (overlay) {
+            overlay.classList.remove('translate-x-full');
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    closeMenu() {
+        const overlay = document.getElementById('mobile-menu-overlay');
+        if (overlay) {
+            overlay.classList.add('translate-x-full');
+            document.body.style.overflow = '';
+        }
+    }
+
     setupEventListeners() {
         const burgerBtn = document.getElementById('mobile-menu-toggle');
-        const overlay = document.getElementById('mobile-menu-overlay');
         const closeBtn = document.getElementById('close-mobile-menu');
+        const overlay = document.getElementById('mobile-menu-overlay');
 
-        if (burgerBtn && overlay) {
-            burgerBtn.onclick = () => {
-                overlay.classList.remove('translate-x-full');
-                document.body.style.overflow = 'hidden';
-            };
+        if (burgerBtn) {
+            burgerBtn.onclick = () => this.openMenu();
         }
 
-        if (closeBtn && overlay) {
-            closeBtn.onclick = () => {
-                overlay.classList.add('translate-x-full');
-                document.body.style.overflow = '';
-            };
+        if (closeBtn) {
+            closeBtn.onclick = () => this.closeMenu();
         }
 
         if (overlay) {
