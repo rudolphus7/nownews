@@ -760,9 +760,19 @@
                 const { data, error } = await _supabase.from('news').select('likes, fire, wow').eq('id', id).single();
                 if (error) throw error;
                 if (data) {
-                    document.getElementById('count-like').innerText = data.likes || 0;
-                    document.getElementById('count-fire').innerText = data.fire || 0;
-                    document.getElementById('count-wow').innerText = data.wow || 0;
+                    const like = document.getElementById('count-like');
+                    const fire = document.getElementById('count-fire');
+                    const wow = document.getElementById('count-wow');
+                    if (like) like.innerText = data.likes || 0;
+                    if (fire) fire.innerText = data.fire || 0;
+                    if (wow) wow.innerText = data.wow || 0;
+
+                    // Highlight active reaction
+                    const saved = localStorage.getItem(`reaction_${id}`);
+                    if (saved) {
+                        const activeBtn = document.querySelector(`.reaction-btn[onclick*="'${saved}'"]`);
+                        if (activeBtn) activeBtn.classList.add('bg-orange-600/20', 'border-orange-600');
+                    }
                 }
             } catch (e) { console.warn("Reactions load error:", e); }
         }
@@ -939,6 +949,7 @@
         });
 
         window.handleReaction = async (e, type) => {
+            if (!currentPost) return;
             const btn = e.currentTarget;
             const dbField = type === 'like' ? 'likes' : type;
             const currentReaction = localStorage.getItem(`reaction_${currentPost.id}`);
@@ -954,6 +965,9 @@
                     if (error) throw error;
                     localStorage.removeItem(`reaction_${currentPost.id}`);
                     btn.classList.remove('bg-orange-600/20', 'border-orange-600');
+
+                    const countElem = document.getElementById(`count-${type}`);
+                    if (countElem) countElem.innerText = Math.max(0, parseInt(countElem.innerText) - 1);
                 } catch (err) { console.error(err); }
                 return;
             }
@@ -967,6 +981,10 @@
                         reaction_type: oldField,
                         delta: -1
                     });
+
+                    const oldCountElem = document.getElementById(`count-${currentReaction}`);
+                    if (oldCountElem) oldCountElem.innerText = Math.max(0, parseInt(oldCountElem.innerText) - 1);
+
                     document.querySelectorAll('.reaction-btn').forEach(b => b.classList.remove('bg-orange-600/20', 'border-orange-600'));
                 } catch (err) { console.error(err); }
             }
@@ -981,6 +999,9 @@
                 if (error) throw error;
                 localStorage.setItem(`reaction_${currentPost.id}`, type);
                 btn.classList.add('bg-orange-600/20', 'border-orange-600');
+
+                const countElem = document.getElementById(`count-${type}`);
+                if (countElem) countElem.innerText = parseInt(countElem.innerText) + 1;
 
                 btn.style.transform = 'scale(1.2)';
                 setTimeout(() => btn.style.transform = '', 200);
