@@ -1248,14 +1248,21 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        tbody.innerHTML = comments.map(comment => `
+        tbody.innerHTML = comments.map(comment => {
+            const isReply = !!comment.parent_id;
+            return `
             <tr class="border-b hover:bg-slate-50 transition group">
                 <td class="p-6">
-                    <div class="font-black text-slate-900 text-sm uppercase truncate max-w-[150px]">${comment.user_name}</div>
-                    <div class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1">${new Date(comment.created_at).toLocaleString('uk-UA')}</div>
+                    <div class="flex items-center gap-2">
+                        ${isReply ? '<span class="text-orange-500 font-black">↳</span>' : ''}
+                        <div>
+                            <div class="font-black text-slate-900 text-sm uppercase truncate max-w-[150px]">${comment.user_name}</div>
+                            <div class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1">${new Date(comment.created_at).toLocaleString('uk-UA')}</div>
+                        </div>
+                    </div>
                 </td>
                 <td class="p-6">
-                    <div class="text-slate-600 text-sm leading-relaxed max-w-md line-clamp-2">${comment.content}</div>
+                    <div class="text-slate-600 text-sm leading-relaxed max-w-md line-clamp-2 ${isReply ? 'italic text-slate-400' : ''}">${comment.content}</div>
                 </td>
                 <td class="p-6">
                     <div class="text-xs font-bold text-slate-400 truncate max-w-[200px]">${comment.news?.title || 'Видалена стаття'}</div>
@@ -1264,7 +1271,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button onclick="window.deleteComment('${comment.id}')" class="bg-slate-100 text-slate-400 px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-red-50 hover:text-red-600 transition">Видалити</button>
                 </td>
             </tr>
-        `).join('');
+        `;
+        }).join('');
     };
 
     window.filterCommentsAdmin = () => {
