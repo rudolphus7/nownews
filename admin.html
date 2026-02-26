@@ -376,6 +376,11 @@
                 <span class="text-xl">📡</span>
                 <span class="font-bold tracking-wide">RSS Агрегатор</span>
             </a>
+            <a href="#" onclick="showSection('section-comments'); window.loadCommentsAdmin();"
+                class="flex items-center space-x-4 p-4 rounded-2xl hover:bg-slate-800 transition-all group">
+                <span class="text-xl">💬</span>
+                <span class="font-bold tracking-wide">Коментарі</span>
+            </a>
             <a href="#" onclick="showSection('section-settings')"
                 class="flex items-center space-x-4 p-4 rounded-2xl hover:bg-slate-800 transition-all group">
                 <span class="text-xl">⚙️</span>
@@ -621,6 +626,38 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </section>
+
+        <section id="section-comments" class="admin-section hidden">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 gap-4">
+                <div>
+                    <h2 class="text-3xl font-extrabold text-slate-800 tracking-tight">Модерація коментарів</h2>
+                    <p class="text-slate-500 mt-2 font-medium">Перевіряйте та схвалюйте коментарі читачів</p>
+                </div>
+                <button onclick="window.loadCommentsAdmin()"
+                    class="bg-slate-900 text-white px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-orange-600 shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2">
+                    <span>🔄</span> Оновити список
+                </button>
+            </div>
+
+            <div class="bg-white rounded-3xl shadow-xl overflow-x-auto border border-white">
+                <table class="w-full text-left border-collapse min-w-[800px]">
+                    <thead class="bg-slate-50 text-slate-400 uppercase text-[10px] font-black tracking-widest">
+                        <tr>
+                            <th class="p-6">Користувач / Дата</th>
+                            <th class="p-6">Коментар</th>
+                            <th class="p-6">Стаття</th>
+                            <th class="p-6 text-center">Статус</th>
+                            <th class="p-6 text-right">Дії</th>
+                        </tr>
+                    </thead>
+                    <tbody id="comments-table-body" class="divide-y divide-slate-100">
+                        <tr>
+                            <td colspan="5" class="p-10 text-center text-slate-400 italic">Завантаження...</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </section>
 

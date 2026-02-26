@@ -1215,6 +1215,75 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    // --- MANAGEMENT OF COMMENTS ---
+    window.loadCommentsAdmin = async () => {
+        const tbody = document.getElementById('comments-table-body');
+        if (!tbody || !_supabase) return;
+
+        tbody.innerHTML = '<tr><td colspan="5" class="p-10 text-center text-slate-400 italic">Завантаження коментарів...</td></tr>';
+
+        const { data, error } = await _supabase
+            .from('comments')
+            .select('*, news(title)')
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error("Comments fetch error:", error);
+            tbody.innerHTML = '<tr><td colspan="5" class="p-10 text-center text-red-400 italic">Помилка завантаження.</td></tr>';
+            return;
+        }
+
+        if (data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="p-10 text-center text-slate-400 italic">Коментарів ще немає.</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = data.map(comment => `
+            <tr class="border-b hover:bg-slate-50 transition group">
+                <td class="p-6">
+                    <div class="font-black text-slate-900 text-sm uppercase truncate max-w-[150px]">${comment.user_name}</div>
+                    <div class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1">${new Date(comment.created_at).toLocaleString('uk-UA')}</div>
+                </td>
+                <td class="p-6">
+                    <div class="text-slate-600 text-sm leading-relaxed max-w-md line-clamp-2">${comment.content}</div>
+                </td>
+                <td class="p-6">
+                    <div class="text-xs font-bold text-slate-400 truncate max-w-[200px]">${comment.news?.title || 'Видалена стаття'}</div>
+                </td>
+                <td class="p-6 text-center">
+                    ${comment.is_approved
+                ? '<span class="bg-green-100 text-green-600 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest">Схвалено</span>'
+                : '<span class="bg-orange-100 text-orange-600 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest">Очікує</span>'}
+                </td>
+                <td class="p-6 text-right space-x-2 whitespace-nowrap">
+                    ${!comment.is_approved ? `<button onclick="window.approveComment('${comment.id}')" class="bg-green-600 text-white px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-green-500 shadow-lg transition">Схвалити</button>` : ''}
+                    <button onclick="window.deleteComment('${comment.id}')" class="bg-slate-100 text-slate-400 px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-red-50 hover:text-red-600 transition">Видалити</button>
+                </td>
+            </tr>
+        `).join('');
+    };
+
+    window.approveComment = async (id) => {
+        try {
+            const { error } = await _supabase.from('comments').update({ is_approved: true }).eq('id', id);
+            if (error) throw error;
+            window.loadCommentsAdmin();
+        } catch (err) {
+            alert("Помилка при схваленні: " + err.message);
+        }
+    };
+
+    window.deleteComment = async (id) => {
+        if (!confirm("Видалити цей коментар назавжди?")) return;
+        try {
+            const { error } = await _supabase.from('comments').delete().eq('id', id);
+            if (error) throw error;
+            window.loadCommentsAdmin();
+        } catch (err) {
+            alert("Помилка при видаленні: " + err.message);
+        }
+    };
+
     setTimeout(() => { if (_supabase) window.loadSettings(); }, 1000);
     window.loadStats();
 });
