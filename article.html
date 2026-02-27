@@ -859,7 +859,7 @@
 
             const chunk = cloudChunks[currentChunkIndex];
             const key = localStorage.getItem('gemini_api_key');
-            const model = "gemini-1.5-flash"; // Standard flash model supports multimodal output
+            const model = "gemini-2.5-flash-preview-tts";
             const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
 
             try {
