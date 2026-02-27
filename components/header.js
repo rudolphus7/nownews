@@ -258,7 +258,7 @@ class SiteHeader {
 
         const liveHtml = `
             <div class="flex items-center ml-4">
-                <a href="#" class="bg-indigo-950 text-white px-5 py-2.5 rounded-xl transition hover:bg-slate-900 shadow-xl shadow-indigo-100 flex items-center gap-3 group border border-white/10">
+                <a href="/live/" class="bg-indigo-950 text-white px-5 py-2.5 rounded-xl transition hover:bg-slate-900 shadow-xl shadow-indigo-100 flex items-center gap-3 group border border-white/10">
                     <span class="flex h-2.5 w-2.5 relative">
                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                         <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-600"></span>
@@ -274,7 +274,7 @@ class SiteHeader {
         if (nav) nav.innerHTML = html + liveHtml;
         if (mobileNav) mobileNav.innerHTML = categories.map(c => {
             return `<a href="/category/${c.slug}/" data-category="${c.slug}" class="py-2 active:text-orange-600 font-bold">${c.name}</a>`;
-        }).join('') + `<div class="pt-4 text-orange-600 font-black">LIVE • РЕПОРТАЖІ</div>`;
+        }).join('') + `<a href="/live/" class="pt-4 text-orange-600 font-black flex items-center gap-2"><span class="flex h-2 w-2 relative"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-red-600"></span></span>LIVE • ЕФІР</a>`;
     }
 
     renderCities(cities) {

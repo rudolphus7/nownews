@@ -172,6 +172,10 @@
             "destination": "/api/city?city=:city"
         },
         {
+            "source": "/live/",
+            "destination": "/live.html"
+        },
+        {
             "source": "/news/",
             "destination": "/index.html"
         }
