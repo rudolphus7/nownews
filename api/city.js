@@ -93,6 +93,12 @@ module.exports = async (req, res) => {
         ]
     }
     <\/script>
+
+    <style>
+        #hero-container { display: none !important; }
+        #section-header { display: block !important; }
+        #homepage-h1 { display: none !important; }
+    </style>
     <!-- End City SEO -->`;
 
     // Inject SSR data for the city filter

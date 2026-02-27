@@ -285,6 +285,10 @@
          * Parse city from pathname (e.g. /kolomyya/ → 'kolomyya')
          */
         function parseCityFromUrl() {
+            // SSR: api/city.js injects window.__SSR_CITY__
+            if (window.__SSR_CITY__ && window.__SSR_CITY__ !== 'undefined') {
+                return window.__SSR_CITY__;
+            }
             const pathParts = window.location.pathname.replace(/^\/|\/$/g, '').split('/');
             const citySlug = pathParts[0];
             return (citySlug && CITIES_UK[citySlug]) ? citySlug : null;
@@ -301,8 +305,8 @@
             }
             const pathParts = window.location.pathname.replace(/^\/|\/$/g, '').split('/');
             if (pathParts[0] === 'category' && pathParts[1]) {
-                // CATEGORY_UK_SLUG_TO_EN comes from header.js
-                return CATEGORY_UK_SLUG_TO_EN[pathParts[1]] || null;
+                // CATEGORY_UK_SLUG_TO_EN is in header.js
+                return typeof CATEGORY_UK_SLUG_TO_EN !== 'undefined' ? CATEGORY_UK_SLUG_TO_EN[pathParts[1]] || null : null;
             }
             return new URLSearchParams(window.location.search).get('category') || null;
         }
