@@ -4,17 +4,27 @@
  */
 
 // EN slug (DB) → UA display name (will be initialized below)
-let CATEGORIES_FALLBACK = {
+let CATEGORIES_UK = {
     'politics': 'Політика', 'economy': 'Економіка', 'sport': 'Спорт',
     'culture': 'Культура', 'tech': 'Технології', 'frankivsk': 'Франківськ',
     'oblast': 'Область', 'war': 'Війна'
 };
 
-const CITIES_FALLBACK = {
+const CITIES_UK = {
     'kalush': 'Калуш', 'if': 'Івано-Франківськ', 'kolomyya': 'Коломия',
     'dolyna': 'Долина', 'bolekhiv': 'Болехів', 'nadvirna': 'Надвірна',
     'burshtyn': 'Бурштин', 'kosiv': 'Косів', 'yaremche': 'Яремче'
 };
+
+// EN slug (DB) → UA URL slug (will be populated dynamically)
+let CATEGORY_EN_TO_UK_SLUG = {
+    'war': 'war', 'politics': 'politics', 'economy': 'economy',
+    'sport': 'sport', 'culture': 'culture', 'tech': 'tech',
+    'frankivsk': 'frankivsk', 'oblast': 'oblast'
+};
+
+const CITIES_FALLBACK = CITIES_UK;
+const CATEGORIES_FALLBACK = CATEGORIES_UK;
 
 class SiteHeader {
     constructor(supabaseClient) {
@@ -214,10 +224,17 @@ class SiteHeader {
                 this.categories = {};
                 this.catUkToEn = {};
                 this.catEnToUk = {};
+                // Clear and update global maps for backward compatibility
+                for (let key in CATEGORIES_UK) delete CATEGORIES_UK[key];
+                for (let key in CATEGORY_EN_TO_UK_SLUG) delete CATEGORY_EN_TO_UK_SLUG[key];
+
                 catRes.data.forEach(c => {
                     this.categories[c.slug] = c.name;
-                    this.catUkToEn[c.slug] = c.slug; // Assuming slug is unique and used in URL
+                    this.catUkToEn[c.slug] = c.slug;
                     this.catEnToUk[c.slug] = c.slug;
+                    // Global compatibility
+                    CATEGORIES_UK[c.slug] = c.name;
+                    CATEGORY_EN_TO_UK_SLUG[c.slug] = c.slug;
                 });
                 this.renderNav(catRes.data);
             } else {
@@ -226,7 +243,12 @@ class SiteHeader {
 
             if (cityRes.data && cityRes.data.length > 0) {
                 this.cities = {};
-                cityRes.data.forEach(c => this.cities[c.slug] = c.name);
+                // Update global CITIES_UK
+                for (let key in CITIES_UK) delete CITIES_UK[key];
+                cityRes.data.forEach(c => {
+                    this.cities[c.slug] = c.name;
+                    CITIES_UK[c.slug] = c.name;
+                });
                 this.renderCities(cityRes.data);
             } else {
                 this.renderCities(Object.keys(CITIES_FALLBACK).map(k => ({ slug: k, name: CITIES_FALLBACK[k] })));
