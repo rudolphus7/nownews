@@ -20,10 +20,7 @@ class SiteHeader {
         this.supabase = supabaseClient;
         this.categories = { ...CATEGORIES_FALLBACK };
         this.cities = { ...CITIES_FALLBACK };
-        this.currentFilters = {
-            category: new URLSearchParams(window.location.search).get('category'),
-            city: new URLSearchParams(window.location.search).get('city')
-        };
+        this.currentFilters = this._parseFiltersFromUrl();
 
         this.isLocal = window.location.hostname === 'localhost' ||
             window.location.hostname.startsWith('192.168.') ||
@@ -33,6 +30,17 @@ class SiteHeader {
         window.addEventListener('popstate', () => this.syncFilters());
     }
 
+    _parseFiltersFromUrl() {
+        const params = new URLSearchParams(window.location.search);
+        // City is now read from pathname: /kolomyya/ → city=kolomyya
+        const pathParts = window.location.pathname.replace(/^\/|\/$/g, '').split('/');
+        const cityFromPath = pathParts[0] && CITIES_FALLBACK[pathParts[0]] ? pathParts[0] : null;
+        return {
+            category: params.get('category'),
+            city: cityFromPath || params.get('city') // fallback for old query param
+        };
+    }
+
     getNewsLink(post) {
         const slug = post.slug || '';
         const id = post.id || '';
@@ -40,11 +48,7 @@ class SiteHeader {
     }
 
     syncFilters() {
-        const params = new URLSearchParams(window.location.search);
-        this.currentFilters = {
-            category: params.get('category'),
-            city: params.get('city')
-        };
+        this.currentFilters = this._parseFiltersFromUrl();
         this.updateActiveHighlights();
     }
 
@@ -198,15 +202,16 @@ class SiteHeader {
         const cityContainer = document.getElementById('city-nav-list');
         const mobileCities = document.getElementById('mobile-city-list');
 
+        // Cities now use path-based URLs: /:city/
         const html = cities.map(c => `
-            <a href="/?city=${c.slug}" class="city-link hover:text-orange-600 transition-colors py-1">${c.name}</a>
+            <a href="/${c.slug}/" class="city-link hover:text-orange-600 transition-colors py-1" data-city="${c.slug}">${c.name}</a>
         `).join('');
 
         if (cityContainer) cityContainer.innerHTML = html;
         if (mobileCities) {
             mobileCities.innerHTML = `
                 <a href="/" class="bg-slate-50 p-4 rounded-2xl flex items-center justify-center text-center hover:bg-orange-50 hover:text-orange-600 transition h-full font-black text-xs uppercase leading-tight">ВСЯ ОБЛАСТЬ</a>
-                ${cities.map(c => `<a href="/?city=${c.slug}" class="bg-slate-50 p-4 rounded-2xl flex items-center justify-center text-center hover:bg-orange-50 hover:text-orange-600 transition h-full font-black text-xs uppercase leading-tight">${c.name}</a>`).join('')}
+                ${cities.map(c => `<a href="/${c.slug}/" data-city="${c.slug}" class="bg-slate-50 p-4 rounded-2xl flex items-center justify-center text-center hover:bg-orange-50 hover:text-orange-600 transition h-full font-black text-xs uppercase leading-tight">${c.name}</a>`).join('')}
             `;
         }
     }
@@ -256,12 +261,21 @@ class SiteHeader {
                 const isIndexPath = url.pathname === '/' || url.pathname === '/index.html' || url.pathname.endsWith('index.html');
                 const isCurrentIndexPath = window.location.pathname === '/' || window.location.pathname.endsWith('index.html');
 
-                if (isIndexPath && isCurrentIndexPath) {
+                // Check if this is a city path link (e.g. /kolomyya/)
+                const cityMatch = url.pathname.match(/^\/([a-z]+)\/?$/);
+                const citySlug = cityMatch && CITIES_FALLBACK[cityMatch[1]] ? cityMatch[1] : null;
+                const isCityPath = !!citySlug;
+
+                if (isCityPath && isCurrentIndexPath) {
+                    // City navigation via path — do a full navigation to let Vercel rewrite work
+                    // (city page SSR is needed so let Vercel handle it)
+                    return; // Allow normal link navigation
+                } else if (isIndexPath && isCurrentIndexPath) {
                     e.preventDefault();
                     const params = new URLSearchParams(url.search);
                     this.currentFilters = {
                         category: params.get('category'),
-                        city: params.get('city')
+                        city: null
                     };
                     window.history.pushState(this.currentFilters, '', link.href);
                     this.updateActiveHighlights();
@@ -271,7 +285,7 @@ class SiteHeader {
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                 } else if (this.isLocal && url.pathname.startsWith('/news/')) {
                     // Localhost 404 Fix
-                    const slug = url.pathname.split('/news/')[1];
+                    const slug = url.pathname.replace(/^\/news\//, '').replace(/\/$/, '');
                     if (slug) {
                         e.preventDefault();
                         window.location.href = `/news.html?slug=${slug}`;
@@ -292,7 +306,8 @@ class SiteHeader {
             });
         }
         if (this.currentFilters.city) {
-            document.querySelectorAll(`.city-link[href*="city=${this.currentFilters.city}"]`).forEach(el => {
+            // Match by data-city attribute (path-based URLs)
+            document.querySelectorAll(`.city-link[data-city="${this.currentFilters.city}"]`).forEach(el => {
                 el.classList.add('text-orange-600', 'font-black', 'text-slate-900');
             });
         }

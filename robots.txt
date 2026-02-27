@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /api/
+
+Sitemap: https://ifnews-omega.vercel.app/sitemap.xml
+Sitemap: https://ifnews-omega.vercel.app/sitemap-news.xml

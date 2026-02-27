@@ -5,6 +5,12 @@ const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kgrxlznhimwuvwhjfzhv.s
 const SUPABASE_KEY = process.env.SUPABASE_KEY || 'sb_publishable_L4_HhLhbj_m6wbEc3ZqhcQ_QNGOLWXU';
 const SITE_URL = process.env.SITE_URL || 'https://ifnews-omega.vercel.app';
 
+const CITIES_MAP = {
+    'kalush': 'Калуш', 'if': 'Івано-Франківськ', 'kolomyya': 'Коломия',
+    'dolyna': 'Долина', 'bolekhiv': 'Болехів', 'nadvirna': 'Надвірна',
+    'burshtyn': 'Бурштин', 'kosiv': 'Косів', 'yaremche': 'Яремче'
+};
+
 module.exports = async (req, res) => {
     // slug може прийти як /news/:slug через rewrite або як ?slug= query param
     let slug = req.query.slug;
@@ -86,10 +92,10 @@ module.exports = async (req, res) => {
             return res.status(200).send(htmlContent);
         }
 
-        // Canonical URL — завжди /news/slug (чисте SEO-посилання)
+        // Canonical URL — завжди /news/slug/ (чисте SEO-посилання)
         const canonicalUrl = news.slug
-            ? `${SITE_URL}/news/${news.slug}`
-            : `${SITE_URL}/news?id=${news.id}`;
+            ? `${SITE_URL}/news/${news.slug}/`
+            : `${SITE_URL}/news/?id=${news.id}`;
 
         const title = `${news.title} | IF News`;
         const description = (news.meta_description || news.content || '')
@@ -128,28 +134,74 @@ module.exports = async (req, res) => {
     <meta name="twitter:description" content="${escapeAttr(description)}">
     <meta name="twitter:image" content="${escapeAttr(image)}">
 
-    <!-- Schema.org JSON-LD -->
+    <!-- Schema.org JSON-LD: NewsArticle -->
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
         "@type": "NewsArticle",
         "headline": "${escapeJson(news.title)}",
         "description": "${escapeJson(description)}",
-        "image": "${escapeJson(image)}",
+        "image": {
+            "@type": "ImageObject",
+            "url": "${escapeJson(image)}",
+            "width": 1200,
+            "height": 630
+        },
         "datePublished": "${publishedDate}",
+        "dateModified": "${publishedDate}",
         "author": {
-            "@type": "Organization",
-            "name": "${escapeJson(siteName)}"
+            "@type": "Person",
+            "name": "${escapeJson(author)}"
         },
         "publisher": {
             "@type": "Organization",
             "name": "${escapeJson(siteName)}",
             "logo": {
                 "@type": "ImageObject",
-                "url": "${SITE_URL}/logo.png"
+                "url": "${SITE_URL}/favicon.ico",
+                "width": 512,
+                "height": 512
             }
         },
-        "url": "${escapeJson(canonicalUrl)}"
+        "articleSection": "${escapeJson(news.category || '')}",
+        "url": "${escapeJson(canonicalUrl)}",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "${escapeJson(canonicalUrl)}"
+        }
+    }
+    <\/script>
+    <!-- Schema.org JSON-LD: BreadcrumbList -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "\u0413\u043e\u043b\u043e\u0432\u043d\u0430",
+                "item": "${SITE_URL}/"
+            }${news.city ? `,
+            {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "${escapeJson(CITIES_MAP[news.city] || news.city)}",
+                "item": "${SITE_URL}/${escapeJson(news.city)}/"
+            },
+            {
+                "@type": "ListItem",
+                "position": 3,
+                "name": "${escapeJson(news.title)}",
+                "item": "${escapeJson(canonicalUrl)}"
+            }` : `,
+            {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "${escapeJson(news.title)}",
+                "item": "${escapeJson(canonicalUrl)}"
+            }`}
+        ]
     }
     <\/script>
     <!-- End SEO Meta Tags -->`;

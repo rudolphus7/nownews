@@ -1,13 +1,46 @@
 {
     "cleanUrls": true,
-    "trailingSlash": false,
+    "trailingSlash": true,
+    "redirects": [
+        {
+            "source": "/",
+            "has": [
+                {
+                    "type": "query",
+                    "key": "city"
+                }
+            ],
+            "destination": "/:city/",
+            "permanent": true
+        },
+        {
+            "source": "/index.html",
+            "has": [
+                {
+                    "type": "query",
+                    "key": "city",
+                    "value": "(?<city>.+)"
+                }
+            ],
+            "destination": "/:city/",
+            "permanent": true
+        }
+    ],
     "rewrites": [
         {
-            "source": "/news/:slug",
+            "source": "/sitemap.xml",
+            "destination": "/api/sitemap.xml"
+        },
+        {
+            "source": "/sitemap-news.xml",
+            "destination": "/api/sitemap-news.xml"
+        },
+        {
+            "source": "/news/:slug/",
             "destination": "/api/news?slug=:slug"
         },
         {
-            "source": "/news",
+            "source": "/news/",
             "has": [
                 {
                     "type": "query",
@@ -17,7 +50,7 @@
             "destination": "/api/news"
         },
         {
-            "source": "/news",
+            "source": "/news/",
             "has": [
                 {
                     "type": "query",
@@ -27,7 +60,11 @@
             "destination": "/api/news"
         },
         {
-            "source": "/news",
+            "source": "/:city(kalush|if|kolomyya|dolyna|bolekhiv|nadvirna|burshtyn|kosiv|yaremche)/",
+            "destination": "/api/city?city=:city"
+        },
+        {
+            "source": "/news/",
             "destination": "/index.html"
         }
     ],
@@ -35,6 +72,18 @@
         "api/admin-auth.js": {
             "memory": 128,
             "maxDuration": 10
+        },
+        "api/city.js": {
+            "memory": 128,
+            "maxDuration": 10
+        },
+        "api/sitemap.xml.js": {
+            "memory": 128,
+            "maxDuration": 30
+        },
+        "api/sitemap-news.xml.js": {
+            "memory": 128,
+            "maxDuration": 15
         }
     }
 }

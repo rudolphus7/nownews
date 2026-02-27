@@ -5,6 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Прикарпаття NEWS | Головні новини Івано-Франківщини</title>
+    <meta name="description"
+        content="Головні новини Івано-Франківщини: політика, економіка, війна, культура і спорт. Оперативні події Ivano-Frankivsk регіону.">
+    <link rel="canonical" href="https://ifnews-omega.vercel.app/">
 
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
@@ -216,7 +219,21 @@
         function getNewsLink(post) {
             const slug = post.slug || '';
             const id = post.id || '';
-            return slug ? `/news/${slug}` : `/news?id=${id}`;
+            return slug ? `/news/${slug}/` : `/news/?id=${id}`;
+        }
+
+        /**
+         * Parse city from pathname (e.g. /kolomyya/ → 'kolomyya')
+         * Falls back to query param for backward compat.
+         */
+        function parseCityFromUrl() {
+            const pathParts = window.location.pathname.replace(/^\/|\/$/g, '').split('/');
+            const citySlug = pathParts[0];
+            return (citySlug && CITIES_UK[citySlug]) ? citySlug : null;
+        }
+
+        function parseCategoryFromUrl() {
+            return new URLSearchParams(window.location.search).get('category') || null;
         }
 
         const PAGE_SIZE = 8;
@@ -224,22 +241,74 @@
         let currentFilters = {};
         let currentViewMode = localStorage.getItem('newsViewMode') || 'detailed'; // 'detailed' or 'compact'
 
+        /**
+         * Update page-level SEO meta tags dynamically
+         */
+        function updatePageSeo(city, category) {
+            const SITE_URL = 'https://ifnews-omega.vercel.app';
+            let title, description, canonical;
+
+            if (city && CITIES_UK[city]) {
+                const cityName = CITIES_UK[city];
+                title = `Новини ${cityName} сьогодні — останні події | Прикарпаття News`;
+                description = `Актуальні новини ${cityName}: події, факти, оперативна інформація. Читайте все найважливіше першими.`;
+                canonical = `${SITE_URL}/${city}/`;
+            } else if (category && CATEGORIES_UK[category]) {
+                const catName = CATEGORIES_UK[category];
+                title = `${catName} — новини | Прикарпаття News`;
+                description = `Новини рубрики «${catName}»: всі головні події Івано-Франківщини.`;
+                canonical = `${SITE_URL}/?category=${category}`;
+            } else {
+                title = 'Прикарпаття NEWS | Головні новини Івано-Франківщини';
+                description = 'Головні новини Івано-Франківщини: політика, економіка, війна, культура і спорт.';
+                canonical = SITE_URL + '/';
+            }
+
+            document.title = title;
+
+            // Update or create <meta name="description">
+            let descEl = document.querySelector('meta[name="description"]');
+            if (!descEl) { descEl = document.createElement('meta'); descEl.name = 'description'; document.head.appendChild(descEl); }
+            descEl.content = description;
+
+            // Update or create canonical
+            let canonEl = document.querySelector('link[rel="canonical"]');
+            if (!canonEl) { canonEl = document.createElement('link'); canonEl.rel = 'canonical'; document.head.appendChild(canonEl); }
+            canonEl.href = canonical;
+
+            // Open Graph
+            const setOg = (prop, val) => {
+                let el = document.querySelector(`meta[property="${prop}"]`);
+                if (!el) { el = document.createElement('meta'); el.setAttribute('property', prop); document.head.appendChild(el); }
+                el.content = val;
+            };
+            setOg('og:title', title);
+            setOg('og:description', description);
+            setOg('og:url', canonical);
+            setOg('og:type', 'website');
+        }
+
         async function init() {
             // 1. Initialize Shared Header component
             window.header = window.initSiteHeader(_supabase);
 
+            // Read city from pathname, category from query string
+            const cityFromPath = parseCityFromUrl();
             const urlParams = new URLSearchParams(window.location.search);
             currentFilters = {
                 category: urlParams.get('category'),
-                city: urlParams.get('city')
+                city: cityFromPath
             };
+
+            // Update SEO meta tags for this page
+            updatePageSeo(currentFilters.city, currentFilters.category);
 
             // Localhost 404 Fix: Intercept /news/ links and route them through news.html
             if (isLocal) {
                 document.addEventListener('click', (e) => {
                     const link = e.target.closest('a');
                     if (link && link.pathname.startsWith('/news/')) {
-                        const slug = link.pathname.split('/news/')[1];
+                        const slug = link.pathname.replace(/^\/news\//, '').replace(/\/$/, '');
                         if (slug) {
                             e.preventDefault();
                             window.location.href = `/news.html?slug=${slug}`;
@@ -251,6 +320,7 @@
             // Listen for filter changes from the header component
             window.addEventListener('news-filter-changed', async (e) => {
                 currentFilters = e.detail;
+                updatePageSeo(currentFilters.city, currentFilters.category);
                 await loadNews();
             });
 
@@ -281,16 +351,14 @@
         }
 
         window.addEventListener('popstate', async () => {
+            const cityFromPath = parseCityFromUrl();
             const urlParams = new URLSearchParams(window.location.search);
             currentFilters = {
                 category: urlParams.get('category'),
-                city: urlParams.get('city')
+                city: cityFromPath
             };
-            // The header component handles its own state on popstate, but we need to refresh news
+            updatePageSeo(currentFilters.city, currentFilters.category);
             await loadNews();
-
-            // We also need to tell the header to update highlights if it doesn't do it automatically
-            // Actually, header.js doesn't listen to popstate yet. I should add that to header.js.
         });
 
         async function loadNews(isMore = false) {
