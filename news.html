@@ -570,13 +570,24 @@
                 return ssrSlug;
             }
 
-            // Надійніший regex для шляху
             const path = window.location.pathname;
             console.log("Current Pathname:", path);
-            const pathMatch = path.match(/\/news\/([^/?#]+)/i) || path.match(/^\/([^/?#]+)$/i);
 
-            if (pathMatch && pathMatch[1] && pathMatch[1] !== 'news.html' && pathMatch[1] !== 'news') {
-                const s = decodeURIComponent(pathMatch[1]);
+            // Нова логіка: беремо останню частину шляху, якщо вона не технічна
+            const parts = path.split('/').filter(p => p && p !== 'news' && p !== 'category');
+
+            let pathSlug = null;
+            if (parts.length > 0) {
+                pathSlug = parts[parts.length - 1];
+
+                const CITIES_LIST = ['kalush', 'if', 'kolomyya', 'dolyna', 'bolekhiv', 'nadvirna', 'burshtyn', 'kosiv', 'yaremche'];
+                if (CITIES_LIST.includes(pathSlug)) pathSlug = null;
+
+                if (pathSlug && (pathSlug.endsWith('.html') || pathSlug.endsWith('.php'))) pathSlug = null;
+            }
+
+            if (pathSlug) {
+                const s = decodeURIComponent(pathSlug);
                 console.log("Found Path Slug:", s);
                 return s;
             }
@@ -648,12 +659,18 @@
 
             console.log("Detected keys:", { slug, id });
 
+            const loader = document.getElementById('loader');
+
             if (!slug && !id) {
                 console.warn("No slug or ID found!");
-                const loader = document.getElementById('loader');
                 if (loader) loader.innerHTML = `<div class="text-center py-20 text-slate-600 italic">Оберіть новину на <a href="/" class="text-orange-600 underline font-bold">головній сторінці</a>.</div>`;
                 return;
             }
+
+            // Додаємо таймаут для запиту, щоб уникнути "вічного завантаження"
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error("Таймаут завантаження (15с). Перевірте інтернет.")), 15000)
+            );
 
             try {
                 console.log("Fetching from Supabase...");
@@ -661,17 +678,25 @@
                 if (slug) query = query.eq('slug', slug);
                 else query = query.eq('id', id);
 
-                const { data, error } = await query.single();
+                // Запускаємо запит паралельно з таймаутом
+                const { data, error } = await Promise.race([
+                    query.single(),
+                    timeoutPromise
+                ]);
 
                 if (error) {
                     console.error("Supabase error:", error);
-                    document.getElementById('loader').innerHTML = `<div class="text-center py-20 text-red-500 font-bold uppercase tracking-widest">Помилка бази даних: ${error.message}</div>`;
+                    if (loader) loader.innerHTML = `
+                        <div class="text-center py-20">
+                            <div class="text-red-500 font-bold uppercase tracking-widest mb-4">Помилка: ${error.message}</div>
+                            <button onclick="location.reload()" class="bg-slate-900 text-white px-8 py-3 rounded-2xl font-black uppercase text-xs hover:bg-orange-600 transition">Спробувати ще раз</button>
+                        </div>`;
                     return;
                 }
 
                 if (!data) {
                     console.warn("No data returned for this slug/id");
-                    document.getElementById('loader').innerHTML = `<div class="text-center py-20 text-slate-400 font-bold uppercase tracking-widest">Статтю не знайдено</div>`;
+                    if (loader) loader.innerHTML = `<div class="text-center py-20 text-slate-400 font-bold uppercase tracking-widest">Статтю не знайдено</div>`;
                     return;
                 }
 
@@ -680,17 +705,17 @@
                 document.title = `${data.title} | IF News`;
 
                 // Final URL Sync
-                if (data.slug && window.location.pathname !== `/news/${data.slug}`) {
+                if (data.slug && !window.location.pathname.includes(data.slug)) {
                     window.history.replaceState(null, '', `/news/${data.slug}`);
                 }
-                currentPost = data;
+
                 fillUI(data);
                 loadRelated(data.category, data.id);
                 loadReactions(data.id, data.allowed_reactions);
-                subscribeToReactions(data.id);
                 loadComments(data.id);
+                subscribeToReactions(data.id);
 
-                document.getElementById('loader').classList.add('hidden');
+                if (loader) loader.classList.add('hidden');
                 document.getElementById('news-content').classList.remove('hidden');
 
                 // Increment Views (with session guard)
@@ -707,7 +732,11 @@
                 }
             } catch (err) {
                 console.error("Load failed", err);
-                document.getElementById('loader').innerHTML = `<div class="p-10 text-center text-red-500 font-bold">Помилка завантаження: ${err.message}</div>`;
+                if (loader) loader.innerHTML = `
+                    <div class="p-10 text-center">
+                        <div class="text-red-500 font-bold mb-4">Помилка завантаження: ${err.message}</div>
+                        <button onclick="location.reload()" class="bg-slate-900 text-white px-8 py-3 rounded-2xl font-black uppercase text-xs hover:bg-orange-600 transition">Оновити сторінку</button>
+                    </div>`;
             }
         }
 
