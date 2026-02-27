@@ -5,31 +5,50 @@ const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kgrxlznhimwuvwhjfzhv.s
 const SUPABASE_KEY = process.env.SUPABASE_KEY || 'sb_publishable_L4_HhLhbj_m6wbEc3ZqhcQ_QNGOLWXU';
 const SITE_URL = process.env.SITE_URL || 'https://ifnews-omega.vercel.app';
 
-const CITIES_MAP = {
-    'kalush': 'Калуш',
-    'if': 'Івано-Франківськ',
-    'kolomyya': 'Коломия',
-    'dolyna': 'Долина',
-    'bolekhiv': 'Болехів',
-    'nadvirna': 'Надвірна',
-    'burshtyn': 'Бурштин',
-    'kosiv': 'Косів',
-    'yaremche': 'Яремче'
-};
+async function fetchFromSupabase(table, params = '') {
+    const url = `${SUPABASE_URL}/rest/v1/${table}?${params}`;
+    const res = await fetch(url, {
+        headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`,
+            'Content-Type': 'application/json'
+        }
+    });
+    if (!res.ok) throw new Error(`Supabase fetch failed: ${res.status}`);
+    return res.json();
+}
 
 module.exports = async (req, res) => {
-    // City slug comes from query string: /api/city?city=kolomyya
-    // (Vercel rewrite maps /:city/ → /api/city?city=:city)
-    let city = req.query.city;
-    if (Array.isArray(city)) city = city[0];
+    let citySlug = req.query.city;
+    if (Array.isArray(citySlug)) citySlug = citySlug[0];
 
-    if (!city || !CITIES_MAP[city]) {
+    if (!citySlug) {
         res.status(404).send('City not found');
         return;
     }
 
-    const cityName = CITIES_MAP[city];
-    const canonicalUrl = `${SITE_URL}/${city}/`;
+    let categories = [];
+    let cities = [];
+
+    try {
+        [categories, cities] = await Promise.all([
+            fetchFromSupabase('categories', 'select=*&order=order_index.asc'),
+            fetchFromSupabase('cities', 'select=*&order=order_index.asc')
+        ]);
+    } catch (e) {
+        console.error('Supabase fetch error:', e.message);
+        return res.status(500).send('Помилка завантаження даних');
+    }
+
+    // Find city by slug in DB
+    const city = cities.find(c => c.slug === citySlug);
+    if (!city) {
+        res.status(404).send('City not found');
+        return;
+    }
+
+    const cityName = city.name;
+    const canonicalUrl = `${SITE_URL}/${citySlug}/`;
     const title = `Новини ${cityName} сьогодні — останні події | Прикарпаття News`;
     const description = `Актуальні новини ${cityName}: місцеві події, факти, оперативна інформація. Слідкуйте за головними новинами першими на IF News.`;
     const siteName = 'Прикарпаття News | IF News';
@@ -101,34 +120,30 @@ module.exports = async (req, res) => {
     </style>
     <!-- End City SEO -->`;
 
-    // Inject SSR data for the city filter
+    // SSR data for client-side city filtering
     const ssrScript = `<script>
-    window.__SSR_CITY__ = '${city}';
+    window.__SSR_CITY__ = '${escapeAttr(citySlug)}';
+    window.__SSR_CITY_NAME__ = '${escapeAttr(cityName)}';
 <\/script>`;
 
-    const CAT_DISPLAY = {
-        'politics': 'Політика', 'economy': 'Економіка', 'sport': 'Спорт',
-        'culture': 'Культура', 'tech': 'Технології', 'frankivsk': 'Франківськ',
-        'oblast': 'Область', 'war': 'Війна'
-    };
-    const CATEGORY_EN_TO_UK_SLUG = {
-        'war': 'viyna',
-        'politics': 'polityka',
-        'economy': 'ekonomika',
-        'sport': 'sport',
-        'culture': 'kultura',
-        'tech': 'tekhnolohii',
-        'frankivsk': 'frankivsk',
-        'oblast': 'oblast'
-    };
+    // Build SSR nav from DB data
+    const navLinksHtml = categories.map(c =>
+        `<a href="/category/${c.slug}/" class="nav-link hover:text-orange-600 transition-colors py-2 border-b-2 border-transparent font-black tracking-tight text-sm" data-category="${c.slug}">${escapeHtml(c.name)}</a>`
+    ).join('');
 
-    // SSR Utility
-    const inject = (html, id, value) => {
-        const regex = new RegExp(`(id="${id}"[^>]*>)`, 'g');
-        return html.replace(regex, `$1${value || ''}`);
-    };
+    const mobileCatHtml = categories.map(c =>
+        `<a href="/category/${c.slug}/" data-category="${c.slug}" class="py-2 active:text-orange-600 font-bold">${escapeHtml(c.name)}</a>`
+    ).join('');
 
-    // SSR Header Injection
+    const cityLinksHtml = cities.map(c =>
+        `<a href="/${c.slug}/" class="city-link hover:text-orange-600 transition-colors py-1${c.slug === citySlug ? ' text-orange-600 font-black text-slate-900' : ''}" data-city="${c.slug}">${escapeHtml(c.name)}</a>`
+    ).join('');
+
+    const mobileCityHtml = `<a href="/" class="bg-slate-50 p-4 rounded-2xl flex items-center justify-center text-center hover:bg-orange-50 hover:text-orange-600 transition h-full font-black text-xs uppercase leading-tight">ВСЯ ОБЛАСТЬ</a>` +
+        cities.map(c =>
+            `<a href="/${c.slug}/" data-city="${c.slug}" class="bg-slate-50 p-4 rounded-2xl flex items-center justify-center text-center hover:bg-orange-50 hover:text-orange-600 transition h-full font-black text-xs uppercase leading-tight${c.slug === citySlug ? ' bg-orange-50 text-orange-600' : ''}">${escapeHtml(c.name)}</a>`
+        ).join('');
+
     const headerHtml = `
         <!-- Ticker -->
         <div class="bg-slate-900 py-2 overflow-hidden border-b border-white/5">
@@ -154,11 +169,9 @@ module.exports = async (req, res) => {
                         <span class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 opacity-80">Незалежна Журналістика</span>
                     </div>
                 </a>
-                
+
                 <nav id="desktop-nav" class="hidden md:flex items-center gap-6 text-[12px] font-black uppercase tracking-wider text-slate-600">
-                    ${Object.keys(CATEGORY_EN_TO_UK_SLUG).map(key => `
-                        <a href="/category/${CATEGORY_EN_TO_UK_SLUG[key]}/" class="hover:text-orange-600 transition-colors py-2 font-black tracking-tight text-sm">${CAT_DISPLAY[key] || key}</a>
-                    `).join('')}
+                    ${navLinksHtml}
                     <div class="flex items-center ml-4">
                         <a href="#" class="bg-indigo-950 text-white px-5 py-2.5 rounded-xl transition hover:bg-slate-900 shadow-xl shadow-indigo-100 flex items-center gap-3 group border border-white/10">
                             <span class="flex h-2.5 w-2.5 relative">
@@ -185,10 +198,7 @@ module.exports = async (req, res) => {
                         ВАШЕ МІСТО
                     </span>
                     <div class="flex items-center gap-6" id="city-nav-list">
-                        <a href="/kalush/" class="hover:text-orange-600 transition-colors">Калуш</a>
-                        <a href="/if/" class="hover:text-orange-600 transition-colors">Франківськ</a>
-                        <a href="/kolomyya/" class="hover:text-orange-600 transition-colors">Коломия</a>
-                        <a href="/dolyna/" class="hover:text-orange-600 transition-colors">Долина</a>
+                        ${cityLinksHtml}
                     </div>
                 </div>
             </div>
@@ -213,9 +223,14 @@ module.exports = async (req, res) => {
                     <div>
                         <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6 border-b border-slate-100 pb-2">РУБРИКИ</h3>
                         <div id="mobile-nav-list" class="flex flex-col gap-5 text-lg font-black uppercase text-slate-800 tracking-tight">
-                            ${Object.keys(CATEGORY_EN_TO_UK_SLUG).map(key => `
-                                <a href="/category/${CATEGORY_EN_TO_UK_SLUG[key]}/" class="py-2 active:text-orange-600 font-bold">${CAT_DISPLAY[key] || key}</a>
-                            `).join('')}
+                            ${mobileCatHtml}
+                            <div class="pt-4 text-orange-600 font-black">LIVE • РЕПОРТАЖІ</div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6 border-b border-slate-100 pb-2">МІСТА</h3>
+                        <div id="mobile-city-list" class="grid grid-cols-2 gap-3 text-sm font-bold text-slate-600">
+                            ${mobileCityHtml}
                         </div>
                     </div>
                 </div>
@@ -223,18 +238,20 @@ module.exports = async (req, res) => {
         </div>
     `;
 
-    // Replace <title> and inject metas before </head>
-    htmlContent = htmlContent.replace(/<title>.*?<\/title>/s, `<title>${escapeHtml(title)}</title>`);
+    // SSR Utility
+    const inject = (html, id, value) => {
+        const regex = new RegExp(`(id="${id}"[^>]*>)`, 'g');
+        return html.replace(regex, `$1${value || ''}`);
+    };
 
-    // Remove existing canonical/description if already in HTML (avoid duplicates)
+    htmlContent = htmlContent.replace(/<title>.*?<\/title>/s, `<title>${escapeHtml(title)}</title>`);
     htmlContent = htmlContent.replace(/<meta name="description"[^>]*>/gi, '');
     htmlContent = htmlContent.replace(/<link rel="canonical"[^>]*>/gi, '');
-
     htmlContent = inject(htmlContent, 'site-header-placeholder', headerHtml);
     htmlContent = htmlContent.replace('</head>', `${ssrScript}\n${metaTags}\n</head>`);
 
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.setHeader('Cache-Control', 's-maxage=600, stale-while-revalidate=120');
+    res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=30');
     return res.status(200).send(htmlContent);
 };
 

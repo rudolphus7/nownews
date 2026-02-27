@@ -1,38 +1,27 @@
 /**
  * Reusable Site Header Component
  * Handles Ticker, Navigation, City Filters, and Mobile Menu
+ * All categories and cities are loaded dynamically from Supabase.
  */
 
-// EN slug (DB) → UA display name (will be initialized below)
-let CATEGORIES_UK = {
-    'politics': 'Політика', 'economy': 'Економіка', 'sport': 'Спорт',
-    'culture': 'Культура', 'tech': 'Технології', 'frankivsk': 'Франківськ',
-    'oblast': 'Область', 'war': 'Війна'
-};
+// These will be populated from Supabase — no hardcoded values
+const CATEGORIES_UK = {};
+const CITIES_UK = {};
+const CATEGORY_EN_TO_UK_SLUG = {};
 
-const CITIES_UK = {
-    'kalush': 'Калуш', 'if': 'Івано-Франківськ', 'kolomyya': 'Коломия',
-    'dolyna': 'Долина', 'bolekhiv': 'Болехів', 'nadvirna': 'Надвірна',
-    'burshtyn': 'Бурштин', 'kosiv': 'Косів', 'yaremche': 'Яремче'
-};
-
-// EN slug (DB) → UA URL slug (will be populated dynamically)
-let CATEGORY_EN_TO_UK_SLUG = {
-    'war': 'war', 'politics': 'politics', 'economy': 'economy',
-    'sport': 'sport', 'culture': 'culture', 'tech': 'tech',
-    'frankivsk': 'frankivsk', 'oblast': 'oblast'
-};
-
-const CITIES_FALLBACK = CITIES_UK;
-const CATEGORIES_FALLBACK = CATEGORIES_UK;
+// Expose globally for any other scripts that reference them
+window.CATEGORIES_UK = CATEGORIES_UK;
+window.CITIES_UK = CITIES_UK;
+window.CATEGORY_EN_TO_UK_SLUG = CATEGORY_EN_TO_UK_SLUG;
 
 class SiteHeader {
     constructor(supabaseClient) {
         this.supabase = supabaseClient;
-        this.categories = { ...CATEGORIES_FALLBACK };
-        this.cities = { ...CITIES_FALLBACK };
+        // Start empty — populated from Supabase in loadDynamicData()
+        this.categories = {}; // slug → name
+        this.cities = {};     // slug → name
 
-        // Dynamic mappings for URL parsing: UA URL slug → EN slug (DB)
+        // Category slug mappings (same slug used for both DB and URL)
         this.catUkToEn = {};
         this.catEnToUk = {};
 
@@ -51,12 +40,22 @@ class SiteHeader {
             const params = new URLSearchParams(window.location.search);
             const pathParts = window.location.pathname.replace(/^\/|\/$/g, '').split('/');
 
-            let cityFromPath = pathParts[0] && (this.cities[pathParts[0]] || CITIES_FALLBACK[pathParts[0]]) ? pathParts[0] : null;
+            // Check if first path segment is a known city slug
+            let cityFromPath = pathParts[0] && this.cities[pathParts[0]] ? pathParts[0] : null;
+
+            // Check SSR-injected city (from api/city.js)
+            if (!cityFromPath && window.__SSR_CITY__) {
+                cityFromPath = window.__SSR_CITY__;
+            }
 
             let categoryFromPath = null;
             if (pathParts[0] === 'category' && pathParts[1]) {
-                // Try dynamic map first, then fallback
                 categoryFromPath = this.catUkToEn[pathParts[1]] || pathParts[1];
+            }
+
+            // Check SSR-injected category (from api/category.js)
+            if (!categoryFromPath && window.__SSR_CATEGORY_SLUG__) {
+                categoryFromPath = window.__SSR_CATEGORY_SLUG__;
             }
 
             return {
@@ -224,42 +223,32 @@ class SiteHeader {
                 this.categories = {};
                 this.catUkToEn = {};
                 this.catEnToUk = {};
-                // Clear and update global maps for backward compatibility
-                for (let key in CATEGORIES_UK) delete CATEGORIES_UK[key];
-                for (let key in CATEGORY_EN_TO_UK_SLUG) delete CATEGORY_EN_TO_UK_SLUG[key];
 
                 catRes.data.forEach(c => {
                     this.categories[c.slug] = c.name;
                     this.catUkToEn[c.slug] = c.slug;
                     this.catEnToUk[c.slug] = c.slug;
-                    // Global compatibility
+                    // Update global maps for any other scripts
                     CATEGORIES_UK[c.slug] = c.name;
                     CATEGORY_EN_TO_UK_SLUG[c.slug] = c.slug;
                 });
                 this.renderNav(catRes.data);
             } else {
-                this.renderNav(Object.keys(CATEGORIES_FALLBACK).map(k => ({ slug: k, name: CATEGORIES_FALLBACK[k] })));
+                console.warn('No categories found in DB');
             }
 
             if (cityRes.data && cityRes.data.length > 0) {
                 this.cities = {};
-                // Update global CITIES_UK
-                for (let key in CITIES_UK) delete CITIES_UK[key];
                 cityRes.data.forEach(c => {
                     this.cities[c.slug] = c.name;
                     CITIES_UK[c.slug] = c.name;
                 });
                 this.renderCities(cityRes.data);
             } else {
-                this.renderCities(Object.keys(CITIES_FALLBACK).map(k => ({ slug: k, name: CITIES_FALLBACK[k] })));
+                console.warn('No cities found in DB');
             }
         } catch (err) {
-            console.warn("Header dynamic data load failed:", err);
-            const nav = document.getElementById('desktop-nav');
-            if (nav && nav.innerHTML.trim().length === 0) {
-                this.renderNav(Object.keys(CATEGORIES_FALLBACK).map(k => ({ slug: k, name: CATEGORIES_FALLBACK[k] })));
-                this.renderCities(Object.keys(CITIES_FALLBACK).map(k => ({ slug: k, name: CITIES_FALLBACK[k] })));
-            }
+            console.error('Header dynamic data load failed:', err);
         }
     }
 
@@ -351,15 +340,14 @@ class SiteHeader {
                 const isIndexPath = url.pathname === '/' || url.pathname === '/index.html' || url.pathname.endsWith('index.html');
                 const isCurrentIndexPath = window.location.pathname === '/' || window.location.pathname.endsWith('index.html');
 
-                // Check if this is a city path link (e.g. /kolomyya/)
-                const cityMatch = url.pathname.match(/^\/([a-z]+)\/?$/);
-                const citySlug = cityMatch && CITIES_FALLBACK[cityMatch[1]] ? cityMatch[1] : null;
+                // Check if this is a city path link using dynamically loaded cities
+                const cityMatch = url.pathname.match(/^\/([a-z0-9-]+)\/?$/);
+                const citySlug = cityMatch && this.cities[cityMatch[1]] ? cityMatch[1] : null;
                 const isCityPath = !!citySlug;
 
                 if (isCityPath && isCurrentIndexPath) {
-                    // City navigation via path — do a full navigation to let Vercel rewrite work
-                    // (city page SSR is needed so let Vercel handle it)
-                    return; // Allow normal link navigation
+                    // City navigation via path — let Vercel handle SSR rewrite
+                    return;
                 } else if (isIndexPath && isCurrentIndexPath) {
                     e.preventDefault();
                     const params = new URLSearchParams(url.search);

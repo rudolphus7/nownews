@@ -5,46 +5,50 @@ const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kgrxlznhimwuvwhjfzhv.s
 const SUPABASE_KEY = process.env.SUPABASE_KEY || 'sb_publishable_L4_HhLhbj_m6wbEc3ZqhcQ_QNGOLWXU';
 const SITE_URL = process.env.SITE_URL || 'https://ifnews-omega.vercel.app';
 
-/**
- * Bidirectional category mapping:
- * - UK_SLUG_TO_EN: /category/viyna/ → 'war' (for DB queries)
- * - EN_TO_UK_SLUG: 'war' → 'viyna' (for generating URLs)
- * - UK_SLUG_TO_NAME: 'viyna' → 'Війна' (for display)
- */
-const UK_SLUG_TO_EN = {
-    'viyna': 'war',
-    'polityka': 'politics',
-    'ekonomika': 'economy',
-    'sport': 'sport',
-    'kultura': 'culture',
-    'tekhnolohii': 'tech',
-    'frankivsk': 'frankivsk',
-    'oblast': 'oblast'
-};
-
-const UK_SLUG_TO_NAME = {
-    'viyna': 'Війна',
-    'polityka': 'Політика',
-    'ekonomika': 'Економіка',
-    'sport': 'Спорт',
-    'kultura': 'Культура',
-    'tekhnolohii': 'Технології',
-    'frankivsk': 'Франківськ',
-    'oblast': 'Область'
-};
+async function fetchFromSupabase(table, params = '') {
+    const url = `${SUPABASE_URL}/rest/v1/${table}?${params}`;
+    const res = await fetch(url, {
+        headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`,
+            'Content-Type': 'application/json'
+        }
+    });
+    if (!res.ok) throw new Error(`Supabase fetch failed: ${res.status}`);
+    return res.json();
+}
 
 module.exports = async (req, res) => {
-    // Vercel rewrite: /category/viyna/ → /api/category?slug=viyna
     let slug = req.query.slug;
     if (Array.isArray(slug)) slug = slug[0];
 
-    if (!slug || !UK_SLUG_TO_NAME[slug]) {
-        // Unknown category slug — fallback to homepage
+    if (!slug) {
         res.setHeader('Location', '/');
         return res.status(302).end();
     }
 
-    const categoryName = UK_SLUG_TO_NAME[slug];
+    let categories = [];
+    let cities = [];
+
+    try {
+        [categories, cities] = await Promise.all([
+            fetchFromSupabase('categories', 'select=*&order=order_index.asc'),
+            fetchFromSupabase('cities', 'select=*&order=order_index.asc')
+        ]);
+    } catch (e) {
+        console.error('Supabase fetch error:', e.message);
+        res.setHeader('Location', '/');
+        return res.status(302).end();
+    }
+
+    // Find category by slug
+    const category = categories.find(c => c.slug === slug);
+    if (!category) {
+        res.setHeader('Location', '/');
+        return res.status(302).end();
+    }
+
+    const categoryName = category.name;
     const canonicalUrl = `${SITE_URL}/category/${slug}/`;
     const title = `${categoryName} — новини Прикарпаття | IF News`;
     const description = `Новини рубрики «${categoryName}»: всі головні події Івано-Франківщини та Прикарпаття. Читайте оперативно на IF News.`;
@@ -115,35 +119,30 @@ module.exports = async (req, res) => {
     </style>
     <!-- End Category SEO -->`;
 
-    // SSR data: passes the EN slug so index.html JS can filter news by DB category
+    // SSR data: passes slug and name so client JS can filter news
     const ssrScript = `<script>
-    window.__SSR_CATEGORY_SLUG__ = '${slug}';
-    window.__SSR_CATEGORY_EN__ = '${UK_SLUG_TO_EN[slug]}';
+    window.__SSR_CATEGORY_SLUG__ = '${escapeAttr(slug)}';
+    window.__SSR_CATEGORY_NAME__ = '${escapeAttr(categoryName)}';
 <\/script>`;
 
-    const CAT_DISPLAY = {
-        'politics': 'Політика', 'economy': 'Економіка', 'sport': 'Спорт',
-        'culture': 'Культура', 'tech': 'Технології', 'frankivsk': 'Франківськ',
-        'oblast': 'Область', 'war': 'Війна'
-    };
-    const CATEGORY_EN_TO_UK_SLUG = {
-        'war': 'viyna',
-        'politics': 'polityka',
-        'economy': 'ekonomika',
-        'sport': 'sport',
-        'culture': 'kultura',
-        'tech': 'tekhnolohii',
-        'frankivsk': 'frankivsk',
-        'oblast': 'oblast'
-    };
+    // Build SSR nav from DB data
+    const navLinksHtml = categories.map(c =>
+        `<a href="/category/${c.slug}/" class="nav-link hover:text-orange-600 transition-colors py-2 border-b-2 border-transparent font-black tracking-tight text-sm${c.slug === slug ? ' text-orange-600 border-orange-600' : ''}" data-category="${c.slug}">${escapeHtml(c.name)}</a>`
+    ).join('');
 
-    // SSR Utility
-    const inject = (html, id, value) => {
-        const regex = new RegExp(`(id="${id}"[^>]*>)`, 'g');
-        return html.replace(regex, `$1${value || ''}`);
-    };
+    const mobileCatHtml = categories.map(c =>
+        `<a href="/category/${c.slug}/" data-category="${c.slug}" class="py-2 active:text-orange-600 font-bold">${escapeHtml(c.name)}</a>`
+    ).join('');
 
-    // SSR Header Injection
+    const cityLinksHtml = cities.map(c =>
+        `<a href="/${c.slug}/" class="city-link hover:text-orange-600 transition-colors py-1" data-city="${c.slug}">${escapeHtml(c.name)}</a>`
+    ).join('');
+
+    const mobileCityHtml = `<a href="/" class="bg-slate-50 p-4 rounded-2xl flex items-center justify-center text-center hover:bg-orange-50 hover:text-orange-600 transition h-full font-black text-xs uppercase leading-tight">ВСЯ ОБЛАСТЬ</a>` +
+        cities.map(c =>
+            `<a href="/${c.slug}/" data-city="${c.slug}" class="bg-slate-50 p-4 rounded-2xl flex items-center justify-center text-center hover:bg-orange-50 hover:text-orange-600 transition h-full font-black text-xs uppercase leading-tight">${escapeHtml(c.name)}</a>`
+        ).join('');
+
     const headerHtml = `
         <!-- Ticker -->
         <div class="bg-slate-900 py-2 overflow-hidden border-b border-white/5">
@@ -169,11 +168,9 @@ module.exports = async (req, res) => {
                         <span class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 opacity-80">Незалежна Журналістика</span>
                     </div>
                 </a>
-                
+
                 <nav id="desktop-nav" class="hidden md:flex items-center gap-6 text-[12px] font-black uppercase tracking-wider text-slate-600">
-                    ${Object.keys(CATEGORY_EN_TO_UK_SLUG).map(key => `
-                        <a href="/category/${CATEGORY_EN_TO_UK_SLUG[key]}/" class="hover:text-orange-600 transition-colors py-2 font-black tracking-tight text-sm">${CAT_DISPLAY[key] || key}</a>
-                    `).join('')}
+                    ${navLinksHtml}
                     <div class="flex items-center ml-4">
                         <a href="#" class="bg-indigo-950 text-white px-5 py-2.5 rounded-xl transition hover:bg-slate-900 shadow-xl shadow-indigo-100 flex items-center gap-3 group border border-white/10">
                             <span class="flex h-2.5 w-2.5 relative">
@@ -200,10 +197,7 @@ module.exports = async (req, res) => {
                         ВАШЕ МІСТО
                     </span>
                     <div class="flex items-center gap-6" id="city-nav-list">
-                        <a href="/kalush/" class="hover:text-orange-600 transition-colors">Калуш</a>
-                        <a href="/if/" class="hover:text-orange-600 transition-colors">Франківськ</a>
-                        <a href="/kolomyya/" class="hover:text-orange-600 transition-colors">Коломия</a>
-                        <a href="/dolyna/" class="hover:text-orange-600 transition-colors">Долина</a>
+                        ${cityLinksHtml}
                     </div>
                 </div>
             </div>
@@ -228,9 +222,14 @@ module.exports = async (req, res) => {
                     <div>
                         <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6 border-b border-slate-100 pb-2">РУБРИКИ</h3>
                         <div id="mobile-nav-list" class="flex flex-col gap-5 text-lg font-black uppercase text-slate-800 tracking-tight">
-                            ${Object.keys(CATEGORY_EN_TO_UK_SLUG).map(key => `
-                                <a href="/category/${CATEGORY_EN_TO_UK_SLUG[key]}/" class="py-2 active:text-orange-600 font-bold">${CAT_DISPLAY[key] || key}</a>
-                            `).join('')}
+                            ${mobileCatHtml}
+                            <div class="pt-4 text-orange-600 font-black">LIVE • РЕПОРТАЖІ</div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6 border-b border-slate-100 pb-2">МІСТА</h3>
+                        <div id="mobile-city-list" class="grid grid-cols-2 gap-3 text-sm font-bold text-slate-600">
+                            ${mobileCityHtml}
                         </div>
                     </div>
                 </div>
@@ -238,7 +237,12 @@ module.exports = async (req, res) => {
         </div>
     `;
 
-    // Inject into template
+    // SSR Utility
+    const inject = (html, id, value) => {
+        const regex = new RegExp(`(id="${id}"[^>]*>)`, 'g');
+        return html.replace(regex, `$1${value || ''}`);
+    };
+
     htmlContent = htmlContent.replace(/<title>.*?<\/title>/s, `<title>${escapeHtml(title)}</title>`);
     htmlContent = htmlContent.replace(/<meta name="description"[^>]*>/gi, '');
     htmlContent = htmlContent.replace(/<link rel="canonical"[^>]*>/gi, '');
@@ -246,7 +250,7 @@ module.exports = async (req, res) => {
     htmlContent = htmlContent.replace('</head>', `${ssrScript}\n${metaTags}\n</head>`);
 
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.setHeader('Cache-Control', 's-maxage=600, stale-while-revalidate=120');
+    res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=30');
     return res.status(200).send(htmlContent);
 };
 
