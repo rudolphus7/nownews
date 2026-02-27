@@ -1268,6 +1268,10 @@
         let ttsVoices = [];
         let isTtsPlaying = false;
         let isTtsPaused = false;
+        let isCloudMode = false;
+        let cloudAudio = null;
+        let cloudChunks = [];
+        let currentChunkIndex = 0;
 
         // Force voices loading
         const loadVoices = () => {
@@ -1283,26 +1287,30 @@
         }
 
         window.toggleTTS = () => {
-            console.log("TTS Toggle Triggered. State:", { isTtsPlaying, isTtsPaused, synthesisSpeaking: window.speechSynthesis.speaking });
+            console.log("TTS Toggle Triggered. Mode:", isCloudMode ? "Cloud" : "Native", "State:", { isTtsPlaying, isTtsPaused });
 
-            if (!currentPost || !window.speechSynthesis) {
-                console.warn("TTS Aborted: No post or no synthesis support");
-                alert("Ваш браузер не підтримує синтез мовлення 🎙️");
-                return;
-            }
+            if (!currentPost) return;
 
             const icon = document.getElementById('tts-icon');
             const anim = document.getElementById('tts-status-anim');
 
             if (isTtsPlaying && !isTtsPaused) {
                 console.log("TTS Pausing...");
-                window.speechSynthesis.pause();
+                if (isCloudMode && cloudAudio) {
+                    cloudAudio.pause();
+                } else {
+                    window.speechSynthesis.pause();
+                }
                 isTtsPaused = true;
                 if (icon) icon.innerText = '▶';
                 if (anim) anim.classList.add('hidden');
             } else if (isTtsPaused) {
                 console.log("TTS Resuming...");
-                window.speechSynthesis.resume();
+                if (isCloudMode && cloudAudio) {
+                    cloudAudio.play();
+                } else {
+                    window.speechSynthesis.resume();
+                }
                 isTtsPaused = false;
                 if (icon) icon.innerText = '⏸';
                 if (anim) anim.classList.remove('hidden');
@@ -1316,87 +1324,103 @@
             const icon = document.getElementById('tts-icon');
             const anim = document.getElementById('tts-status-anim');
 
-            // Try to reload voices if empty
-            if (ttsVoices.length === 0) {
-                ttsVoices = window.speechSynthesis.getVoices();
-                console.log("Voices were empty, re-fetched. Count:", ttsVoices.length);
-            }
+            if (ttsVoices.length === 0) ttsVoices = window.speechSynthesis.getVoices();
 
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = (currentPost.title || "") + ". " + (currentPost.content || "");
             const cleanText = tempDiv.innerText || tempDiv.textContent || "";
 
-            console.log("Preparing TTS. Text length:", cleanText.length, "Total Voices:", ttsVoices.length);
-            if (!cleanText.trim()) {
-                console.warn("TTS Aborted: Empty text");
+            if (!cleanText.trim()) return;
+
+            // Reset any previous state
+            stopTTS();
+
+            // Check if Ukrainian voice exists
+            let ukVoice = ttsVoices.find(v => v.lang.toLowerCase().includes('uk') || v.name.toLowerCase().includes('ukrainian'));
+
+            if (ukVoice) {
+                console.log("Using Native TTS:", ukVoice.name);
+                isCloudMode = false;
+                playNativeTTS(cleanText, ukVoice);
+            } else {
+                console.warn("Ukrainian voice not found locally. Using Cloud Fallback.");
+                isCloudMode = true;
+                playCloudTTS(cleanText);
+            }
+
+            // Update UI
+            if (icon) icon.innerText = '⏸';
+            if (anim) anim.classList.remove('hidden');
+        }
+
+        function playNativeTTS(text, voice) {
+            window.speechSynthesis.cancel();
+            setTimeout(() => {
+                ttsUtterance = new SpeechSynthesisUtterance(text);
+                ttsUtterance.lang = 'uk-UA';
+                ttsUtterance.voice = voice;
+                ttsUtterance.onstart = () => { isTtsPlaying = true; isTtsPaused = false; };
+                ttsUtterance.onend = () => { stopTTS(); };
+                ttsUtterance.onerror = () => { stopTTS(); };
+                window.speechSynthesis.speak(ttsUtterance);
+
+                // Backup check
+                setTimeout(() => {
+                    if (isTtsPlaying && !window.speechSynthesis.speaking) window.speechSynthesis.resume();
+                }, 1000);
+            }, 300);
+        }
+
+        function playCloudTTS(text) {
+            // Split into 200 character chunks (at spaces)
+            cloudChunks = text.match(/.{1,200}(?:\s|$)/g) || [];
+            currentChunkIndex = 0;
+            isTtsPlaying = true;
+            isTtsPaused = false;
+            playNextCloudChunk();
+        }
+
+        function playNextCloudChunk() {
+            if (!isTtsPlaying || currentChunkIndex >= cloudChunks.length) {
+                if (currentChunkIndex >= cloudChunks.length) stopTTS();
                 return;
             }
 
-            // Reset UI proactively to show activity
-            if (icon) icon.innerText = '⏸';
-            if (anim) anim.classList.remove('hidden');
+            const chunk = cloudChunks[currentChunkIndex];
+            const url = `https://translate.googleapis.com/translate_tts?client=gtx&sl=uk&tl=uk&q=${encodeURIComponent(chunk)}`;
 
-            window.speechSynthesis.cancel();
-            console.log("Synthesis Cancelled. Waiting 500ms for reset...");
+            if (cloudAudio) {
+                cloudAudio.pause();
+                cloudAudio = null;
+            }
 
-            setTimeout(() => {
-                console.log("Creating Utterance...");
-                ttsUtterance = new SpeechSynthesisUtterance(cleanText);
-                ttsUtterance.lang = 'uk-UA';
-                ttsUtterance.rate = 1.0;
-                ttsUtterance.pitch = 1.0;
-                ttsUtterance.volume = 1.0;
-
-                // Robust voice search: 'uk' code or 'ukrainian' name
-                let ukVoice = ttsVoices.find(v => v.lang.toLowerCase().includes('uk'));
-                if (!ukVoice) ukVoice = ttsVoices.find(v => v.name.toLowerCase().includes('ukrainian'));
-
-                if (ukVoice) {
-                    console.log("Selected Ukrainian Voice:", ukVoice.name, ukVoice.lang);
-                    ttsUtterance.voice = ukVoice;
-                } else {
-                    console.warn("UKRAINIAN VOICE NOT FOUND. Available langs:", [...new Set(ttsVoices.map(v => v.lang))]);
-                    if (ttsVoices.length > 0) {
-                        console.log("Falling back to system default:", ttsVoices[0].name);
-                        ttsUtterance.voice = ttsVoices[0];
-                    }
-                }
-
-                ttsUtterance.onstart = () => {
-                    console.log("TTS Event: onstart");
-                    isTtsPlaying = true;
-                    isTtsPaused = false;
-                };
-
-                ttsUtterance.onend = () => {
-                    console.log("TTS Event: onend");
-                    stopTTS();
-                };
-
-                ttsUtterance.onerror = (e) => {
-                    console.error("TTS Event: onerror", e);
-                    stopTTS();
-                };
-
-                console.log("Executing speechSynthesis.speak()...");
-                window.speechSynthesis.speak(ttsUtterance);
-
-                // Final safety push
-                setTimeout(() => {
-                    if (isTtsPlaying && !window.speechSynthesis.speaking) {
-                        console.warn("TTS seems stuck. Attempting resume push.");
-                        window.speechSynthesis.resume();
-                    }
-                }, 1000);
-            }, 500);
+            cloudAudio = new Audio(url);
+            cloudAudio.onended = () => {
+                currentChunkIndex++;
+                playNextCloudChunk();
+            };
+            cloudAudio.onerror = () => {
+                console.error("Cloud TTS Error on chunk", currentChunkIndex);
+                stopTTS();
+            };
+            cloudAudio.play().catch(e => {
+                console.error("Cloud TTS Play Blocked:", e);
+                stopTTS();
+            });
         }
 
         window.stopTTS = () => {
-            if (window.speechSynthesis) {
-                window.speechSynthesis.cancel();
+            if (window.speechSynthesis) window.speechSynthesis.cancel();
+            if (cloudAudio) {
+                cloudAudio.pause();
+                cloudAudio = null;
             }
             isTtsPlaying = false;
             isTtsPaused = false;
+            isCloudMode = false;
+            cloudChunks = [];
+            currentChunkIndex = 0;
+
             const icon = document.getElementById('tts-icon');
             const anim = document.getElementById('tts-status-anim');
             if (icon) icon.innerText = '▶';
