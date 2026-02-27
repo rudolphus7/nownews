@@ -238,18 +238,20 @@
             </div>
         </div>
 
-        <div style="margin-bottom:0.5rem;">
-            <label
-                style="display:block; font-size:0.6rem; font-weight:900; color:rgba(255,255,255,0.3); text-transform:uppercase; letter-spacing:0.2em; margin-bottom:0.625rem; font-family:'Inter',sans-serif;">
-                Пароль адміністратора
-            </label>
-            <input type="password" id="admin-password-input" placeholder="••••••••••••" autocomplete="current-password"
-                autofocus>
-        </div>
+        <form onsubmit="event.preventDefault(); attemptAdminLogin();" class="space-y-4">
+            <div style="margin-bottom:0.5rem;">
+                <label
+                    style="display:block; font-size:0.6rem; font-weight:900; color:rgba(255,255,255,0.3); text-transform:uppercase; letter-spacing:0.2em; margin-bottom:0.625rem; font-family:'Inter',sans-serif;">
+                    Пароль адміністратора
+                </label>
+                <input type="password" id="admin-password-input" placeholder="••••••••••••"
+                    autocomplete="current-password" autofocus>
+            </div>
 
-        <button class="login-btn" id="admin-login-btn" onclick="attemptAdminLogin()">
-            🔓 &nbsp;Увійти до системи
-        </button>
+            <button type="submit" class="login-btn" id="admin-login-btn">
+                🔓 &nbsp;Увійти до системи
+            </button>
+        </form>
         <div id="login-error"></div>
 
         <div
@@ -815,14 +817,15 @@
                     </div>
                 </div>
 
-                <div class="gap-8 grid grid-cols-1 md:grid-cols-2 max-w-4xl">
+                <form onsubmit="event.preventDefault(); window.saveAIConfig();"
+                    class="gap-8 grid grid-cols-1 md:grid-cols-2 max-w-4xl">
                     <div>
                         <label class="block text-[10px] font-black uppercase text-slate-500 mb-2 tracking-widest">Gemini
                             API Key</label>
                         <div class="relative">
                             <input type="password" id="gemini-api-key"
                                 class="w-full p-5 bg-slate-800 rounded-2xl border-none focus:ring-2 focus:ring-indigo-500 font-mono text-xs text-white"
-                                placeholder="Вставте ваш API ключ тут...">
+                                placeholder="Вставте ваш API ключ тут..." autocomplete="password">
                             <button type="button" onclick="window.toggleKeyVisibility()"
                                 class="absolute right-5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition">
                                 👁️
@@ -833,12 +836,12 @@
                     </div>
 
                     <div class="flex items-end">
-                        <button onclick="window.saveAIConfig()"
+                        <button type="submit"
                             class="w-full md:w-auto bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-5 rounded-2xl font-black uppercase tracking-widest transition-all shadow-lg active:scale-95 text-[10px]">
                             💾 Зберегти конфігурацію
                         </button>
                     </div>
-                </div>
+                </form>
             </div>
             </div>
         </section>
@@ -882,7 +885,7 @@
         </div>
     </div>
 
-    <script type="module" src="admin.js"></script>
+    <script type="module" src="/admin.js"></script>
 </body>
 
 </html>
