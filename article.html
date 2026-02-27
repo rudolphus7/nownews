@@ -117,6 +117,49 @@
         .share-btn:active {
             transform: scale(0.95);
         }
+
+        /* AI Reader Styles */
+        .tts-wave {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            height: 16px;
+        }
+
+        .tts-bar {
+            width: 3px;
+            background: #f97316;
+            border-radius: 4px;
+            animation: tts-wave-anim 1s ease-in-out infinite;
+        }
+
+        @keyframes tts-wave-anim {
+
+            0%,
+            100% {
+                height: 4px;
+            }
+
+            50% {
+                height: 16px;
+            }
+        }
+
+        .tts-bar:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .tts-bar:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        .tts-bar:nth-child(4) {
+            animation-delay: 0.1s;
+        }
+
+        .tts-bar:nth-child(5) {
+            animation-delay: 0.3s;
+        }
     </style>
 </head>
 
@@ -167,6 +210,48 @@
                             <div class="flex items-center gap-1.5">
                                 <span class="text-base">👁️</span>
                                 <p id="view-count" class="text-xs md:text-sm font-bold text-slate-700">...</p>
+                            </div>
+                        </div>
+
+                        <!-- AI NEWS READER -->
+                        <div id="ai-reader"
+                            class="bg-slate-900 rounded-[2rem] p-4 md:p-6 mb-8 md:mb-12 shadow-xl border border-white/5 relative overflow-hidden group">
+                            <div
+                                class="absolute top-0 right-0 w-32 h-32 bg-orange-600/10 rounded-full blur-[50px] -mr-16 -mt-16">
+                            </div>
+                            <div class="flex flex-col sm:flex-row items-center justify-between gap-6 relative z-10">
+                                <div class="flex items-center gap-4">
+                                    <div
+                                        class="w-12 h-12 bg-orange-600 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-900/20">
+                                        <span class="text-xl">🤖</span>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-sm font-black text-white uppercase tracking-tighter italic">AI
+                                            Голос <span class="text-orange-500">News</span></h4>
+                                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">
+                                            Слухайте цей матеріал</p>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center gap-4">
+                                    <div id="tts-status-anim" class="hidden tts-wave pr-2">
+                                        <div class="tts-bar"></div>
+                                        <div class="tts-bar"></div>
+                                        <div class="tts-bar"></div>
+                                        <div class="tts-bar"></div>
+                                        <div class="tts-bar"></div>
+                                    </div>
+                                    <div class="flex items-center bg-white/5 rounded-2xl p-1 border border-white/10">
+                                        <button id="tts-play-btn" onclick="toggleTTS()"
+                                            class="w-12 h-12 flex items-center justify-center rounded-xl bg-orange-600 text-white hover:bg-orange-500 transition active:scale-95 shadow-lg">
+                                            <span id="tts-icon">▶</span>
+                                        </button>
+                                        <button onclick="stopTTS()"
+                                            class="w-12 h-12 flex items-center justify-center rounded-xl text-slate-400 hover:text-white transition">
+                                            <span>⏹</span>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </header>
@@ -631,7 +716,90 @@
             } catch (e) { console.warn("Reactions load error:", e); }
         }
 
+        // --- AI READER (TTS) LOGIC ---
+        let ttsUtterance = null;
+        let isTtsPlaying = false;
+        let isTtsPaused = false;
+
+        window.toggleTTS = () => {
+            if (!currentPost || !window.speechSynthesis) {
+                alert("Ваш браузер не підтримує синтез мовлення 🤖");
+                return;
+            }
+
+            const playBtn = document.getElementById('tts-play-btn');
+            const icon = document.getElementById('tts-icon');
+            const anim = document.getElementById('tts-status-anim');
+
+            if (isTtsPlaying && !isTtsPaused) {
+                window.speechSynthesis.pause();
+                isTtsPaused = true;
+                icon.innerText = '▶';
+                anim.classList.add('hidden');
+            } else if (isTtsPaused) {
+                window.speechSynthesis.resume();
+                isTtsPaused = false;
+                icon.innerText = '⏸';
+                anim.classList.remove('hidden');
+            } else {
+                startTTS();
+            }
+        };
+
+        function startTTS() {
+            const icon = document.getElementById('tts-icon');
+            const anim = document.getElementById('tts-status-anim');
+
+            // Clean content from HTML tags
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = currentPost.title + ". " + currentPost.content;
+            const cleanText = tempDiv.innerText || tempDiv.textContent;
+
+            window.speechSynthesis.cancel(); // Stop any current speech
+
+            ttsUtterance = new SpeechSynthesisUtterance(cleanText);
+            ttsUtterance.lang = 'uk-UA';
+            ttsUtterance.rate = 1.0;
+            ttsUtterance.pitch = 1.0;
+
+            ttsUtterance.onstart = () => {
+                isTtsPlaying = true;
+                isTtsPaused = false;
+                icon.innerText = '⏸';
+                anim.classList.remove('hidden');
+            };
+
+            ttsUtterance.onend = () => {
+                stopTTS();
+            };
+
+            ttsUtterance.onerror = (e) => {
+                console.error("TTS Error:", e);
+                stopTTS();
+            };
+
+            window.speechSynthesis.speak(ttsUtterance);
+        }
+
+        window.stopTTS = () => {
+            if (window.speechSynthesis) {
+                window.speechSynthesis.cancel();
+            }
+            isTtsPlaying = false;
+            isTtsPaused = false;
+            const icon = document.getElementById('tts-icon');
+            const anim = document.getElementById('tts-status-anim');
+            if (icon) icon.innerText = '▶';
+            if (anim) anim.classList.add('hidden');
+        };
+
+        // Stop speech when leaving page
+        window.addEventListener('beforeunload', () => {
+            if (window.speechSynthesis) window.speechSynthesis.cancel();
+        });
+
         function subscribeToReactions(id) {
+            if (!_supabase) return;
             _supabase.channel(`news-reactions-${id}`)
                 .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'news', filter: `id=eq.${id}` }, payload => {
                     const data = payload.new;
