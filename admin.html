@@ -819,17 +819,20 @@
 
                 <form onsubmit="event.preventDefault(); window.saveAIConfig();"
                     class="gap-8 grid grid-cols-1 md:grid-cols-2 max-w-4xl">
-                    <div>
-                        <label class="block text-[10px] font-black uppercase text-slate-500 mb-2 tracking-widest">Gemini
-                            API Key</label>
-                        <div class="relative">
-                            <input type="password" id="gemini-api-key"
-                                class="w-full p-5 bg-slate-800 rounded-2xl border-none focus:ring-2 focus:ring-indigo-500 font-mono text-xs text-white"
-                                placeholder="Вставте ваш API ключ тут..." autocomplete="password">
-                            <button type="button" onclick="window.toggleKeyVisibility()"
-                                class="absolute right-5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition">
-                                👁️
-                            </button>
+                    <div class="space-y-6">
+                        <div>
+                            <label
+                                class="block text-[10px] font-black uppercase text-slate-500 mb-2 tracking-widest">Gemini
+                                API Key</label>
+                            <div class="relative">
+                                <input type="password" id="gemini-api-key"
+                                    class="w-full p-5 bg-slate-800 rounded-2xl border-none focus:ring-2 focus:ring-indigo-500 font-mono text-xs text-white"
+                                    placeholder="Вставте ваш API ключ тут..." autocomplete="password">
+                                <button type="button" onclick="window.toggleKeyVisibility('gemini-api-key')"
+                                    class="absolute right-5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition">
+                                    👁️
+                                </button>
+                            </div>
                         </div>
                         <p class="mt-2 text-[9px] text-slate-500 italic">Ключ зберігається локально у вашому браузері.
                         </p>

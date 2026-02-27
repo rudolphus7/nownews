@@ -676,27 +676,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- AI CONFIG MANAGEMENT ---
     window.saveAIConfig = () => {
-        const key = document.getElementById('gemini-api-key').value.trim();
+        const key = document.getElementById('gemini-api-key')?.value.trim();
         if (!key) { alert("⚠️ Будь ласка, введіть API ключ."); return; }
 
         localStorage.setItem('gemini_api_key', key);
         alert("✅ Конфігурацію ШІ збережено успішно!");
     };
 
-    window.toggleKeyVisibility = () => {
-        const input = document.getElementById('gemini-api-key');
+    window.toggleKeyVisibility = (id) => {
+        const input = document.getElementById(id);
         if (input) input.type = input.type === 'password' ? 'text' : 'password';
     };
 
     function loadAIConfig() {
         const key = localStorage.getItem('gemini_api_key');
         const input = document.getElementById('gemini-api-key');
-        if (input) {
-            if (key) {
-                input.value = key;
-            } else {
-                input.placeholder = "Ключ встановлено системою (Gemini 2.0 Flash)";
-            }
+        if (input && key) {
+            input.value = key;
         }
     }
     // Initialize AI config after some delay to ensure DOM is ready

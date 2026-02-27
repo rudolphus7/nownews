@@ -827,42 +827,103 @@
             }, 300);
         }
 
-        function playCloudTTS(text) {
-            // Split into 200 character chunks (at spaces)
-            cloudChunks = text.match(/.{1,200}(?:\s|$)/g) || [];
-            currentChunkIndex = 0;
+        async function playCloudTTS(text) {
+            console.log("Starting Gemini Premium TTS...");
+            const key = localStorage.getItem('gemini_api_key');
+            if (!key) {
+                console.error("Gemini API Key missing!");
+                alert("Будь ласка, встановіть Gemini API ключ в адмін-панелі для преміум-озвучення.");
+                stopTTS();
+                return;
+            }
+
             isTtsPlaying = true;
             isTtsPaused = false;
+
+            // Clean text from extra spaces and newlines
+            const cleanText = text.replace(/\s+/g, ' ').trim();
+
+            // For very long texts, we should still chunk to avoid timeouts/limits
+            // Gemini limits for audio are generous but let's stick to ~2000 chars for safety
+            cloudChunks = cleanText.match(/.{1,2000}(?:\s|$)/g) || [cleanText];
+            currentChunkIndex = 0;
+
             playNextCloudChunk();
         }
 
-        function playNextCloudChunk() {
+        async function playNextCloudChunk() {
             if (!isTtsPlaying || currentChunkIndex >= cloudChunks.length) {
                 if (currentChunkIndex >= cloudChunks.length) stopTTS();
                 return;
             }
 
             const chunk = cloudChunks[currentChunkIndex];
-            const url = `https://translate.googleapis.com/translate_tts?client=gtx&sl=uk&tl=uk&q=${encodeURIComponent(chunk)}`;
+            const key = localStorage.getItem('gemini_api_key');
+            const model = "gemini-1.5-flash"; // Standard flash model supports multimodal output
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
 
-            if (cloudAudio) {
-                cloudAudio.pause();
-                cloudAudio = null;
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: `Прочитай цей текст новини чітко та професійно українською мовою: ${chunk}` }] }],
+                        generationConfig: {
+                            responseModalities: ["AUDIO"],
+                            speechConfig: {
+                                voiceConfig: {
+                                    prebuiltVoiceConfig: {
+                                        voiceName: "Puck" // High quality neutral voice
+                                    }
+                                }
+                            }
+                        }
+                    })
+                });
+
+                const data = await response.json();
+                if (data.error) throw new Error(data.error.message);
+
+                const audioBase64 = data.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+                if (!audioBase64) throw new Error("No audio data received from Gemini");
+
+                // Convert base64 to Blob
+                const byteCharacters = atob(audioBase64);
+                const byteNumbers = new Array(byteCharacters.length);
+                for (let i = 0; i < byteCharacters.length; i++) {
+                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                }
+                const byteArray = new Uint8Array(byteNumbers);
+                const blob = new Blob([byteArray], { type: 'audio/mp3' });
+                const blobUrl = URL.createObjectURL(blob);
+
+                if (cloudAudio) {
+                    cloudAudio.pause();
+                    URL.revokeObjectURL(cloudAudio.src);
+                }
+
+                cloudAudio = new Audio(blobUrl);
+                cloudAudio.onended = () => {
+                    URL.revokeObjectURL(blobUrl);
+                    currentChunkIndex++;
+                    playNextCloudChunk();
+                };
+                cloudAudio.onerror = (e) => {
+                    console.error("Audio Playback Error:", e);
+                    stopTTS();
+                };
+
+                cloudAudio.play().catch(e => {
+                    console.error("Playback Blocked:", e);
+                    stopTTS();
+                });
+
+            } catch (err) {
+                console.error("Gemini TTS Error:", err);
+                // Fallback to simpler method or error out
+                alert("Помилка Premium-озвучення: " + err.message);
+                stopTTS();
             }
-
-            cloudAudio = new Audio(url);
-            cloudAudio.onended = () => {
-                currentChunkIndex++;
-                playNextCloudChunk();
-            };
-            cloudAudio.onerror = () => {
-                console.error("Cloud TTS Error on chunk", currentChunkIndex);
-                stopTTS();
-            };
-            cloudAudio.play().catch(e => {
-                console.error("Cloud TTS Play Blocked:", e);
-                stopTTS();
-            });
         }
 
         window.stopTTS = () => {
