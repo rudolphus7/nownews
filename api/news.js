@@ -268,8 +268,8 @@ module.exports = async (req, res) => {
         }
 
         const headerHtml = `
-            <link rel="stylesheet" href="/components/header.css?v=2">
-            <script src="/components/header.js?v=2"></script>
+            <link rel="stylesheet" href="/components/header.css?v=3">
+            <script src="/components/header.js?v=3"></script>
             <!-- Ticker -->
             <div class="bg-slate-900 py-2 overflow-hidden border-b border-white/5">
                 <div class="container mx-auto px-4 flex items-center">

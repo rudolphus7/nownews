@@ -12,8 +12,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    <link rel="stylesheet" href="/components/header.css?v=2">
-    <script src="/components/header.js?v=2"></script>
+    <link rel="stylesheet" href="/components/header.css?v=3">
+    <script src="/components/header.js?v=3"></script>
 
     <style>
         :root {
@@ -438,6 +438,9 @@
         }
         function _safeStorageSet(key, val) {
             try { localStorage.setItem(key, val); } catch (e) { }
+        }
+        function _safeSessGet(key) {
+            try { return sessionStorage.getItem(key); } catch (e) { return null; }
         }
         function _safeSessSet(key, val) {
             try { sessionStorage.setItem(key, val); } catch (e) { }
@@ -933,13 +936,10 @@
                 isTtsPaused = false;
 
                 // Update UI immediately for cached playback
-                const cachedIcon = document.getElementById('tts-icon');
-                const cachedBtn = document.getElementById('tts-btn');
-                if (cachedIcon) cachedIcon.innerText = '⏸';
-                if (cachedBtn) { cachedBtn.style.opacity = ''; cachedBtn.style.pointerEvents = ''; }
-
+                const icon = document.getElementById('tts-icon');
+                const ttsBtn = document.getElementById('tts-btn');
                 if (icon) icon.innerText = '⏸';
-                if (cachedBtn) { cachedBtn.style.opacity = ''; cachedBtn.style.pointerEvents = ''; }
+                if (ttsBtn) { ttsBtn.style.opacity = ''; ttsBtn.style.pointerEvents = ''; }
 
                 // Reuse existing primed object if possible
                 if (!cloudAudio) cloudAudio = new Audio();
