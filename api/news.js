@@ -225,14 +225,56 @@ module.exports = async (req, res) => {
         // Replace <title> tag
         htmlContent = htmlContent.replace(/<title>.*?<\/title>/s, `<title>${escapeHtml(title)}</title>`);
 
-        // Inject SSR data so client JS always knows the slug/id
+        // Categories map for display
+        const CAT_DISPLAY = {
+            'politics': 'Політика', 'economy': 'Економіка', 'sport': 'Спорт',
+            'culture': 'Культура', 'tech': 'Технології', 'frankivsk': 'Франківськ',
+            'oblast': 'Область', 'war': 'Війна'
+        };
+
+        // Date formatting
+        const formattedDate = new Date(news.created_at).toLocaleDateString('uk-UA', {
+            day: 'numeric', month: 'long', year: 'numeric'
+        });
+
+        // Reading time calculation
+        const words = (news.content || '').replace(/<[^>]*>/g, '').split(/\s+/).filter(Boolean).length;
+        const min = Math.max(1, Math.round(words / 200));
+        const readingTimeText = `${min} ${min === 1 ? 'хвилина' : (min < 5 ? 'хвилини' : 'хвилин')}`;
+
+        // SSR Content Injection
+        // We use regex to inject content into tags with specific IDs
+        const inject = (html, id, value) => {
+            const regex = new RegExp(`(id="${id}"[^>]*>)`, 'g');
+            return html.replace(regex, `$1${value || ''}`);
+        };
+
+        htmlContent = inject(htmlContent, 'news-title', news.title);
+        htmlContent = inject(htmlContent, 'news-text', news.content);
+        htmlContent = inject(htmlContent, 'breadcrumb-category', CAT_DISPLAY[news.category] || news.category);
+        htmlContent = inject(htmlContent, 'news-date', formattedDate);
+        htmlContent = inject(htmlContent, 'reading-time', readingTimeText);
+        htmlContent = inject(htmlContent, 'view-count', news.views);
+
+        // Handle image separately
+        if (news.image_url) {
+            htmlContent = htmlContent.replace(/id="news-image"\s+src=""/, `id="news-image" src="${escapeAttr(news.image_url)}"`);
+        }
+
+        // Add a flag to indicate content is pre-rendered to prevent flickering/re-loading
         const ssrScript = `<script>
+    window.__SSR_CONTENT_PRE_RENDERED__ = true;
+    window.__SSR_POST_DATA__ = ${JSON.stringify(news).replace(/</g, '\\u003c')};
     window.__SSR_SLUG__ = '${escapeJson(news.slug || '')}';
     window.__SSR_ID__ = '${escapeJson(String(news.id || ''))}'; 
 <\/script>`;
 
         // Inject before </head>
         htmlContent = htmlContent.replace('</head>', `${ssrScript}\n${metaTags}\n</head>`);
+
+        // Ensure content is visible and loader is hidden
+        htmlContent = htmlContent.replace('id="loader"', 'id="loader" class="hidden"');
+        htmlContent = htmlContent.replace('id="news-content" class="hidden"', 'id="news-content"');
 
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
         res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=60');

@@ -201,7 +201,7 @@ class SiteHeader {
                 this.supabase.from('cities').select('*').order('order_index', { ascending: true })
             ]);
 
-            if (catRes.data?.length > 0) {
+            if (catRes.data && catRes.data.length > 0) {
                 this.categories = {};
                 catRes.data.forEach(c => this.categories[c.slug] = c.name);
                 this.renderNav(catRes.data);
@@ -209,7 +209,7 @@ class SiteHeader {
                 this.renderNav(Object.keys(CATEGORIES_FALLBACK).map(k => ({ slug: k, name: CATEGORIES_FALLBACK[k] })));
             }
 
-            if (cityRes.data?.length > 0) {
+            if (cityRes.data && cityRes.data.length > 0) {
                 this.cities = {};
                 cityRes.data.forEach(c => this.cities[c.slug] = c.name);
                 this.renderCities(cityRes.data);

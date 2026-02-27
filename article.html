@@ -529,7 +529,9 @@
 
         // ── Content ─────────────────────────────────────────────────────
         async function loadFullNews() {
-            console.log("Starting loadFullNews...");
+            const isPreRendered = window.__SSR_CONTENT_PRE_RENDERED__;
+            console.log("Starting loadFullNews... Pre-rendered:", isPreRendered);
+
             const slug = getSlugFromUrl();
             const id = getIdFromUrl();
 
@@ -543,7 +545,31 @@
                 return;
             }
 
-            // Додаємо таймаут для запиту, щоб уникнути "вічного завантаження"
+            // Якщо ми вже маємо дані з SSR, використовуємо їх негайно
+            if (isPreRendered && window.__SSR_POST_DATA__) {
+                const data = window.__SSR_POST_DATA__;
+                console.log("Using SSR data for hydration:", data.title);
+                currentPost = data;
+
+                fillUI(data);
+                loadRelated(data.category, data.id);
+                loadReactions(data.id, data.allowed_reactions);
+                loadComments(data.id);
+                subscribeToReactions(data.id);
+
+                if (loader) loader.classList.add('hidden');
+                document.getElementById('news-content').classList.remove('hidden');
+
+                // Інкремент переглядів все одно потрібен
+                const viewedKey = `viewed_${data.id}`;
+                if (!sessionStorage.getItem(viewedKey)) {
+                    await _supabase.rpc('increment_views', { post_id: data.id });
+                    sessionStorage.setItem(viewedKey, 'true');
+                }
+                return;
+            }
+
+            // Стандартне завантаження (якщо SSR не спрацював або це SPA перехід)
             const timeoutPromise = new Promise((_, reject) =>
                 setTimeout(() => reject(new Error("Таймаут завантаження (15с). Перевірте інтернет.")), 15000)
             );

@@ -673,7 +673,9 @@
 
         // ── Content ─────────────────────────────────────────────────────
         async function loadFullNews() {
-            console.log("Starting loadFullNews...");
+            const isPreRendered = window.__SSR_CONTENT_PRE_RENDERED__;
+            console.log("Starting loadFullNews... Pre-rendered:", isPreRendered);
+
             const slug = getSlugFromUrl();
             const id = getIdFromUrl();
 
@@ -687,7 +689,33 @@
                 return;
             }
 
-            // Додаємо таймаут для запиту, щоб уникнути "вічного завантаження"
+            // Якщо ми вже маємо дані з SSR, використовуємо їх негайно
+            if (isPreRendered && window.__SSR_POST_DATA__) {
+                const data = window.__SSR_POST_DATA__;
+                console.log("Using SSR data for hydration:", data.title);
+                currentPost = data;
+
+                fillUI(data);
+                loadRelated(data.category, data.id);
+                loadReactions(data.id, data.allowed_reactions);
+                loadComments(data.id);
+                subscribeToReactions(data.id);
+
+                if (loader) loader.classList.add('hidden');
+                document.getElementById('news-content').classList.remove('hidden');
+
+                // Load Ticker (parallel)
+                loadTicker();
+
+                const viewedKey = `viewed_${data.id}`;
+                if (!sessionStorage.getItem(viewedKey)) {
+                    await _supabase.rpc('increment_views', { post_id: data.id });
+                    sessionStorage.setItem(viewedKey, 'true');
+                }
+                return;
+            }
+
+            // Стандартне завантаження (якщо SSR не спрацював)
             const timeoutPromise = new Promise((_, reject) =>
                 setTimeout(() => reject(new Error("Таймаут завантаження (15с). Перевірте інтернет.")), 15000)
             );
@@ -723,7 +751,6 @@
                 currentPost = data;
                 document.title = `${data.title} | IF News`;
 
-                // Final URL Sync
                 if (data.slug && !window.location.pathname.includes(data.slug)) {
                     window.history.replaceState(null, '', `/news/${data.slug}`);
                 }
@@ -740,13 +767,11 @@
                 // Load Ticker (parallel)
                 loadTicker();
 
-                // Increment Views (with session guard)
                 const viewedKey = `viewed_${data.id}`;
                 if (!sessionStorage.getItem(viewedKey)) {
                     await _supabase.rpc('increment_views', { post_id: data.id });
                     sessionStorage.setItem(viewedKey, 'true');
 
-                    // Fetch updated count to show in UI
                     const { data: updatedPost } = await _supabase.from('news').select('views').eq('id', data.id).single();
                     if (updatedPost && document.getElementById('view-count')) {
                         document.getElementById('view-count').innerText = updatedPost.views || 0;
