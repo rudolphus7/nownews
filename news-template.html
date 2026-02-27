@@ -11,6 +11,9 @@
         rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="/components/header.css">
+    <script src="/components/header.js"></script>
+
 
     <style>
         :root {
@@ -514,16 +517,8 @@
             return post.slug ? `/news/${post.slug}` : `/news?id=${post.id}`;
         }
 
-        let CATEGORIES_UK = {
-            'politics': 'Політика', 'economy': 'Економіка', 'sport': 'Спорт',
-            'culture': 'Культура', 'tech': 'Технології', 'frankivsk': 'Франківськ',
-            'oblast': 'Область', 'war': 'Війна'
-        };
-        let CITIES_UK = {
-            'kalush': 'Калуш', 'if': 'Івано-Франківськ', 'kolomyya': 'Коломия',
-            'dolyna': 'Долина', 'bolekhiv': 'Болехів', 'nadvirna': 'Надвірна',
-            'burshtyn': 'Бурштин', 'kosiv': 'Косів', 'yaremche': 'Яремче'
-        };
+        // CATEGORIES_UK and CITIES_UK are now provided globally by /components/header.js
+
 
         // ── Navigation ──────────────────────────────────────────────────
         async function initNav() {
