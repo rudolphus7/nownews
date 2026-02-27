@@ -751,7 +751,8 @@
 
             try {
                 const allowedList = (Array.isArray(allowed) && allowed.length > 0) ? allowed : ['like', 'fire', 'wow'];
-                const fields = [...new Set([...allowedList, 'likes', 'fire', 'wow', 'sad', 'angry', 'support'])].join(',');
+                // Correct database column names
+                const fields = 'likes,fire,wow,sad,angry,support';
                 const { data, error } = await _supabase.from('news').select(fields).eq('id', id).single();
                 if (error) throw error;
 
