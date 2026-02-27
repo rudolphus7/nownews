@@ -380,48 +380,57 @@ document.addEventListener('DOMContentLoaded', () => {
             if (error || !data) throw new Error("Статтю не знайдено");
 
             const cleanContent = data.content.replace(/<[^>]*>/g, ' ');
-            const text = data.title + ". " + cleanContent;
+            const fullText = (data.title + ". " + cleanContent).replace(/\s+/g, ' ').trim();
 
-            // 2. Отримуємо сирий WAV від сервера (без кешування на сервері)
-            if (btn) btn.innerText = '🎙️ Синтез...';
-            const response = await fetch('/api/tts?skipCache=true', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text, articleId: id })
-            });
+            // 1.1 Розбиваємо на чанки по ~2000 символів (по пробілах), щоб уникнути таймаутів 504
+            const chunks = fullText.match(/.{1,2000}(?:\s|$)/gs) || [fullText];
+            console.log(`TTS Chunking: ${chunks.length} chunks for ${fullText.length} chars`);
 
-            if (!response.ok) {
-                const err = await response.json().catch(() => ({ error: 'Server error' }));
-                throw new Error(err.error || `Помилка ${response.status}`);
-            }
-
-            const wavBuffer = await response.arrayBuffer();
-            if (btn) btn.innerText = '🗜️ Стискаю...';
-            console.log(`WAV received: ${(wavBuffer.byteLength / 1024 / 1024).toFixed(2)} MB`);
-
-            // 3. Стискаємо в MP3 (64kbps, mono, 24kHz)
             const mp3encoder = new lamejs.Mp3Encoder(1, 24000, 64);
-            const wavView = new DataView(wavBuffer);
-            // WAV header = 44 bytes. Samples are 16-bit PCM.
-            const pcmData = new Int16Array((wavBuffer.byteLength - 44) / 2);
-            for (let i = 0; i < pcmData.length; i++) {
-                pcmData[i] = wavView.getInt16(44 + i * 2, true);
+            const mp3Data = [];
+
+            // 2. Послідовно озвучуємо кожен чанк
+            for (let i = 0; i < chunks.length; i++) {
+                if (btn) btn.innerText = `🎙️ Синтез ${i + 1}/${chunks.length}...`;
+
+                const response = await fetch('/api/tts?skipCache=true', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: chunks[i], articleId: id })
+                });
+
+                if (!response.ok) {
+                    const err = await response.json().catch(() => ({ error: 'Server error' }));
+                    throw new Error(err.error || `Помилка на частині ${i + 1}: ${response.status}`);
+                }
+
+                const wavBuffer = await response.arrayBuffer();
+                console.log(`Part ${i + 1} received: ${(wavBuffer.byteLength / 1024).toFixed(0)} KB`);
+
+                // Конвертуємо WAV чанк у PCM і додаємо в MP3
+                const wavView = new DataView(wavBuffer);
+                const pcmData = new Int16Array((wavBuffer.byteLength - 44) / 2);
+                for (let j = 0; j < pcmData.length; j++) {
+                    pcmData[j] = wavView.getInt16(44 + j * 2, true);
+                }
+
+                const sampleBlockSize = 1152;
+                for (let j = 0; j < pcmData.length; j += sampleBlockSize) {
+                    const chunkPcm = pcmData.subarray(j, j + sampleBlockSize);
+                    const mp3buf = mp3encoder.encodeBuffer(chunkPcm);
+                    if (mp3buf.length > 0) mp3Data.push(mp3buf);
+                }
             }
 
-            const mp3Data = [];
-            const sampleBlockSize = 1152;
-            for (let i = 0; i < pcmData.length; i += sampleBlockSize) {
-                const chunk = pcmData.subarray(i, i + sampleBlockSize);
-                const mp3buf = mp3encoder.encodeBuffer(chunk);
-                if (mp3buf.length > 0) mp3Data.push(mp3buf);
-            }
+            // 3. Фіналізація MP3
+            if (btn) btn.innerText = '🗜️ Фіналізація...';
             const flush = mp3encoder.flush();
             if (flush.length > 0) mp3Data.push(flush);
 
             const mp3Blob = new Blob(mp3Data, { type: 'audio/mpeg' });
-            console.log(`MP3 compressed: ${(mp3Blob.size / 1024).toFixed(0)} KB`);
+            console.log(`Final MP3 size: ${(mp3Blob.size / 1024).toFixed(0)} KB`);
 
-            // 4. Завантажуємо MP3 на сервер
+            // 4. Завантажуємо готовий MP3 на сервер
             if (btn) btn.innerText = '☁️ Зберігаю...';
             const uploadRes = await fetch('/api/upload-tts', {
                 method: 'POST',
@@ -432,7 +441,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: mp3Blob
             });
 
-            if (!uploadRes.ok) throw new Error("Помилка завантаження MP3");
+            if (!uploadRes.ok) throw new Error("Помилка завантаження фінального MP3");
 
             // 5. Успіх!
             if (btn) {
