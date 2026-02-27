@@ -144,11 +144,14 @@ module.exports = async (req, res) => {
         const pcmBuffer = Buffer.from(audioBase64, 'base64');
         const wavBuffer = pcmToWav(pcmBuffer);
 
-        console.log(`TTS success: ${pcmBuffer.length} PCM → ${wavBuffer.length} WAV bytes`);
+        console.log(`TTS success: ${pcmBuffer.length} PCM → ${wavBuffer.length} WAV bytes, articleId: ${articleId || 'none'}`);
 
         // Upload to Supabase Storage server-side (bypasses RLS using service role key)
         if (articleId) {
+            const predictedUrl = `${SUPABASE_URL}/storage/v1/object/public/tts_audio/${articleId}.wav`;
             uploadToSupabase(wavBuffer, articleId).catch(e => console.error('Cache upload error:', e.message));
+            // Return the predicted public URL in a header so the client can update its state immediately
+            res.setHeader('X-TTS-Cached-URL', predictedUrl);
         }
 
         res.setHeader('Content-Type', 'audio/wav');

@@ -930,11 +930,17 @@
                 const wavBuffer = await response.arrayBuffer();
                 console.log("Received WAV audio:", wavBuffer.byteLength, "bytes");
 
-                const blob = new Blob([wavBuffer], { type: 'audio/wav' });
-                const blobUrl = URL.createObjectURL(blob);
+                // Read server-set cached URL and update local state for this session
+                const cachedUrl = response.headers.get('X-TTS-Cached-URL');
+                if (cachedUrl && currentPost) {
+                    console.log("TTS cached URL received from server:", cachedUrl);
+                    currentPost.tts_audio_url = cachedUrl;
+                }
 
                 // Caching is handled server-side in /api/tts (uses service role key)
                 // No client-side upload needed
+                const blob = new Blob([wavBuffer], { type: 'audio/wav' });
+                const blobUrl = URL.createObjectURL(blob);
 
                 if (cloudAudio) {
                     cloudAudio.pause();
