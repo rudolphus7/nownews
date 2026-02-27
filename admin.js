@@ -352,25 +352,39 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    // Допоміжна функція для завантаження бібліотеки стиснення
+    async function loadLame() {
+        if (window.lamejs) return;
+        return new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.all.min.js';
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
+        });
+    }
+
     window.generateTTS = async (id) => {
         if (!_supabase) return;
         const btn = document.getElementById(`btn-tts-${id}`);
         if (btn) {
             btn.disabled = true;
-            btn.innerText = '⏳ Озвучую...';
+            btn.innerText = '⏳ Генерую...';
         }
 
         try {
+            await loadLame();
+
             // 1. Отримуємо текст статті
             const { data, error } = await _supabase.from('news').select('title, content').eq('id', id).single();
             if (error || !data) throw new Error("Статтю не знайдено");
 
-            // Очищуємо HTML та об'єднуємо заголовок з контентом
             const cleanContent = data.content.replace(/<[^>]*>/g, ' ');
             const text = data.title + ". " + cleanContent;
 
-            // 2. Викликаємо TTS API (сервер сам завантажить у Storage та оновить DB)
-            const response = await fetch('/api/tts', {
+            // 2. Отримуємо сирий WAV від сервера (без кешування на сервері)
+            if (btn) btn.innerText = '🎙️ Синтез...';
+            const response = await fetch('/api/tts?skipCache=true', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ text, articleId: id })
@@ -378,14 +392,53 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (!response.ok) {
                 const err = await response.json().catch(() => ({ error: 'Server error' }));
-                if (err.error === 'rate_limit') {
-                    throw new Error(`Ліміт Google AI. Повторіть через ${Math.ceil(err.retryAfterMs / 1000)} сек.`);
-                }
                 throw new Error(err.error || `Помилка ${response.status}`);
             }
 
-            // 3. Успіх! Оновлюємо список
-            if (btn) btn.innerText = '✅ Готово';
+            const wavBuffer = await response.arrayBuffer();
+            if (btn) btn.innerText = '🗜️ Стискаю...';
+            console.log(`WAV received: ${(wavBuffer.byteLength / 1024 / 1024).toFixed(2)} MB`);
+
+            // 3. Стискаємо в MP3 (64kbps, mono, 24kHz)
+            const mp3encoder = new lamejs.Mp3Encoder(1, 24000, 64);
+            const wavView = new DataView(wavBuffer);
+            // WAV header = 44 bytes. Samples are 16-bit PCM.
+            const pcmData = new Int16Array((wavBuffer.byteLength - 44) / 2);
+            for (let i = 0; i < pcmData.length; i++) {
+                pcmData[i] = wavView.getInt16(44 + i * 2, true);
+            }
+
+            const mp3Data = [];
+            const sampleBlockSize = 1152;
+            for (let i = 0; i < pcmData.length; i += sampleBlockSize) {
+                const chunk = pcmData.subarray(i, i + sampleBlockSize);
+                const mp3buf = mp3encoder.encodeBuffer(chunk);
+                if (mp3buf.length > 0) mp3Data.push(mp3buf);
+            }
+            const flush = mp3encoder.flush();
+            if (flush.length > 0) mp3Data.push(flush);
+
+            const mp3Blob = new Blob(mp3Data, { type: 'audio/mpeg' });
+            console.log(`MP3 compressed: ${(mp3Blob.size / 1024).toFixed(0)} KB`);
+
+            // 4. Завантажуємо MP3 на сервер
+            if (btn) btn.innerText = '☁️ Зберігаю...';
+            const uploadRes = await fetch('/api/upload-tts', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'audio/mpeg',
+                    'x-article-id': id
+                },
+                body: mp3Blob
+            });
+
+            if (!uploadRes.ok) throw new Error("Помилка завантаження MP3");
+
+            // 5. Успіх!
+            if (btn) {
+                btn.innerText = '✅ Готово';
+                btn.classList.replace('text-indigo-500', 'text-green-500');
+            }
             setTimeout(() => window.loadNews(), 1500);
 
         } catch (err) {

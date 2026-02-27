@@ -151,7 +151,9 @@ module.exports = async (req, res) => {
         console.log(`TTS success: ${pcmBuffer.length} PCM → ${wavBuffer.length} WAV bytes, articleId: ${articleId || 'none'}`);
 
         // Upload to Supabase Storage server-side (bypasses RLS using service role key)
-        if (articleId) {
+        const skipCache = req.query.skipCache === 'true' || req.body.skipCache === true;
+
+        if (articleId && !skipCache) {
             console.log(`Starting persistence for articleId: ${articleId}`);
             try {
                 const persistenceResult = await uploadToSupabase(wavBuffer, articleId);
