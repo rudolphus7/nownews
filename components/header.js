@@ -40,6 +40,12 @@ const CITIES_FALLBACK = {
     'burshtyn': 'Бурштин', 'kosiv': 'Косів', 'yaremche': 'Яремче'
 };
 
+const CATEGORIES_UK = {
+    'politics': 'Політика', 'economy': 'Економіка', 'sport': 'Спорт',
+    'culture': 'Культура', 'tech': 'Технології', 'frankivsk': 'Франківськ',
+    'oblast': 'Область', 'war': 'Війна'
+};
+
 class SiteHeader {
     constructor(supabaseClient) {
         this.supabase = supabaseClient;
@@ -59,9 +65,10 @@ class SiteHeader {
         const params = new URLSearchParams(window.location.search);
         // City: /kolomyya/ → city='kolomyya'
         const pathParts = window.location.pathname.replace(/^\/|\/$/g, '').split('/');
-        const cityFromPath = pathParts[0] && CITIES_FALLBACK[pathParts[0]] ? pathParts[0] : null;
 
-        // Category: /category/viyna/ → category='war' (EN, for DB filter)
+        // Priority: /category/cat/ or /city/ or ?query
+        let cityFromPath = pathParts[0] && CITIES_FALLBACK[pathParts[0]] ? pathParts[0] : null;
+
         let categoryFromPath = null;
         if (pathParts[0] === 'category' && pathParts[1]) {
             categoryFromPath = CATEGORY_UK_SLUG_TO_EN[pathParts[1]] || null;
@@ -76,7 +83,17 @@ class SiteHeader {
     getNewsLink(post) {
         const slug = post.slug || '';
         const id = post.id || '';
-        return slug ? `/news/${slug}` : `/news?id=${id}`;
+        if (!slug) return `/news/?id=${id}`;
+
+        // Hierarchical URLs: /city/slug/ or /category/cat/slug/
+        if (post.city && CITIES_FALLBACK[post.city]) {
+            return `/${post.city}/${slug}/`;
+        }
+        if (post.category && CATEGORY_EN_TO_UK_SLUG[post.category]) {
+            return `/category/${CATEGORY_EN_TO_UK_SLUG[post.category]}/${slug}/`;
+        }
+
+        return `/news/${slug}/`;
     }
 
     syncFilters() {

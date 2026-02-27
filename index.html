@@ -305,8 +305,13 @@
             }
             const pathParts = window.location.pathname.replace(/^\/|\/$/g, '').split('/');
             if (pathParts[0] === 'category' && pathParts[1]) {
-                // CATEGORY_UK_SLUG_TO_EN is in header.js
-                return typeof CATEGORY_UK_SLUG_TO_EN !== 'undefined' ? CATEGORY_UK_SLUG_TO_EN[pathParts[1]] || null : null;
+                // CATEGORY_UK_SLUG_TO_EN is in header.js, but let's provide a safe fallback
+                const ukToEn = {
+                    'viyna': 'war', 'polityka': 'politics', 'ekonomika': 'economy',
+                    'sport': 'sport', 'kultura': 'culture', 'tekhnolohii': 'tech',
+                    'frankivsk': 'frankivsk', 'oblast': 'oblast'
+                };
+                return ukToEn[pathParts[1]] || (typeof CATEGORY_UK_SLUG_TO_EN !== 'undefined' ? CATEGORY_UK_SLUG_TO_EN[pathParts[1]] : null);
             }
             return new URLSearchParams(window.location.search).get('category') || null;
         }
@@ -388,15 +393,20 @@
             // 1. Initialize Shared Header component
             window.header = window.initSiteHeader(_supabase);
 
-            // Read city from pathname, category from query string
+            // 2. Initial state from URL (hierarchical path has priority, fallback to query params)
             const cityFromPath = parseCityFromUrl();
+            const categoryFromPath = parseCategoryFromUrl();
             const urlParams = new URLSearchParams(window.location.search);
+
+            // Priority: SSR > Path > Query
             currentFilters = {
-                category: urlParams.get('category'),
-                city: cityFromPath
+                category: categoryFromPath || urlParams.get('category'),
+                city: cityFromPath || urlParams.get('city')
             };
 
-            // Update SEO meta tags for this page
+            console.log('Initial Filters:', currentFilters);
+
+            // Update SEO meta tags and visual layout (H1, Hero visibility)
             updatePageSeo(currentFilters.city, currentFilters.category);
 
             // Localhost 404 Fix: Intercept /news/ links and route them through news.html
@@ -472,8 +482,14 @@
                         sectionHead.classList.remove('hidden');
                         const title = currentFilters.category ? CATEGORIES_UK[currentFilters.category] : CITIES_UK[currentFilters.city];
                         const subtitle = currentFilters.category ? 'Рубрика' : 'Місто';
-                        document.getElementById('section-title').innerText = title || 'Новини';
-                        document.getElementById('section-subtitle').innerText = subtitle;
+
+                        // Set the actual section title
+                        if (document.getElementById('section-title')) {
+                            document.getElementById('section-title').innerText = title || 'Новини';
+                        }
+                        if (document.getElementById('section-subtitle')) {
+                            document.getElementById('section-subtitle').innerText = subtitle;
+                        }
                     } else {
                         heroSec.classList.remove('hidden');
                         sectionHead.classList.add('hidden');
