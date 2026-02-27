@@ -35,6 +35,17 @@ module.exports = async (req, res) => {
 
         const articles = articlesData.filter(a => a.slug);
 
+        const CATEGORY_EN_TO_UK_SLUG = {
+            'war': 'viyna',
+            'politics': 'polityka',
+            'economy': 'ekonomika',
+            'sport': 'sport',
+            'culture': 'kultura',
+            'tech': 'tekhnolohii',
+            'frankivsk': 'frankivsk',
+            'oblast': 'oblast'
+        };
+
         // Build URL list
         const staticUrls = [
             { loc: `${SITE_URL}/`, priority: '1.0', changefreq: 'hourly' },
@@ -44,7 +55,7 @@ module.exports = async (req, res) => {
                 changefreq: 'hourly'
             })),
             ...categories.map(slug => ({
-                loc: `${SITE_URL}/?category=${slug}`,
+                loc: `${SITE_URL}/category/${CATEGORY_EN_TO_UK_SLUG[slug] || slug}/`,
                 priority: '0.8',
                 changefreq: 'hourly'
             }))

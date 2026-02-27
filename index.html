@@ -260,30 +260,6 @@
             'burshtyn': 'Бурштин', 'kosiv': 'Косів', 'yaremche': 'Яремче'
         };
 
-        // UA URL slug → EN slug (DB)
-        const CATEGORY_UK_SLUG_TO_EN = {
-            'viyna': 'war',
-            'polityka': 'politics',
-            'ekonomika': 'economy',
-            'sport': 'sport',
-            'kultura': 'culture',
-            'tekhnolohii': 'tech',
-            'frankivsk': 'frankivsk',
-            'oblast': 'oblast'
-        };
-
-        // EN slug (DB) → UA URL slug
-        const CATEGORY_EN_TO_UK_SLUG = {
-            'war': 'viyna',
-            'politics': 'polityka',
-            'economy': 'ekonomika',
-            'sport': 'sport',
-            'culture': 'kultura',
-            'tech': 'tekhnolohii',
-            'frankivsk': 'frankivsk',
-            'oblast': 'oblast'
-        };
-
         const isLocal = window.location.hostname === 'localhost' ||
             window.location.hostname.startsWith('192.168.') ||
             window.location.hostname.startsWith('127.0.0.1') ||
@@ -315,6 +291,7 @@
             }
             const pathParts = window.location.pathname.replace(/^\/|\/$/g, '').split('/');
             if (pathParts[0] === 'category' && pathParts[1]) {
+                // CATEGORY_UK_SLUG_TO_EN comes from header.js
                 return CATEGORY_UK_SLUG_TO_EN[pathParts[1]] || null;
             }
             return new URLSearchParams(window.location.search).get('category') || null;
@@ -339,9 +316,11 @@
                 canonical = `${SITE_URL}/${city}/`;
             } else if (category && CATEGORIES_UK[category]) {
                 const catName = CATEGORIES_UK[category];
+                // CATEGORY_EN_TO_UK_SLUG comes from header.js
+                const ukSlug = CATEGORY_EN_TO_UK_SLUG[category] || category;
                 title = `${catName} — новини | Прикарпаття News`;
                 description = `Новини рубрики «${catName}»: всі головні події Івано-Франківщини.`;
-                canonical = `${SITE_URL}/?category=${category}`;
+                canonical = `${SITE_URL}/category/${ukSlug}/`;
             } else {
                 title = 'Прикарпаття NEWS | Головні новини Івано-Франківщини';
                 description = 'Головні новини Івано-Франківщини: політика, економіка, війна, культура і спорт.';
