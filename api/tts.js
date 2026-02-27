@@ -3,7 +3,7 @@
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
 
 function pcmToWav(pcmBuffer, sampleRate = 24000, channels = 1, bitDepth = 16) {
     const dataLength = pcmBuffer.length;
@@ -32,6 +32,10 @@ function parseRetryDelay(message) {
 
 // Upload WAV buffer to Supabase Storage using service role key (bypasses RLS)
 async function uploadToSupabase(wavBuffer, articleId) {
+    if (!SUPABASE_URL) console.error('Missing SUPABASE_URL');
+    if (!SUPABASE_SERVICE_KEY) console.error('Missing SUPABASE_SERVICE_ROLE_KEY');
+    if (!articleId) console.error('Missing articleId in uploadToSupabase');
+
     if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY || !articleId) return null;
     try {
         const fileName = `${articleId}.wav`;
