@@ -17,7 +17,7 @@ module.exports = async (req, res) => {
         const [citiesRes, categoriesRes, articlesRes] = await Promise.all([
             fetch(`${SUPABASE_URL}/rest/v1/cities?select=slug&order=order_index.asc`, { headers }),
             fetch(`${SUPABASE_URL}/rest/v1/categories?select=slug&order=order_index.asc`, { headers }),
-            fetch(`${SUPABASE_URL}/rest/v1/news?is_published=eq.true&select=slug,updated_at,created_at&order=created_at.desc`, { headers })
+            fetch(`${SUPABASE_URL}/rest/v1/news?is_published=eq.true&select=slug,updated_at,created_at,city,category&order=created_at.desc`, { headers })
         ]);
 
         // Parse results, fall back to hardcoded lists on error
@@ -61,12 +61,21 @@ module.exports = async (req, res) => {
             }))
         ];
 
-        const articleUrls = articles.map(a => ({
-            loc: `${SITE_URL}/news/${a.slug}/`,
-            lastmod: (a.updated_at || a.created_at || new Date().toISOString()).split('T')[0],
-            priority: '0.7',
-            changefreq: 'weekly'
-        }));
+        const articleUrls = articles.map(a => {
+            let loc = `${SITE_URL}/news/${a.slug}/`;
+            if (a.city && CITIES_FALLBACK.includes(a.city)) {
+                loc = `${SITE_URL}/${a.city}/${a.slug}/`;
+            } else if (a.category && CATEGORY_EN_TO_UK_SLUG[a.category]) {
+                loc = `${SITE_URL}/category/${CATEGORY_EN_TO_UK_SLUG[a.category]}/${a.slug}/`;
+            }
+
+            return {
+                loc,
+                lastmod: (a.updated_at || a.created_at || new Date().toISOString()).split('T')[0],
+                priority: '0.7',
+                changefreq: 'weekly'
+            };
+        });
 
         const allUrls = [...staticUrls, ...articleUrls];
 

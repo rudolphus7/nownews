@@ -92,10 +92,26 @@ module.exports = async (req, res) => {
             return res.status(200).send(htmlContent);
         }
 
-        // Canonical URL — завжди /news/slug/ (чисте SEO-посилання)
-        const canonicalUrl = news.slug
-            ? `${SITE_URL}/news/${news.slug}/`
-            : `${SITE_URL}/news/?id=${news.id}`;
+        const CATEGORY_EN_TO_UK_SLUG = {
+            'war': 'viyna',
+            'politics': 'polityka',
+            'economy': 'ekonomika',
+            'sport': 'sport',
+            'culture': 'kultura',
+            'tech': 'tekhnolohii',
+            'frankivsk': 'frankivsk',
+            'oblast': 'oblast'
+        };
+
+        // Canonical URL logic — preference order: city > category > default news
+        let canonicalUrl = `${SITE_URL}/news/${news.slug}/`;
+        if (news.city && CITIES_MAP[news.city]) {
+            canonicalUrl = `${SITE_URL}/${news.city}/${news.slug}/`;
+        } else if (news.category && CATEGORY_EN_TO_UK_SLUG[news.category]) {
+            canonicalUrl = `${SITE_URL}/category/${CATEGORY_EN_TO_UK_SLUG[news.category]}/${news.slug}/`;
+        } else if (!news.slug) {
+            canonicalUrl = `${SITE_URL}/news/?id=${news.id}`;
+        }
 
         const title = `${news.title} | IF News`;
         const description = (news.meta_description || news.content || '')

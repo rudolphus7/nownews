@@ -124,6 +124,14 @@
     ],
     "rewrites": [
         {
+            "source": "/category/:cat(viyna|polityka|ekonomika|sport|kultura|tekhnolohii|frankivsk|oblast)/:slug/",
+            "destination": "/api/news?slug=:slug"
+        },
+        {
+            "source": "/:city(kalush|if|kolomyya|dolyna|bolekhiv|nadvirna|burshtyn|kosiv|yaremche)/:slug/",
+            "destination": "/api/news?slug=:slug"
+        },
+        {
             "source": "/sitemap.xml",
             "destination": "/api/sitemap.xml"
         },

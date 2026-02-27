@@ -268,7 +268,17 @@
         function getNewsLink(post) {
             const slug = post.slug || '';
             const id = post.id || '';
-            return slug ? `/news/${slug}/` : `/news/?id=${id}`;
+            if (!slug) return `/news/?id=${id}`;
+
+            // Hierarchical URLs: /city/slug/ or /category/cat/slug/
+            if (post.city && CITIES_UK[post.city]) {
+                return `/${post.city}/${slug}/`;
+            }
+            if (post.category && CATEGORY_EN_TO_UK_SLUG[post.category]) {
+                return `/category/${CATEGORY_EN_TO_UK_SLUG[post.category]}/${slug}/`;
+            }
+
+            return `/news/${slug}/`;
         }
 
         /**
@@ -350,18 +360,23 @@
             setOg('og:url', canonical);
             setOg('og:type', 'website');
 
-            // H1 management: one visible h1 per page at all times
+            // H1 and Visual toggling
             const homepageH1 = document.getElementById('homepage-h1');
             const sectionH1 = document.getElementById('section-title');
+            const heroSec = document.getElementById('hero-container');
+            const sectionHead = document.getElementById('section-header');
+
             if (city || category) {
-                // City/category page: show section-title h1, hide homepage h1
-                if (homepageH1) homepageH1.classList.add('sr-only');
+                if (homepageH1) homepageH1.classList.add('hidden');
+                if (heroSec) heroSec.classList.add('hidden');
+                if (sectionHead) sectionHead.classList.remove('hidden');
                 if (sectionH1) sectionH1.textContent = city
                     ? `Новини ${CITIES_UK[city]}`
                     : (CATEGORIES_UK[category] || 'Новини');
             } else {
-                // Homepage: show sr-only homepage h1 (visually hidden but for SEO)
-                if (homepageH1) homepageH1.classList.add('sr-only');
+                if (homepageH1) homepageH1.classList.remove('hidden');
+                if (heroSec) heroSec.classList.remove('hidden');
+                if (sectionHead) sectionHead.classList.add('hidden');
             }
         }
 
@@ -440,52 +455,50 @@
 
         async function loadNews(isMore = false) {
             try {
+                const heroSec = document.getElementById('hero-container');
+                const sectionHead = document.getElementById('section-header');
+                const isFiltered = currentFilters.category || currentFilters.city;
+
                 if (!isMore) {
                     currentPage = 0;
                     document.getElementById('news-grid').innerHTML = '';
-                    document.getElementById('hero-container').innerHTML = '<div class="animate-pulse bg-slate-200 h-[550px] rounded-[3rem]"></div>';
+
+                    if (isFiltered) {
+                        heroSec.classList.add('hidden');
+                        sectionHead.classList.remove('hidden');
+                        const title = currentFilters.category ? CATEGORIES_UK[currentFilters.category] : CITIES_UK[currentFilters.city];
+                        const subtitle = currentFilters.category ? 'Рубрика' : 'Місто';
+                        document.getElementById('section-title').innerText = title || 'Новини';
+                        document.getElementById('section-subtitle').innerText = subtitle;
+                    } else {
+                        heroSec.classList.remove('hidden');
+                        sectionHead.classList.add('hidden');
+                        heroSec.innerHTML = '<div class="animate-pulse bg-slate-200 h-[550px] rounded-[3rem]"></div>';
+                    }
                 }
 
                 let query = _supabase.from('news').select('*').eq('is_published', true).order('created_at', { ascending: false });
-
                 if (currentFilters.category) query = query.eq('category', currentFilters.category);
                 if (currentFilters.city) query = query.eq('city', currentFilters.city);
 
                 let from, to;
                 if (!isMore) {
-                    currentPage = 0;
                     from = 0;
-                    to = PAGE_SIZE; // 0 to 6 = 7 items (1 hero + 6 grid)
+                    to = PAGE_SIZE;
                 } else {
                     from = (currentPage * PAGE_SIZE) + 1;
                     to = from + PAGE_SIZE - 1;
                 }
 
                 const { data, error } = await query.range(from, to);
-
                 if (error) throw error;
 
                 if (!isMore) {
-                    const isFiltered = currentFilters.category || currentFilters.city;
-                    const heroSec = document.getElementById('hero-container');
-                    const sectionHead = document.getElementById('section-header');
-
-                    if (isFiltered) {
-                        heroSec.classList.add('hidden');
-                        sectionHead.classList.remove('hidden');
-                        const title = currentFilters.category ? CATEGORIES_UK[currentFilters.category] : CITIES_UK[currentFilters.city];
-                        document.getElementById('section-title').innerText = title || 'Новини';
-                        document.getElementById('section-subtitle').innerText = currentFilters.category ? 'Рубрика' : 'Місто';
-                    } else {
-                        heroSec.classList.remove('hidden');
-                        sectionHead.classList.add('hidden');
-                    }
-
                     if (data.length > 0) {
                         if (!isFiltered) renderHero(data[0]);
                         renderGrid(isFiltered ? data : data.slice(1));
                     } else {
-                        document.getElementById('hero-container').innerHTML = ''; // Clear pulse
+                        if (!isFiltered) heroSec.innerHTML = '';
                         document.getElementById('news-grid').innerHTML = '<div class="col-span-full text-center py-20 text-slate-400 font-bold uppercase tracking-widest">Новин не знайдено</div>';
                         document.getElementById('more-news-container').classList.add('hidden');
                     }
@@ -503,7 +516,7 @@
                 }
 
             } catch (err) {
-                console.error(err);
+                console.error('loadNews error:', err);
             }
         }
 

@@ -9,7 +9,7 @@ module.exports = async (req, res) => {
         // Google News requires only articles published in the LAST 48 HOURS
         const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
 
-        const apiUrl = `${SUPABASE_URL}/rest/v1/news?is_published=eq.true&created_at=gte.${encodeURIComponent(cutoff)}&select=slug,title,created_at&order=created_at.desc`;
+        const apiUrl = `${SUPABASE_URL}/rest/v1/news?is_published=eq.true&created_at=gte.${encodeURIComponent(cutoff)}&select=slug,title,created_at,city,category&order=created_at.desc`;
 
         const response = await fetch(apiUrl, {
             headers: {
@@ -32,8 +32,22 @@ module.exports = async (req, res) => {
     xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">
 ${validArticles.map(a => {
             const pubDate = new Date(a.created_at).toISOString();
+            const CATEGORY_EN_TO_UK_SLUG = {
+                'war': 'viyna', 'politics': 'polityka', 'economy': 'ekonomika',
+                'sport': 'sport', 'culture': 'kultura', 'tech': 'tekhnolohii',
+                'frankivsk': 'frankivsk', 'oblast': 'oblast'
+            };
+
+            let loc = `${SITE_URL}/news/${a.slug}/`;
+            if (a.city) {
+                loc = `${SITE_URL}/${a.city}/${a.slug}/`;
+            } else if (a.category && CATEGORY_EN_TO_UK_SLUG[a.category]) {
+                const ukCat = CATEGORY_EN_TO_UK_SLUG[a.category];
+                loc = `${SITE_URL}/category/${ukCat}/${a.slug}/`;
+            }
+
             return `  <url>
-    <loc>${escapeXml(`${SITE_URL}/news/${a.slug}/`)}</loc>
+    <loc>${escapeXml(loc)}</loc>
     <news:news>
       <news:publication>
         <news:name>${escapeXml(PUBLICATION_NAME)}</news:name>
