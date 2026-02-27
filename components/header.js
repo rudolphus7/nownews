@@ -3,10 +3,35 @@
  * Handles Ticker, Navigation, City Filters, and Mobile Menu
  */
 
+// EN slug (DB) → UA display name
 const CATEGORIES_FALLBACK = {
     'politics': 'Політика', 'economy': 'Економіка', 'sport': 'Спорт',
     'culture': 'Культура', 'tech': 'Технології', 'frankivsk': 'Франківськ',
     'oblast': 'Область', 'war': 'Війна'
+};
+
+// EN slug (DB) → UA URL slug
+const CATEGORY_EN_TO_UK_SLUG = {
+    'war': 'viyna',
+    'politics': 'polityka',
+    'economy': 'ekonomika',
+    'sport': 'sport',
+    'culture': 'kultura',
+    'tech': 'tekhnolohii',
+    'frankivsk': 'frankivsk',
+    'oblast': 'oblast'
+};
+
+// UA URL slug → EN slug (DB) — for parsing pathname
+const CATEGORY_UK_SLUG_TO_EN = {
+    'viyna': 'war',
+    'polityka': 'politics',
+    'ekonomika': 'economy',
+    'sport': 'sport',
+    'kultura': 'culture',
+    'tekhnolohii': 'tech',
+    'frankivsk': 'frankivsk',
+    'oblast': 'oblast'
 };
 
 const CITIES_FALLBACK = {
@@ -32,12 +57,19 @@ class SiteHeader {
 
     _parseFiltersFromUrl() {
         const params = new URLSearchParams(window.location.search);
-        // City is now read from pathname: /kolomyya/ → city=kolomyya
+        // City: /kolomyya/ → city='kolomyya'
         const pathParts = window.location.pathname.replace(/^\/|\/$/g, '').split('/');
         const cityFromPath = pathParts[0] && CITIES_FALLBACK[pathParts[0]] ? pathParts[0] : null;
+
+        // Category: /category/viyna/ → category='war' (EN, for DB filter)
+        let categoryFromPath = null;
+        if (pathParts[0] === 'category' && pathParts[1]) {
+            categoryFromPath = CATEGORY_UK_SLUG_TO_EN[pathParts[1]] || null;
+        }
+
         return {
-            category: params.get('category'),
-            city: cityFromPath || params.get('city') // fallback for old query param
+            category: categoryFromPath || params.get('category'),
+            city: cityFromPath || params.get('city')
         };
     }
 
@@ -190,12 +222,17 @@ class SiteHeader {
                 </a>
             </div>`;
 
-        const html = categories.map(c => `
-            <a href="/?category=${c.slug}" class="nav-link hover:text-orange-600 transition-colors py-2 border-b-2 border-transparent font-black tracking-tight text-sm">${c.name}</a>
-        `).join('');
+        // Categories use Ukrainian path-based URLs: /category/viyna/
+        const html = categories.map(c => {
+            const ukSlug = CATEGORY_EN_TO_UK_SLUG[c.slug] || c.slug;
+            return `<a href="/category/${ukSlug}/" class="nav-link hover:text-orange-600 transition-colors py-2 border-b-2 border-transparent font-black tracking-tight text-sm" data-category="${c.slug}">${c.name}</a>`;
+        }).join('');
 
         if (nav) nav.innerHTML = html + liveHtml;
-        if (mobileNav) mobileNav.innerHTML = categories.map(c => `<a href="/?category=${c.slug}" class="py-2 active:text-orange-600 font-bold">${c.name}</a>`).join('') + `<div class="pt-4 text-orange-600 font-black">LIVE • РЕПОРТАЖІ</div>`;
+        if (mobileNav) mobileNav.innerHTML = categories.map(c => {
+            const ukSlug = CATEGORY_EN_TO_UK_SLUG[c.slug] || c.slug;
+            return `<a href="/category/${ukSlug}/" data-category="${c.slug}" class="py-2 active:text-orange-600 font-bold">${c.name}</a>`;
+        }).join('') + `<div class="pt-4 text-orange-600 font-black">LIVE • РЕПОРТАЖІ</div>`;
     }
 
     renderCities(cities) {
@@ -301,7 +338,8 @@ class SiteHeader {
         });
 
         if (this.currentFilters.category) {
-            document.querySelectorAll(`.nav-link[href*="category=${this.currentFilters.category}"]`).forEach(el => {
+            // Match by data-category attribute (EN slug)
+            document.querySelectorAll(`.nav-link[data-category="${this.currentFilters.category}"]`).forEach(el => {
                 el.classList.add('text-orange-600', 'border-orange-600');
             });
         }

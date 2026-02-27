@@ -49,6 +49,51 @@
             overflow: hidden;
         }
     </style>
+
+    <!-- Schema.org: Organization & WebSite (sitelinks search box) -->
+    <script type="application/ld+json">
+    [
+        {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "@id": "https://ifnews-omega.vercel.app/#organization",
+            "name": "Прикарпаття News",
+            "alternateName": "IF News",
+            "url": "https://ifnews-omega.vercel.app/",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://ifnews-omega.vercel.app/favicon.ico",
+                "width": 512,
+                "height": 512
+            },
+            "sameAs": [],
+            "contactPoint": {
+                "@type": "ContactPoint",
+                "email": "info@ifnews.pro",
+                "contactType": "customer support"
+            }
+        },
+        {
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            "@id": "https://ifnews-omega.vercel.app/#website",
+            "name": "Прикарпаття News",
+            "url": "https://ifnews-omega.vercel.app/",
+            "publisher": {
+                "@id": "https://ifnews-omega.vercel.app/#organization"
+            },
+            "inLanguage": "uk-UA",
+            "potentialAction": {
+                "@type": "SearchAction",
+                "target": {
+                    "@type": "EntryPoint",
+                    "urlTemplate": "https://ifnews-omega.vercel.app/?search={search_term_string}"
+                },
+                "query-input": "required name=search_term_string"
+            }
+        }
+    ]
+    </script>
 </head>
 
 <body class="bg-[#f8fafc] text-slate-900 selection:bg-orange-100 selection:text-orange-600">
@@ -57,7 +102,7 @@
 
 
     <main class="container mx-auto px-4 py-6 md:py-12 max-w-7xl">
-        <!-- Section Header (Only for filters) -->
+        <!-- Section Header (Only for city/category filters) -->
         <div id="section-header" class="hidden mb-6 md:mb-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
             <div class="mb-4 md:mb-8 flex items-center gap-4">
                 <a href="index.html"
@@ -70,11 +115,15 @@
                     class="text-[10px] font-black text-orange-600 uppercase tracking-widest bg-orange-50 px-3 py-1 rounded-lg border border-orange-100"
                     id="section-subtitle">Розділ</span>
             </div>
-            <h2 id="section-title"
-                class="text-5xl md:text-8xl font-black italic tracking-tighter text-slate-900 leading-none">Новини</h2>
+            <!-- h1 for city/category pages — updated dynamically by JS -->
+            <h1 id="section-title"
+                class="text-5xl md:text-8xl font-black italic tracking-tighter text-slate-900 leading-none">Новини</h1>
         </div>
 
-        <!-- Hero Section Upgrade -->
+        <!-- Visually hidden H1 for homepage — shown only when no city/category filter active -->
+        <h1 id="homepage-h1" class="sr-only">Новини Івано-Франківщини — Прикарпаття NEWS</h1>
+
+        <!-- Hero Section -->
         <div id="hero-container" class="mb-8 md:mb-20">
             <div class="animate-pulse bg-slate-200 h-[600px] rounded-[3rem]"></div>
         </div>
@@ -208,7 +257,31 @@
         let CITIES_UK = {
             'kalush': 'Калуш', 'if': 'Івано-Франківськ', 'kolomyya': 'Коломия',
             'dolyna': 'Долина', 'bolekhiv': 'Болехів', 'nadvirna': 'Надвірна',
-            'burshtyn': 'Бурштин', 'kosiv': 'Косів', 'yaremche': 'Yaremche'
+            'burshtyn': 'Бурштин', 'kosiv': 'Косів', 'yaremche': 'Яремче'
+        };
+
+        // UA URL slug → EN slug (DB)
+        const CATEGORY_UK_SLUG_TO_EN = {
+            'viyna': 'war',
+            'polityka': 'politics',
+            'ekonomika': 'economy',
+            'sport': 'sport',
+            'kultura': 'culture',
+            'tekhnolohii': 'tech',
+            'frankivsk': 'frankivsk',
+            'oblast': 'oblast'
+        };
+
+        // EN slug (DB) → UA URL slug
+        const CATEGORY_EN_TO_UK_SLUG = {
+            'war': 'viyna',
+            'politics': 'polityka',
+            'economy': 'ekonomika',
+            'sport': 'sport',
+            'culture': 'kultura',
+            'tech': 'tekhnolohii',
+            'frankivsk': 'frankivsk',
+            'oblast': 'oblast'
         };
 
         const isLocal = window.location.hostname === 'localhost' ||
@@ -224,7 +297,6 @@
 
         /**
          * Parse city from pathname (e.g. /kolomyya/ → 'kolomyya')
-         * Falls back to query param for backward compat.
          */
         function parseCityFromUrl() {
             const pathParts = window.location.pathname.replace(/^\/|\/$/g, '').split('/');
@@ -232,7 +304,19 @@
             return (citySlug && CITIES_UK[citySlug]) ? citySlug : null;
         }
 
+        /**
+         * Parse category from pathname (e.g. /category/viyna/ → 'war' EN for DB)
+         * Also reads SSR variable from api/category.js
+         */
         function parseCategoryFromUrl() {
+            // SSR: api/category.js injects window.__SSR_CATEGORY_EN__
+            if (window.__SSR_CATEGORY_EN__ && window.__SSR_CATEGORY_EN__ !== 'undefined') {
+                return window.__SSR_CATEGORY_EN__;
+            }
+            const pathParts = window.location.pathname.replace(/^\/|\/$/g, '').split('/');
+            if (pathParts[0] === 'category' && pathParts[1]) {
+                return CATEGORY_UK_SLUG_TO_EN[pathParts[1]] || null;
+            }
             return new URLSearchParams(window.location.search).get('category') || null;
         }
 
@@ -286,6 +370,20 @@
             setOg('og:description', description);
             setOg('og:url', canonical);
             setOg('og:type', 'website');
+
+            // H1 management: one visible h1 per page at all times
+            const homepageH1 = document.getElementById('homepage-h1');
+            const sectionH1 = document.getElementById('section-title');
+            if (city || category) {
+                // City/category page: show section-title h1, hide homepage h1
+                if (homepageH1) homepageH1.classList.add('sr-only');
+                if (sectionH1) sectionH1.textContent = city
+                    ? `Новини ${CITIES_UK[city]}`
+                    : (CATEGORIES_UK[category] || 'Новини');
+            } else {
+                // Homepage: show sr-only homepage h1 (visually hidden but for SEO)
+                if (homepageH1) homepageH1.classList.add('sr-only');
+            }
         }
 
         async function init() {

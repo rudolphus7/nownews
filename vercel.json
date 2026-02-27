@@ -24,6 +24,102 @@
             ],
             "destination": "/:city/",
             "permanent": true
+        },
+        {
+            "source": "/",
+            "has": [
+                {
+                    "type": "query",
+                    "key": "category",
+                    "value": "war"
+                }
+            ],
+            "destination": "/category/viyna/",
+            "permanent": true
+        },
+        {
+            "source": "/",
+            "has": [
+                {
+                    "type": "query",
+                    "key": "category",
+                    "value": "politics"
+                }
+            ],
+            "destination": "/category/polityka/",
+            "permanent": true
+        },
+        {
+            "source": "/",
+            "has": [
+                {
+                    "type": "query",
+                    "key": "category",
+                    "value": "economy"
+                }
+            ],
+            "destination": "/category/ekonomika/",
+            "permanent": true
+        },
+        {
+            "source": "/",
+            "has": [
+                {
+                    "type": "query",
+                    "key": "category",
+                    "value": "sport"
+                }
+            ],
+            "destination": "/category/sport/",
+            "permanent": true
+        },
+        {
+            "source": "/",
+            "has": [
+                {
+                    "type": "query",
+                    "key": "category",
+                    "value": "culture"
+                }
+            ],
+            "destination": "/category/kultura/",
+            "permanent": true
+        },
+        {
+            "source": "/",
+            "has": [
+                {
+                    "type": "query",
+                    "key": "category",
+                    "value": "tech"
+                }
+            ],
+            "destination": "/category/tekhnolohii/",
+            "permanent": true
+        },
+        {
+            "source": "/",
+            "has": [
+                {
+                    "type": "query",
+                    "key": "category",
+                    "value": "frankivsk"
+                }
+            ],
+            "destination": "/category/frankivsk/",
+            "permanent": true
+        },
+        {
+            "source": "/",
+            "has": [
+                {
+                    "type": "query",
+                    "key": "category",
+                    "value": "oblast"
+                }
+            ],
+            "destination": "/category/oblast/",
+            "permanent": true
         }
     ],
     "rewrites": [
@@ -60,6 +156,10 @@
             "destination": "/api/news"
         },
         {
+            "source": "/category/:slug/",
+            "destination": "/api/category?slug=:slug"
+        },
+        {
             "source": "/:city(kalush|if|kolomyya|dolyna|bolekhiv|nadvirna|burshtyn|kosiv|yaremche)/",
             "destination": "/api/city?city=:city"
         },
@@ -74,6 +174,10 @@
             "maxDuration": 10
         },
         "api/city.js": {
+            "memory": 128,
+            "maxDuration": 10
+        },
+        "api/category.js": {
             "memory": 128,
             "maxDuration": 10
         },
