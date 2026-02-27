@@ -312,17 +312,18 @@
             const SITE_URL = 'https://ifnews-omega.vercel.app';
             let title, description, canonical;
 
-            if (city && CITIES_UK[city]) {
-                const cityName = CITIES_UK[city];
-                title = `Новини ${cityName} сьогодні — останні події | Прикарпаття News`;
+            // Resolve display names: prefer dynamic maps, fallback to SSR-injected names
+            const cityName = (city && CITIES_UK[city]) || (city && window.__SSR_CITY_NAME__) || city;
+            const catName = (category && CATEGORIES_UK[category]) || (category && window.__SSR_CATEGORY_NAME__) || category;
+
+            if (city && cityName) {
+                title = `Новини ${cityName} — Прикарпаття News`;
                 description = `Актуальні новини ${cityName}: події, факти, оперативна інформація. Читайте все найважливіше першими.`;
                 canonical = `${SITE_URL}/${city}/`;
-            } else if (category && CATEGORIES_UK[category]) {
-                const catName = CATEGORIES_UK[category];
-                // CATEGORY_EN_TO_UK_SLUG comes from header.js
-                const ukSlug = CATEGORY_EN_TO_UK_SLUG[category] || category;
+            } else if (category && catName) {
                 title = `${catName} — новини | Прикарпаття News`;
                 description = `Новини рубрики «${catName}»: всі головні події Івано-Франківщини.`;
+                const ukSlug = CATEGORY_EN_TO_UK_SLUG[category] || category;
                 canonical = `${SITE_URL}/category/${ukSlug}/`;
             } else {
                 title = 'Прикарпаття NEWS | Головні новини Івано-Франківщини';
@@ -332,17 +333,14 @@
 
             document.title = title;
 
-            // Update or create <meta name="description">
             let descEl = document.querySelector('meta[name="description"]');
             if (!descEl) { descEl = document.createElement('meta'); descEl.name = 'description'; document.head.appendChild(descEl); }
             descEl.content = description;
 
-            // Update or create canonical
             let canonEl = document.querySelector('link[rel="canonical"]');
             if (!canonEl) { canonEl = document.createElement('link'); canonEl.rel = 'canonical'; document.head.appendChild(canonEl); }
             canonEl.href = canonical;
 
-            // Open Graph
             const setOg = (prop, val) => {
                 let el = document.querySelector(`meta[property="${prop}"]`);
                 if (!el) { el = document.createElement('meta'); el.setAttribute('property', prop); document.head.appendChild(el); }
@@ -353,9 +351,9 @@
             setOg('og:url', canonical);
             setOg('og:type', 'website');
 
-            // H1 and Visual toggling
             const homepageH1 = document.getElementById('homepage-h1');
             const sectionH1 = document.getElementById('section-title');
+            const sectionSubtitle = document.getElementById('section-subtitle');
             const heroSec = document.getElementById('hero-container');
             const sectionHead = document.getElementById('section-header');
 
@@ -363,9 +361,16 @@
                 if (homepageH1) homepageH1.classList.add('hidden');
                 if (heroSec) heroSec.classList.add('hidden');
                 if (sectionHead) sectionHead.classList.remove('hidden');
-                if (sectionH1) sectionH1.textContent = city
-                    ? `Новини ${CITIES_UK[city]}`
-                    : (CATEGORIES_UK[category] || 'Новини');
+                if (sectionH1) {
+                    if (city && cityName) {
+                        sectionH1.textContent = `Новини міста ${cityName}`;
+                    } else if (category && catName) {
+                        sectionH1.textContent = `Рубрика: ${catName}`;
+                    }
+                }
+                if (sectionSubtitle) {
+                    sectionSubtitle.textContent = city ? 'Місто' : 'Рубрика';
+                }
             } else {
                 if (homepageH1) homepageH1.classList.remove('hidden');
                 if (heroSec) heroSec.classList.remove('hidden');
@@ -464,12 +469,22 @@
                     if (isFiltered) {
                         heroSec.classList.add('hidden');
                         sectionHead.classList.remove('hidden');
-                        const title = currentFilters.category ? CATEGORIES_UK[currentFilters.category] : CITIES_UK[currentFilters.city];
+
+                        // Resolve display name: dynamic maps first, then SSR-injected fallback
+                        const cityName = currentFilters.city
+                            ? (CITIES_UK[currentFilters.city] || window.__SSR_CITY_NAME__ || currentFilters.city)
+                            : null;
+                        const catName = currentFilters.category
+                            ? (CATEGORIES_UK[currentFilters.category] || window.__SSR_CATEGORY_NAME__ || currentFilters.category)
+                            : null;
+
+                        const headingText = cityName
+                            ? `Новини міста ${cityName}`
+                            : (catName ? `Рубрика: ${catName}` : 'Новини');
                         const subtitle = currentFilters.category ? 'Рубрика' : 'Місто';
 
-                        // Set the actual section title
                         if (document.getElementById('section-title')) {
-                            document.getElementById('section-title').innerText = title || 'Новини';
+                            document.getElementById('section-title').innerText = headingText;
                         }
                         if (document.getElementById('section-subtitle')) {
                             document.getElementById('section-subtitle').innerText = subtitle;
