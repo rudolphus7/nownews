@@ -467,7 +467,7 @@
 
                 fillUI(data);
                 loadRelated(data.category, data.id);
-                loadReactions(data.id);
+                loadReactions(data.id, data.allowed_reactions);
                 loadComments(data.id);
                 subscribeToReactions(data.id);
 
