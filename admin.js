@@ -130,6 +130,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // --- РЕАКЦІЇ (ЛОГІКА ВИБОРУ В АДМІНЦІ) ---
+    const initReactionSelector = () => {
+        const checkboxes = document.querySelectorAll('.reaction-checkbox');
+        checkboxes.forEach(cb => {
+            const updateUI = () => {
+                const label = cb.closest('.reaction-checkbox-label');
+                if (cb.checked) label.classList.add('checked');
+                else label.classList.remove('checked');
+            };
+            cb.addEventListener('change', updateUI);
+            updateUI(); // Initial
+        });
+    };
+    initReactionSelector();
+
     // --- НАВІГАЦІЯ ---
     const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
     if (mobileMenuToggle) {
@@ -160,6 +175,8 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.disabled = true;
             btn.innerText = currentEditingId ? 'Зберігаємо зміни...' : 'Йде публікація...';
 
+            const allowedReactions = Array.from(document.querySelectorAll('.reaction-checkbox:checked')).map(cb => cb.value);
+
             const payload = {
                 title: titleInput.value,
                 content: quill.root.innerHTML,
@@ -170,6 +187,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 city: document.getElementById('city').value,
                 image_url: imageUrlInput.value,
                 tags: currentTags,
+                allowed_reactions: allowedReactions,
                 link: newsForm.dataset.rssLink || "", // Preserve original RSS link
                 is_published: true
             };
@@ -301,6 +319,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (data.image_url) {
             document.getElementById('image-preview').innerHTML = `<img src="${data.image_url}" class="w-full h-full object-cover rounded-xl">`;
         }
+
+        // Оновити чекбокси реакцій
+        const allowed = data.allowed_reactions || ['like', 'fire', 'wow'];
+        document.querySelectorAll('.reaction-checkbox').forEach(cb => {
+            cb.checked = allowed.includes(cb.value);
+            cb.dispatchEvent(new Event('change')); // Trigger UI update
+        });
 
         // Змінюємо текст кнопки
         document.getElementById('btn-submit').innerText = 'Зберегти зміни';

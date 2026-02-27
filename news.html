@@ -193,106 +193,98 @@
                         </div>
                         <h3 class="text-2xl font-black mb-8 relative">Як вам цей матеріал?</h3>
                         <div class="flex gap-4 relative">
-                            <button onclick="handleReaction(event, 'like')"
-                                class="reaction-btn bg-white/10 hover:bg-white/20 px-6 py-4 rounded-2xl flex flex-col items-center transition min-w-[100px]">
-                                <span class="text-3xl mb-2">👍</span>
-                                <span id="count-like" class="text-xs font-bold font-mono">0</span>
-                            </button>
-                            <button onclick="handleReaction(event, 'fire')"
-                                class="reaction-btn bg-white/10 hover:bg-white/20 px-6 py-4 rounded-2xl flex flex-col items-center transition min-w-[100px]">
-                                <span class="text-3xl mb-2">🔥</span>
-                                <span id="count-fire" class="text-xs font-bold font-mono">0</span>
-                            </button>
-                            <button onclick="handleReaction(event, 'wow')"
-                                class="reaction-btn bg-white/10 hover:bg-white/20 px-6 py-4 rounded-2xl flex flex-col items-center transition min-w-[100px]">
-                                <span class="text-3xl mb-2">😮</span>
-                                <span id="count-wow" class="text-xs font-bold font-mono">0</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Comments Section -->
-                    <div id="comments-section"
-                        class="bg-white rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-12 shadow-xl border border-slate-100 mb-6 md:mb-20">
-                        <h3 class="text-2xl font-black text-slate-900 mb-8 flex items-center tracking-tighter italic">
-                            <span class="w-2 h-6 bg-orange-600 rounded-full mr-3"></span>Коментарі
-                            <span id="comments-count"
-                                class="ml-3 text-sm font-bold bg-slate-100 px-3 py-1 rounded-full text-slate-500">0</span>
-                        </h3>
-
-                        <!-- Comment Form -->
-                        <form id="comment-form" class="mb-12 space-y-4">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <input type="text" id="comment-user-name" placeholder="Ваше ім'я" required
-                                    class="w-full px-6 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:border-orange-500 focus:outline-none font-bold text-sm transition">
-                            </div>
-                            <textarea id="comment-content" rows="3" placeholder="Напишіть ваш коментар..." required
-                                class="w-full px-6 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:border-orange-500 focus:outline-none font-medium text-sm transition"></textarea>
-                            <div class="flex justify-end">
-                                <button type="submit" id="btn-submit-comment"
-                                    class="bg-orange-600 text-white px-8 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-orange-500 transition shadow-xl shadow-orange-100 active:scale-95">
-                                    Надіслати
-                                </button>
-                            </div>
-                            <p id="comment-status"
-                                class="text-[10px] font-bold text-slate-400 uppercase text-center hidden">Коментар
-                                відправлено на модерацію ✨</p>
-                        </form>
-
-                        <!-- Comments List -->
-                        <div id="comments-list" class="space-y-8">
-                            <!-- Loaded via JS -->
-                            <div class="text-center py-10 text-slate-400 italic font-medium">Завантаження коментарів...
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Sidebar column -->
-                <aside class="lg:w-1/3">
-                    <div class="sticky top-32 space-y-8 md:space-y-12">
-                        <!-- Share Toolkit -->
-                        <div
-                            class="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-100 shadow-slate-200/50">
-                            <h3 class="text-xs font-black uppercase text-slate-400 tracking-tighter mb-6">Поділитися в
-                                мережах</h3>
-                            <div class="grid grid-cols-2 gap-3">
-                                <button onclick="share('telegram')"
-                                    class="share-btn bg-[#229ED9] text-white p-3 rounded-2xl flex items-center justify-center transition hover:shadow-lg">
-                                    <span class="font-black text-xs uppercase italic">Telegram</span>
-                                </button>
-                                <button onclick="share('viber')"
-                                    class="share-btn bg-[#7360F2] text-white p-3 rounded-2xl flex items-center justify-center transition hover:shadow-lg">
-                                    <span class="font-black text-xs uppercase italic">Viber</span>
-                                </button>
-                                <button onclick="share('facebook')"
-                                    class="share-btn bg-[#1877F2] text-white p-3 rounded-2xl flex items-center justify-center transition hover:shadow-lg">
-                                    <span class="font-black text-xs uppercase italic">Facebook</span>
-                                </button>
-                                <button onclick="share('copy')" id="copy-btn"
-                                    class="share-btn bg-slate-900 text-white p-3 rounded-2xl flex items-center justify-center transition hover:shadow-lg relative overflow-hidden">
-                                    <span id="copy-text" class="font-black text-xs uppercase italic">Посилання</span>
-                                    <div id="copy-toast"
-                                        class="absolute inset-0 bg-green-600 flex items-center justify-center translate-y-full transition-transform duration-300">
-                                        <span class="text-[10px] font-black uppercase italic">Скопійовано!</span>
-                                    </div>
-                                </button>
+                            <h3 class="text-2xl font-black mb-8 relative">Як вам цей матеріал?</h3>
+                            <div id="reactions-container" class="flex flex-wrap gap-4 relative">
+                                <!-- Реакції будуть завантажені динамічно -->
                             </div>
                         </div>
 
-                        <!-- Related News -->
-                        <div>
+                        <!-- Comments Section -->
+                        <div id="comments-section"
+                            class="bg-white rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-12 shadow-xl border border-slate-100 mb-6 md:mb-20">
                             <h3
-                                class="text-xl font-black text-slate-900 mb-8 flex items-center tracking-tighter italic">
-                                <span class="w-2 h-6 bg-orange-600 rounded-full mr-3"></span>Також читають
+                                class="text-2xl font-black text-slate-900 mb-8 flex items-center tracking-tighter italic">
+                                <span class="w-2 h-6 bg-orange-600 rounded-full mr-3"></span>Коментарі
+                                <span id="comments-count"
+                                    class="ml-3 text-sm font-bold bg-slate-100 px-3 py-1 rounded-full text-slate-500">0</span>
                             </h3>
-                            <div id="related-list" class="space-y-8">
+
+                            <!-- Comment Form -->
+                            <form id="comment-form" class="mb-12 space-y-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <input type="text" id="comment-user-name" placeholder="Ваше ім'я" required
+                                        class="w-full px-6 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:border-orange-500 focus:outline-none font-bold text-sm transition">
+                                </div>
+                                <textarea id="comment-content" rows="3" placeholder="Напишіть ваш коментар..." required
+                                    class="w-full px-6 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:border-orange-500 focus:outline-none font-medium text-sm transition"></textarea>
+                                <div class="flex justify-end">
+                                    <button type="submit" id="btn-submit-comment"
+                                        class="bg-orange-600 text-white px-8 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-orange-500 transition shadow-xl shadow-orange-100 active:scale-95">
+                                        Надіслати
+                                    </button>
+                                </div>
+                                <p id="comment-status"
+                                    class="text-[10px] font-bold text-slate-400 uppercase text-center hidden">Коментар
+                                    відправлено на модерацію ✨</p>
+                            </form>
+
+                            <!-- Comments List -->
+                            <div id="comments-list" class="space-y-8">
                                 <!-- Loaded via JS -->
+                                <div class="text-center py-10 text-slate-400 italic font-medium">Завантаження
+                                    коментарів...
+                                </div>
                             </div>
                         </div>
                     </div>
-                </aside>
-            </div>
+
+                    <!-- Sidebar column -->
+                    <aside class="lg:w-1/3">
+                        <div class="sticky top-32 space-y-8 md:space-y-12">
+                            <!-- Share Toolkit -->
+                            <div
+                                class="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-100 shadow-slate-200/50">
+                                <h3 class="text-xs font-black uppercase text-slate-400 tracking-tighter mb-6">Поділитися
+                                    в
+                                    мережах</h3>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <button onclick="share('telegram')"
+                                        class="share-btn bg-[#229ED9] text-white p-3 rounded-2xl flex items-center justify-center transition hover:shadow-lg">
+                                        <span class="font-black text-xs uppercase italic">Telegram</span>
+                                    </button>
+                                    <button onclick="share('viber')"
+                                        class="share-btn bg-[#7360F2] text-white p-3 rounded-2xl flex items-center justify-center transition hover:shadow-lg">
+                                        <span class="font-black text-xs uppercase italic">Viber</span>
+                                    </button>
+                                    <button onclick="share('facebook')"
+                                        class="share-btn bg-[#1877F2] text-white p-3 rounded-2xl flex items-center justify-center transition hover:shadow-lg">
+                                        <span class="font-black text-xs uppercase italic">Facebook</span>
+                                    </button>
+                                    <button onclick="share('copy')" id="copy-btn"
+                                        class="share-btn bg-slate-900 text-white p-3 rounded-2xl flex items-center justify-center transition hover:shadow-lg relative overflow-hidden">
+                                        <span id="copy-text"
+                                            class="font-black text-xs uppercase italic">Посилання</span>
+                                        <div id="copy-toast"
+                                            class="absolute inset-0 bg-green-600 flex items-center justify-center translate-y-full transition-transform duration-300">
+                                            <span class="text-[10px] font-black uppercase italic">Скопійовано!</span>
+                                        </div>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Related News -->
+                            <div>
+                                <h3
+                                    class="text-xl font-black text-slate-900 mb-8 flex items-center tracking-tighter italic">
+                                    <span class="w-2 h-6 bg-orange-600 rounded-full mr-3"></span>Також читають
+                                </h3>
+                                <div id="related-list" class="space-y-8">
+                                    <!-- Loaded via JS -->
+                                </div>
+                            </div>
+                        </div>
+                    </aside>
+                </div>
         </article>
     </main>
 
@@ -480,12 +472,12 @@
                 if (data.slug && window.location.pathname !== `/news/${data.slug}`) {
                     window.history.replaceState(null, '', `/news/${data.slug}`);
                 }
-
+                currentPost = data;
                 fillUI(data);
                 loadRelated(data.category, data.id);
-                loadReactions(data.id);
-                loadComments(data.id);
+                loadReactions(data.id, data.allowed_reactions);
                 subscribeToReactions(data.id);
+                loadComments(data.id);
 
                 document.getElementById('loader').classList.add('hidden');
                 document.getElementById('news-content').classList.remove('hidden');
@@ -605,24 +597,39 @@
             if (shareUrl) window.open(shareUrl, '_blank');
         };
 
-        async function loadReactions(id) {
-            try {
-                const { data, error } = await _supabase.from('news').select('likes, fire, wow').eq('id', id).single();
-                if (error) throw error;
-                if (data) {
-                    const like = document.getElementById('count-like');
-                    const fire = document.getElementById('count-fire');
-                    const wow = document.getElementById('count-wow');
-                    if (like) like.innerText = data.likes || 0;
-                    if (fire) fire.innerText = data.fire || 0;
-                    if (wow) wow.innerText = data.wow || 0;
+        const REACTION_MAP = {
+            'like': '👍',
+            'fire': '🔥',
+            'wow': '😮',
+            'sad': '😢',
+            'angry': '😡',
+            'support': '🤝'
+        };
 
-                    // Highlight active reaction from localStorage
+        async function loadReactions(id, allowed = ['like', 'fire', 'wow']) {
+            const container = document.getElementById('reactions-container');
+            if (!container) return;
+
+            try {
+                const allowedList = (Array.isArray(allowed) && allowed.length > 0) ? allowed : ['like', 'fire', 'wow'];
+                const fields = [...new Set([...allowedList, 'likes', 'fire', 'wow', 'sad', 'angry', 'support'])].join(',');
+                const { data, error } = await _supabase.from('news').select(fields).eq('id', id).single();
+                if (error) throw error;
+
+                if (data) {
                     const saved = localStorage.getItem(`reaction_${id}`);
-                    if (saved) {
-                        const activeBtn = document.querySelector(`.reaction-btn[onclick*="'${saved}'"]`);
-                        if (activeBtn) activeBtn.classList.add('bg-orange-600/20', 'border-orange-600');
-                    }
+                    container.innerHTML = allowedList.map(type => {
+                        const countField = type === 'like' ? 'likes' : type;
+                        const emoji = REACTION_MAP[type] || '✨';
+                        const isActive = saved === type;
+                        return `
+                            <button onclick="handleReaction(event, '${type}')"
+                                class="reaction-btn bg-white/10 hover:bg-white/20 px-6 py-4 rounded-2xl flex flex-col items-center transition min-w-[100px] ${isActive ? 'bg-orange-600/20 border border-orange-600' : ''}">
+                                <span class="text-3xl mb-2">${emoji}</span>
+                                <span id="count-${type}" class="text-xs font-bold font-mono">${data[countField] || 0}</span>
+                            </button>
+                        `;
+                    }).join('');
                 }
             } catch (e) { console.warn("Reactions load error:", e); }
         }
@@ -632,12 +639,13 @@
                 .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'news', filter: `id=eq.${id}` }, payload => {
                     const data = payload.new;
                     if (data) {
-                        const like = document.getElementById('count-like');
-                        const fire = document.getElementById('count-fire');
-                        const wow = document.getElementById('count-wow');
-                        if (like) like.innerText = data.likes || 0;
-                        if (fire) fire.innerText = data.fire || 0;
-                        if (wow) wow.innerText = data.wow || 0;
+                        Object.keys(REACTION_MAP).forEach(type => {
+                            const elem = document.getElementById(`count-${type}`);
+                            const dbField = type === 'like' ? 'likes' : type;
+                            if (elem && data[dbField] !== undefined) {
+                                elem.innerText = data[dbField] || 0;
+                            }
+                        });
                     }
                 })
                 .subscribe();
