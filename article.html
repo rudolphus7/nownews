@@ -866,7 +866,8 @@
 
             const cleanText = text.replace(/\s+/g, ' ').trim();
             console.log("Text length:", cleanText.length);
-            cloudChunks = cleanText.match(/.{1,8000}(?:\s|$)/g) || [cleanText];
+            // Keep chunks small (2000 chars) so each API call responds quickly
+            cloudChunks = cleanText.match(/.{1,2000}(?:\s|$)/gs) || [cleanText];
             console.log("Chunks count:", cloudChunks.length);
             currentChunkIndex = 0;
 
@@ -885,12 +886,17 @@
             const model = "gemini-2.5-flash-preview-tts";
             const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
 
-            console.log("Calling Gemini TTS API...");
+            console.log("Calling Gemini TTS API for chunk", currentChunkIndex, `(${chunk.length} chars)...`);
+
+            // Timeout: abort if API takes more than 45 seconds
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 45000);
 
             try {
                 const response = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
+                    signal: controller.signal,
                     body: JSON.stringify({
                         contents: [{ parts: [{ text: `Прочитай цей текст як новинний диктор українського телебачення. Голос має бути чітким, впевненим, нейтральним та авторитетним. Темп — рівний, паузи між реченнями природні. Текст: ${chunk}` }] }],
                         generationConfig: {
@@ -907,6 +913,7 @@
                 });
 
                 console.log("Gemini API response status:", response.status);
+                clearTimeout(timeoutId);
                 const data = await response.json();
                 console.log("Gemini API response data:", JSON.stringify(data).slice(0, 200));
 

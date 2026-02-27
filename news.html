@@ -1278,7 +1278,8 @@
             isTtsPaused = false;
 
             const cleanText = text.replace(/\s+/g, ' ').trim();
-            cloudChunks = cleanText.match(/.{1,8000}(?:\s|$)/g) || [cleanText];
+            cloudChunks = cleanText.match(/.{1,2000}(?:\s|$)/gs) || [cleanText];
+            console.log("TTS Chunks:", cloudChunks.length, "(text:", cleanText.length, "chars)");
             currentChunkIndex = 0;
 
             playNextCloudChunk();
@@ -1295,10 +1296,15 @@
             const model = "gemini-2.5-flash-preview-tts";
             const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
 
+            // Timeout: abort if API takes more than 45 seconds
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 45000);
+
             try {
                 const response = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
+                    signal: controller.signal,
                     body: JSON.stringify({
                         contents: [{ parts: [{ text: `Прочитай цей текст як новинний диктор українського телебачення. Голос має бути чітким, впевненим, нейтральним та авторитетним. Темп — рівний, паузи між реченнями природні. Текст: ${chunk}` }] }],
                         generationConfig: {
@@ -1314,6 +1320,7 @@
                     })
                 });
 
+                clearTimeout(timeoutId);
                 const data = await response.json();
                 if (data.error) throw new Error(data.error.message);
 
