@@ -841,6 +841,12 @@
                 isTtsPlaying = true;
                 isTtsPaused = false;
 
+                // Update UI immediately for cached playback
+                const cachedIcon = document.getElementById('tts-icon');
+                const cachedBtn = document.getElementById('tts-btn');
+                if (cachedIcon) cachedIcon.innerText = '⏸';
+                if (cachedBtn) { cachedBtn.style.opacity = ''; cachedBtn.style.pointerEvents = ''; }
+
                 if (cloudAudio) cloudAudio.pause();
                 cloudAudio = new Audio(currentPost.tts_audio_url);
                 cloudAudio.onended = () => { stopTTS(); };
@@ -856,16 +862,7 @@
                 return;
             }
 
-            // 2. No cache, generate via Gemini
-            const key = localStorage.getItem('gemini_api_key');
-            console.log("API Key found:", !!key);
-            if (!key) {
-                console.error("Gemini API Key missing!");
-                alert("Будь ласка, встановіть Gemini API ключ в адмін-панелі для преміум-озвучення.");
-                stopTTS();
-                return;
-            }
-
+            // 2. No cache — generate via /api/tts (server handles auth)
             isTtsPlaying = true;
             isTtsPaused = false;
 
@@ -887,7 +884,6 @@
             }
 
             const chunk = cloudChunks[currentChunkIndex];
-            console.log(`Calling /api/tts for chunk ${currentChunkIndex} (${chunk.length} chars)...`);
 
             try {
                 const response = await fetch('/api/tts', {
@@ -896,14 +892,35 @@
                     body: JSON.stringify({ text: chunk })
                 });
 
-                console.log("TTS API response status:", response.status);
+                // Handle rate limit: auto-retry after the specified delay
+                if (response.status === 429) {
+                    const errData = await response.json().catch(() => ({}));
+                    const retryMs = errData.retryAfterMs || 60000;
+                    const retrySeconds = Math.ceil(retryMs / 1000);
+                    console.warn(`TTS rate limited. Retrying in ${retrySeconds}s...`);
+
+                    // Show a friendly waiting message in the button
+                    const icon = document.getElementById('tts-icon');
+                    if (icon) icon.innerText = `⏳${retrySeconds}с`;
+
+                    await new Promise(resolve => {
+                        let remaining = retrySeconds;
+                        const interval = setInterval(() => {
+                            remaining--;
+                            if (icon) icon.innerText = `⏳${remaining}с`;
+                            if (remaining <= 0) { clearInterval(interval); resolve(); }
+                        }, 1000);
+                    });
+
+                    if (isTtsPlaying) playNextCloudChunk(); // retry
+                    return;
+                }
 
                 if (!response.ok) {
                     const err = await response.json().catch(() => ({ error: 'Unknown server error' }));
                     throw new Error(err.error || `Server error ${response.status}`);
                 }
 
-                // Server returns binary WAV audio directly
                 const wavBuffer = await response.arrayBuffer();
                 console.log("Received WAV audio:", wavBuffer.byteLength, "bytes");
 
@@ -953,8 +970,7 @@
                     stopTTS();
                 };
 
-                console.log("Attempting to play audio...");
-                // Switch from Loading ⏳ to Playing ⏸ when audio actually starts
+                // Switch from ⏳ loading to ⏸ playing
                 const icon = document.getElementById('tts-icon');
                 const ttsBtn = document.getElementById('tts-btn');
                 if (icon) icon.innerText = '⏸';
@@ -968,12 +984,11 @@
 
             } catch (err) {
                 console.error("TTS Error:", err.message);
-                // Reset button on error
                 const icon = document.getElementById('tts-icon');
                 const ttsBtn = document.getElementById('tts-btn');
                 if (icon) icon.innerText = '▶';
                 if (ttsBtn) { ttsBtn.style.opacity = ''; ttsBtn.style.pointerEvents = ''; }
-                alert("Помилка озвучення: " + err.message);
+                // No alert - just reset quietly
                 stopTTS();
             }
         }
