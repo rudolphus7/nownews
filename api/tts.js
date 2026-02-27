@@ -5,6 +5,31 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://kgrxlznhimwuvwhjfzhv.supabase.co';
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
 
+function pcmToWav(pcmBuffer, sampleRate = 24000, channels = 1, bitDepth = 16) {
+    const dataLength = pcmBuffer.length;
+    const buffer = Buffer.alloc(44 + dataLength);
+    buffer.write('RIFF', 0);
+    buffer.writeUInt32LE(36 + dataLength, 4);
+    buffer.write('WAVE', 8);
+    buffer.write('fmt ', 12);
+    buffer.writeUInt32LE(16, 16);
+    buffer.writeUInt16LE(1, 20);
+    buffer.writeUInt16LE(channels, 22);
+    buffer.writeUInt32LE(sampleRate, 24);
+    buffer.writeUInt32LE(sampleRate * channels * (bitDepth / 8), 28);
+    buffer.writeUInt16LE(channels * (bitDepth / 8), 32);
+    buffer.writeUInt16LE(bitDepth, 34);
+    buffer.write('data', 36);
+    buffer.writeUInt32LE(dataLength, 40);
+    pcmBuffer.copy(buffer, 44);
+    return buffer;
+}
+
+function parseRetryDelay(message) {
+    const match = message && message.match(/retry in ([\d.]+)s/i);
+    return match ? Math.ceil(parseFloat(match[1]) * 1000) : 60000;
+}
+
 function hashCode(str) {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
@@ -98,7 +123,7 @@ module.exports = async (req, res) => {
         }
     }
 
-    const model = 'gemini-2.0-flash-exp'; // Use standard flash for better stability
+    const model = 'gemini-2.5-flash-preview-tts';
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
     try {
@@ -113,7 +138,7 @@ module.exports = async (req, res) => {
             body: JSON.stringify({
                 contents: [{
                     parts: [{
-                        text: `Прочитай цей текст як професійний диктор новин. Говори впевнено, чітко, з живою інтонацією. Темп помірний. Текст: ${text}`
+                        text: `Прочитай цей текст голосом досвідченого диктора українських теленовин. Говори впевнено та енергійно, з живою інтонацією. Текст: ${text}`
                     }]
                 }],
                 generationConfig: {

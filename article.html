@@ -969,7 +969,7 @@
             const cleanText = text.replace(/\s+/g, ' ').trim();
             console.log("Text length:", cleanText.length);
             // Chunking: 2500 chars is safe for Vercel timeouts (60s)
-            cloudChunks = cleanText.match(/.{1,2500}(?:\s|$)/gs) || [cleanText];
+            cloudChunks = cleanText.match(/.{1,2500}(\s|$)/g) || [cleanText];
             console.log("Chunks count:", cloudChunks.length);
             currentChunkIndex = 0;
 
