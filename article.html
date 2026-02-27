@@ -830,9 +830,9 @@
         async function playCloudTTS(text) {
             console.log("Starting Premium TTS...");
 
-            // 1. Check if we already have a cached audio URL in the current article data
+            // 1. Check for cached narration in DB
             if (currentPost && currentPost.tts_audio_url) {
-                console.log("Using cached audio from Supabase:", currentPost.tts_audio_url);
+                console.log("Using cached audio:", currentPost.tts_audio_url);
                 isTtsPlaying = true;
                 isTtsPaused = false;
 
@@ -841,12 +841,11 @@
                 cloudAudio.onended = () => { stopTTS(); };
                 cloudAudio.onerror = (e) => {
                     console.error("Cached Audio Error:", e);
-                    // If cached fails, clear it and try generating fresh
                     currentPost.tts_audio_url = null;
                     playCloudTTS(text);
                 };
                 cloudAudio.play().catch(e => {
-                    console.error("Playback Blocked:", e);
+                    console.error("Cached Playback Blocked:", e);
                     stopTTS();
                 });
                 return;
@@ -854,6 +853,7 @@
 
             // 2. No cache, generate via Gemini
             const key = localStorage.getItem('gemini_api_key');
+            console.log("API Key found:", !!key);
             if (!key) {
                 console.error("Gemini API Key missing!");
                 alert("Будь ласка, встановіть Gemini API ключ в адмін-панелі для преміум-озвучення.");
@@ -865,15 +865,16 @@
             isTtsPaused = false;
 
             const cleanText = text.replace(/\s+/g, ' ').trim();
-            // Gemini 2.5 Flash can handle long text in one go (up to 10k+).
-            // We use 8000 for safety to keep it most likely in one file for caching.
+            console.log("Text length:", cleanText.length);
             cloudChunks = cleanText.match(/.{1,8000}(?:\s|$)/g) || [cleanText];
+            console.log("Chunks count:", cloudChunks.length);
             currentChunkIndex = 0;
 
             playNextCloudChunk();
         }
 
         async function playNextCloudChunk() {
+            console.log("playNextCloudChunk called, index:", currentChunkIndex, "/ total:", cloudChunks.length, "playing:", isTtsPlaying);
             if (!isTtsPlaying || currentChunkIndex >= cloudChunks.length) {
                 if (currentChunkIndex >= cloudChunks.length) stopTTS();
                 return;
@@ -883,6 +884,8 @@
             const key = localStorage.getItem('gemini_api_key');
             const model = "gemini-2.5-flash-preview-tts";
             const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+
+            console.log("Calling Gemini TTS API...");
 
             try {
                 const response = await fetch(url, {
@@ -903,13 +906,16 @@
                     })
                 });
 
+                console.log("Gemini API response status:", response.status);
                 const data = await response.json();
+                console.log("Gemini API response data:", JSON.stringify(data).slice(0, 200));
+
                 if (data.error) throw new Error(data.error.message);
 
                 const audioBase64 = data.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+                console.log("Got audio base64:", !!audioBase64, audioBase64 ? `(${audioBase64.length} chars)` : '');
                 if (!audioBase64) throw new Error("No audio data received from Gemini");
 
-                // Convert base64 to Blob
                 const byteCharacters = atob(audioBase64);
                 const byteNumbers = new Array(byteCharacters.length);
                 for (let i = 0; i < byteCharacters.length; i++) {
@@ -918,15 +924,14 @@
                 const byteArray = new Uint8Array(byteNumbers);
                 const blob = new Blob([byteArray], { type: 'audio/mp3' });
                 const blobUrl = URL.createObjectURL(blob);
+                console.log("Blob URL created:", blobUrl);
 
                 // --- CACHING LOGIC ---
-                // We cache only if it's the full article (one chunk) and we have news ID
                 if (cloudChunks.length === 1 && currentPost && !currentPost.tts_audio_url) {
                     console.log("Uploading narration to Supabase Storage...");
                     const fileName = `${currentPost.id}.mp3`;
-
                     try {
-                        const { data: uploadData, error: uploadError } = await _supabase.storage
+                        const { error: uploadError } = await _supabase.storage
                             .from('tts_audio')
                             .upload(fileName, blob, { upsert: true });
 
@@ -964,13 +969,17 @@
                     stopTTS();
                 };
 
-                cloudAudio.play().catch(e => {
-                    console.error("Playback Blocked:", e);
+                console.log("Attempting to play audio...");
+                cloudAudio.play().then(() => {
+                    console.log("Audio playing successfully!");
+                }).catch(e => {
+                    console.error("Playback Blocked:", e.name, e.message);
                     stopTTS();
                 });
 
             } catch (err) {
-                console.error("Gemini TTS Error:", err);
+                console.error("Gemini TTS Error:", err.message);
+                console.error("Full error:", err);
                 alert("Помилка Premium-озвучення: " + err.message);
                 stopTTS();
             }
