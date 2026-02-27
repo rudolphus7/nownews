@@ -809,6 +809,13 @@
 
             if (!currentPost) return;
 
+            // Unlock audio context for mobile webviews
+            if (!cloudAudio) {
+                cloudAudio = new Audio();
+                cloudAudio.play().catch(() => { }); // Prime audio
+                console.log("Audio primed for unlocking");
+            }
+
             const icon = document.getElementById('tts-icon');
             const anim = document.getElementById('tts-status-anim');
 
@@ -912,8 +919,17 @@
                 if (cachedIcon) cachedIcon.innerText = '⏸';
                 if (cachedBtn) { cachedBtn.style.opacity = ''; cachedBtn.style.pointerEvents = ''; }
 
-                if (cloudAudio) cloudAudio.pause();
-                cloudAudio = new Audio(currentPost.tts_audio_url);
+                if (icon) icon.innerText = '⏸';
+                if (cachedBtn) { cachedBtn.style.opacity = ''; cachedBtn.style.pointerEvents = ''; }
+
+                // Reuse existing primed object if possible
+                if (!cloudAudio) cloudAudio = new Audio();
+                else {
+                    cloudAudio.pause();
+                    if (cloudAudio.src.startsWith('blob:')) URL.revokeObjectURL(cloudAudio.src);
+                }
+
+                cloudAudio.src = currentPost.tts_audio_url;
                 cloudAudio.onended = () => { stopTTS(); };
                 cloudAudio.onerror = (e) => {
                     console.error("Cached Audio Error:", e);
@@ -1004,12 +1020,14 @@
                 const blob = new Blob([wavBuffer], { type: 'audio/wav' });
                 const blobUrl = URL.createObjectURL(blob);
 
-                if (cloudAudio) {
+                // Reuse existing primed object
+                if (!cloudAudio) cloudAudio = new Audio();
+                else {
                     cloudAudio.pause();
                     if (cloudAudio.src.startsWith('blob:')) URL.revokeObjectURL(cloudAudio.src);
                 }
 
-                cloudAudio = new Audio(blobUrl);
+                cloudAudio.src = blobUrl;
                 cloudAudio.onended = () => {
                     if (blobUrl.startsWith('blob:')) URL.revokeObjectURL(blobUrl);
                     currentChunkIndex++;

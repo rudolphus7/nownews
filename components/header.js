@@ -102,8 +102,8 @@ class SiteHeader {
 
     async init() {
         this.renderPlaceholder();
-        await this.loadDynamicData();
         this.setupEventListeners();
+        await this.loadDynamicData();
         this.updateActiveHighlights();
         this.loadTickerData();
     }

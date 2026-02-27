@@ -249,6 +249,24 @@ module.exports = async (req, res) => {
         };
 
         // SSR Header Injection
+        let tickerHtml = 'ОСТАННІ НОВИНИ ПРИКАРПАТТЯ • ПЕРЕВІРЕНІ ФАКТИ • АКТУАЛЬНІ ПОДІЇ • ОПЕРАТИВНО ТА ЧЕСНО •';
+        try {
+            const tickerRes = await fetch(`${SUPABASE_URL}/rest/v1/news?is_published=eq.true&select=id,title,slug&order=created_at.desc&limit=5`, {
+                headers: {
+                    'apikey': SUPABASE_KEY,
+                    'Authorization': `Bearer ${SUPABASE_KEY}`
+                }
+            });
+            if (tickerRes.ok) {
+                const tickerNews = await tickerRes.json();
+                if (tickerNews && tickerNews.length > 0) {
+                    tickerHtml = tickerNews.map(tn => `<a href="/news/${tn.slug}/" class="mx-4 hover:text-orange-500 transition-colors">${tn.title}</a>`).join(' <span class="text-orange-600 font-bold mx-2">/</span> ');
+                }
+            }
+        } catch (e) {
+            console.error('Ticker SSR Error:', e);
+        }
+
         const headerHtml = `
             <!-- Ticker -->
             <div class="bg-slate-900 py-2 overflow-hidden border-b border-white/5">
@@ -256,7 +274,7 @@ module.exports = async (req, res) => {
                     <span class="bg-orange-600 text-[10px] font-black uppercase text-white px-2 py-0.5 rounded mr-4 z-10 shadow-lg">Терміново</span>
                     <div class="flex-1 overflow-hidden relative ticker-mask">
                         <div id="news-ticker" class="ticker-animate text-[11px] font-bold text-slate-300 uppercase tracking-widest py-1">
-                            ОСТАННІ НОВИНИ ПРИКАРПАТТЯ • ПЕРЕВІРЕНІ ФАКТИ • АКТУАЛЬНІ ПОДІЇ • ОПЕРАТИВНО ТА ЧЕСНО •
+                            ${tickerHtml}
                         </div>
                     </div>
                 </div>
