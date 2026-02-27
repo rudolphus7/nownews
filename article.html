@@ -1261,38 +1261,41 @@
         }
 
         // Initialize Comment Form
-        document.getElementById('comment-form')?.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            if (!currentPost) return;
+        const commentForm = document.getElementById('comment-form');
+        if (commentForm) {
+            commentForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                if (!currentPost) return;
 
-            const btn = document.getElementById('btn-submit-comment');
-            const userName = document.getElementById('comment-user-name');
-            const content = document.getElementById('comment-content');
+                const btn = document.getElementById('btn-submit-comment');
+                const userName = document.getElementById('comment-user-name');
+                const content = document.getElementById('comment-content');
 
-            if (!userName.value || !content.value) return;
+                if (!userName.value || !content.value) return;
 
-            btn.disabled = true;
-            btn.innerText = 'Надсилаємо...';
+                btn.disabled = true;
+                btn.innerText = 'Надсилаємо...';
 
-            try {
-                const { error } = await _supabase.from('comments').insert([{
-                    post_id: currentPost.id,
-                    user_name: userName.value,
-                    content: content.value,
-                    is_approved: true
-                }]);
-                if (error) throw error;
+                try {
+                    const { error } = await _supabase.from('comments').insert([{
+                        post_id: currentPost.id,
+                        user_name: userName.value,
+                        content: content.value,
+                        is_approved: true
+                    }]);
+                    if (error) throw error;
 
-                userName.value = '';
-                content.value = '';
-                loadComments(currentPost.id);
-            } catch (err) {
-                alert("Помилка: " + err.message);
-            } finally {
-                btn.disabled = false;
-                btn.innerText = 'Надіслати';
-            }
-        });
+                    userName.value = '';
+                    content.value = '';
+                    loadComments(currentPost.id);
+                } catch (err) {
+                    alert("Помилка: " + err.message);
+                } finally {
+                    btn.disabled = false;
+                    btn.innerText = 'Надіслати';
+                }
+            });
+        }
 
         window.handleReaction = async (e, type) => {
             if (!currentPost) return;
