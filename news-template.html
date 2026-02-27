@@ -362,41 +362,44 @@
                             </div>
                         </div>
 
-                        <!-- AI NEWS READER -->
-                        <div id="ai-reader"
-                            class="bg-slate-900 rounded-[2rem] p-4 md:p-6 mb-8 md:mb-12 shadow-xl border border-white/5 relative overflow-hidden group">
+                        <!-- NEWS READER -->
+                        <div id="news-reader"
+                            class="bg-slate-900 rounded-[1.5rem] md:rounded-[2rem] p-3 md:p-5 mb-8 md:mb-12 shadow-xl border border-white/5 relative overflow-hidden group">
                             <div
                                 class="absolute top-0 right-0 w-32 h-32 bg-orange-600/10 rounded-full blur-[50px] -mr-16 -mt-16">
                             </div>
-                            <div class="flex flex-col sm:flex-row items-center justify-between gap-6 relative z-10">
-                                <div class="flex items-center gap-4">
+                            <div class="flex items-center justify-between gap-3 relative z-10">
+                                <div class="flex items-center gap-3">
                                     <div
-                                        class="w-12 h-12 bg-orange-600 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-900/20">
-                                        <span class="text-xl">🤖</span>
+                                        class="w-10 h-10 md:w-12 md:h-12 bg-orange-600 rounded-xl md:rounded-2xl flex items-center justify-center shadow-lg shadow-orange-900/20 shrink-0">
+                                        <span class="text-lg md:text-xl">🎙️</span>
                                     </div>
-                                    <div>
-                                        <h4 class="text-sm font-black text-white uppercase tracking-tighter italic">AI
-                                            Голос <span class="text-orange-500">News</span></h4>
-                                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">
-                                            Слухайте цей матеріал</p>
+                                    <div class="min-w-0">
+                                        <h4
+                                            class="text-xs md:text-sm font-black text-white uppercase tracking-tighter italic truncate">
+                                            Голосові <span class="text-orange-500">новини</span></h4>
+                                        <p
+                                            class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5 truncate">
+                                            Слухати статтю</p>
                                     </div>
                                 </div>
 
-                                <div class="flex items-center gap-4">
-                                    <div id="tts-status-anim" class="hidden tts-wave pr-2">
+                                <div class="flex items-center gap-2 md:gap-4 shrink-0">
+                                    <div id="tts-status-anim" class="hidden tts-wave pr-1 md:pr-2">
                                         <div class="tts-bar"></div>
                                         <div class="tts-bar"></div>
                                         <div class="tts-bar"></div>
                                         <div class="tts-bar"></div>
                                         <div class="tts-bar"></div>
                                     </div>
-                                    <div class="flex items-center bg-white/5 rounded-2xl p-1 border border-white/10">
+                                    <div
+                                        class="flex items-center bg-white/5 rounded-xl md:rounded-2xl p-0.5 md:p-1 border border-white/10">
                                         <button id="tts-play-btn" onclick="toggleTTS()"
-                                            class="w-12 h-12 flex items-center justify-center rounded-xl bg-orange-600 text-white hover:bg-orange-500 transition active:scale-95 shadow-lg">
+                                            class="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-lg md:rounded-xl bg-orange-600 text-white hover:bg-orange-500 transition active:scale-95 shadow-lg">
                                             <span id="tts-icon">▶</span>
                                         </button>
                                         <button onclick="stopTTS()"
-                                            class="w-12 h-12 flex items-center justify-center rounded-xl text-slate-400 hover:text-white transition">
+                                            class="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-lg md:rounded-xl text-slate-400 hover:text-white transition">
                                             <span>⏹</span>
                                         </button>
                                     </div>
@@ -1260,14 +1263,24 @@
             }
         }
 
-        // --- AI READER (TTS) LOGIC ---
+        // --- NEWS READER (TTS) LOGIC ---
         let ttsUtterance = null;
+        let ttsVoices = [];
         let isTtsPlaying = false;
         let isTtsPaused = false;
 
+        // Force voices loading
+        const loadVoices = () => {
+            ttsVoices = window.speechSynthesis.getVoices();
+        };
+        loadVoices();
+        if (window.speechSynthesis.onvoiceschanged !== undefined) {
+            window.speechSynthesis.onvoiceschanged = loadVoices;
+        }
+
         window.toggleTTS = () => {
             if (!currentPost || !window.speechSynthesis) {
-                alert("Ваш браузер не підтримує синтез мовлення 🤖");
+                alert("Ваш браузер не підтримує синтез мовлення 🎙️");
                 return;
             }
 
@@ -1278,13 +1291,13 @@
             if (isTtsPlaying && !isTtsPaused) {
                 window.speechSynthesis.pause();
                 isTtsPaused = true;
-                icon.innerText = '▶';
-                anim.classList.add('hidden');
+                if (icon) icon.innerText = '▶';
+                if (anim) anim.classList.add('hidden');
             } else if (isTtsPaused) {
                 window.speechSynthesis.resume();
                 isTtsPaused = false;
-                icon.innerText = '⏸';
-                anim.classList.remove('hidden');
+                if (icon) icon.innerText = '⏸';
+                if (anim) anim.classList.remove('hidden');
             } else {
                 startTTS();
             }
@@ -1296,33 +1309,43 @@
 
             // Clean content from HTML tags
             const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = currentPost.title + ". " + currentPost.content;
-            const cleanText = tempDiv.innerText || tempDiv.textContent;
+            tempDiv.innerHTML = (currentPost.title || "") + ". " + (currentPost.content || "");
+            const cleanText = tempDiv.innerText || tempDiv.textContent || "";
+
+            if (!cleanText.trim()) return;
 
             window.speechSynthesis.cancel(); // Stop any current speech
 
-            ttsUtterance = new SpeechSynthesisUtterance(cleanText);
-            ttsUtterance.lang = 'uk-UA';
-            ttsUtterance.rate = 1.0;
-            ttsUtterance.pitch = 1.0;
+            // Delay to prevent 'interrupted' error
+            setTimeout(() => {
+                ttsUtterance = new SpeechSynthesisUtterance(cleanText);
+                ttsUtterance.lang = 'uk-UA';
+                ttsUtterance.rate = 1.0;
+                ttsUtterance.pitch = 1.0;
 
-            ttsUtterance.onstart = () => {
-                isTtsPlaying = true;
-                isTtsPaused = false;
-                icon.innerText = '⏸';
-                anim.classList.remove('hidden');
-            };
+                const ukVoice = ttsVoices.find(v => v.lang.startsWith('uk'));
+                if (ukVoice) ttsUtterance.voice = ukVoice;
 
-            ttsUtterance.onend = () => {
-                stopTTS();
-            };
+                ttsUtterance.onstart = () => {
+                    isTtsPlaying = true;
+                    isTtsPaused = false;
+                    if (icon) icon.innerText = '⏸';
+                    if (anim) anim.classList.remove('hidden');
+                };
 
-            ttsUtterance.onerror = (e) => {
-                console.error("TTS Error:", e);
-                stopTTS();
-            };
+                ttsUtterance.onend = () => {
+                    stopTTS();
+                };
 
-            window.speechSynthesis.speak(ttsUtterance);
+                ttsUtterance.onerror = (e) => {
+                    if (e.error !== 'interrupted') {
+                        console.error("TTS Error:", e);
+                        stopTTS();
+                    }
+                };
+
+                window.speechSynthesis.speak(ttsUtterance);
+            }, 200);
         }
 
         window.stopTTS = () => {
