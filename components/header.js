@@ -4,52 +4,28 @@
  */
 
 // EN slug (DB) → UA display name (will be initialized below)
-let CATEGORIES_FALLBACK;
-
-// EN slug (DB) → UA URL slug
-const CATEGORY_EN_TO_UK_SLUG = {
-    'war': 'viyna',
-    'politics': 'polityka',
-    'economy': 'ekonomika',
-    'sport': 'sport',
-    'culture': 'kultura',
-    'tech': 'tekhnolohii',
-    'frankivsk': 'frankivsk',
-    'oblast': 'oblast'
-};
-
-// UA URL slug → EN slug (DB) — for parsing pathname
-const CATEGORY_UK_SLUG_TO_EN = {
-    'viyna': 'war',
-    'polityka': 'politics',
-    'ekonomika': 'economy',
-    'sport': 'sport',
-    'kultura': 'culture',
-    'tekhnolohii': 'tech',
-    'frankivsk': 'frankivsk',
-    'oblast': 'oblast'
-};
-
-const CITIES_UK = {
-    'kalush': 'Калуш', 'if': 'Івано-Франківськ', 'kolomyya': 'Коломия',
-    'dolyna': 'Долина', 'bolekhiv': 'Болехів', 'nadvirna': 'Надвірна',
-    'burshtyn': 'Бурштин', 'kosiv': 'Косів', 'yaremche': 'Яремче'
-};
-
-const CATEGORIES_UK = {
+let CATEGORIES_FALLBACK = {
     'politics': 'Політика', 'economy': 'Економіка', 'sport': 'Спорт',
     'culture': 'Культура', 'tech': 'Технології', 'frankivsk': 'Франківськ',
     'oblast': 'Область', 'war': 'Війна'
 };
 
-const CITIES_FALLBACK = CITIES_UK;
-CATEGORIES_FALLBACK = CATEGORIES_UK;
+const CITIES_FALLBACK = {
+    'kalush': 'Калуш', 'if': 'Івано-Франківськ', 'kolomyya': 'Коломия',
+    'dolyna': 'Долина', 'bolekhiv': 'Болехів', 'nadvirna': 'Надвірна',
+    'burshtyn': 'Бурштин', 'kosiv': 'Косів', 'yaremche': 'Яремче'
+};
 
 class SiteHeader {
     constructor(supabaseClient) {
         this.supabase = supabaseClient;
         this.categories = { ...CATEGORIES_FALLBACK };
         this.cities = { ...CITIES_FALLBACK };
+
+        // Dynamic mappings for URL parsing: UA URL slug → EN slug (DB)
+        this.catUkToEn = {};
+        this.catEnToUk = {};
+
         this.currentFilters = this._parseFiltersFromUrl();
 
         this.isLocal = window.location.hostname === 'localhost' ||
@@ -65,11 +41,12 @@ class SiteHeader {
             const params = new URLSearchParams(window.location.search);
             const pathParts = window.location.pathname.replace(/^\/|\/$/g, '').split('/');
 
-            let cityFromPath = pathParts[0] && CITIES_FALLBACK[pathParts[0]] ? pathParts[0] : null;
+            let cityFromPath = pathParts[0] && (this.cities[pathParts[0]] || CITIES_FALLBACK[pathParts[0]]) ? pathParts[0] : null;
 
             let categoryFromPath = null;
             if (pathParts[0] === 'category' && pathParts[1]) {
-                categoryFromPath = CATEGORY_UK_SLUG_TO_EN[pathParts[1]] || null;
+                // Try dynamic map first, then fallback
+                categoryFromPath = this.catUkToEn[pathParts[1]] || pathParts[1];
             }
 
             return {
@@ -88,11 +65,13 @@ class SiteHeader {
         if (!slug) return `/news/?id=${id}`;
 
         // Hierarchical URLs: /city/slug/ or /category/cat/slug/
-        if (post.city && CITIES_UK[post.city]) {
+        if (post.city && (this.cities[post.city] || CITIES_FALLBACK[post.city])) {
             return `/${post.city}/${slug}/`;
         }
-        if (post.category && CATEGORY_EN_TO_UK_SLUG[post.category]) {
-            return `/category/${CATEGORY_EN_TO_UK_SLUG[post.category]}/${slug}/`;
+
+        const catSlug = post.category ? (this.catEnToUk[post.category] || post.category) : null;
+        if (catSlug) {
+            return `/category/${catSlug}/${slug}/`;
         }
 
         return `/news/${slug}/`;
@@ -108,6 +87,8 @@ class SiteHeader {
             this.renderPlaceholder();
             this.setupEventListeners();
             await this.loadDynamicData();
+            // Re-parse filters after we have dynamic maps
+            this.currentFilters = this._parseFiltersFromUrl();
             this.updateActiveHighlights();
             this.loadTickerData();
         } catch (e) {
@@ -229,11 +210,15 @@ class SiteHeader {
                 this.supabase.from('cities').select('*').order('order_index', { ascending: true })
             ]);
 
-            // If we have existing content in nav (SSR), we might want to skip heavy rendering 
-            // but for safety we refresh it to ensure it's up to date.
             if (catRes.data && catRes.data.length > 0) {
                 this.categories = {};
-                catRes.data.forEach(c => this.categories[c.slug] = c.name);
+                this.catUkToEn = {};
+                this.catEnToUk = {};
+                catRes.data.forEach(c => {
+                    this.categories[c.slug] = c.name;
+                    this.catUkToEn[c.slug] = c.slug; // Assuming slug is unique and used in URL
+                    this.catEnToUk[c.slug] = c.slug;
+                });
                 this.renderNav(catRes.data);
             } else {
                 this.renderNav(Object.keys(CATEGORIES_FALLBACK).map(k => ({ slug: k, name: CATEGORIES_FALLBACK[k] })));
@@ -248,7 +233,6 @@ class SiteHeader {
             }
         } catch (err) {
             console.warn("Header dynamic data load failed:", err);
-            // Only re-render if it's currently empty
             const nav = document.getElementById('desktop-nav');
             if (nav && nav.innerHTML.trim().length === 0) {
                 this.renderNav(Object.keys(CATEGORIES_FALLBACK).map(k => ({ slug: k, name: CATEGORIES_FALLBACK[k] })));
@@ -272,16 +256,13 @@ class SiteHeader {
                 </a>
             </div>`;
 
-        // Categories use Ukrainian path-based URLs: /category/viyna/
         const html = categories.map(c => {
-            const ukSlug = CATEGORY_EN_TO_UK_SLUG[c.slug] || c.slug;
-            return `<a href="/category/${ukSlug}/" class="nav-link hover:text-orange-600 transition-colors py-2 border-b-2 border-transparent font-black tracking-tight text-sm" data-category="${c.slug}">${c.name}</a>`;
+            return `<a href="/category/${c.slug}/" class="nav-link hover:text-orange-600 transition-colors py-2 border-b-2 border-transparent font-black tracking-tight text-sm" data-category="${c.slug}">${c.name}</a>`;
         }).join('');
 
         if (nav) nav.innerHTML = html + liveHtml;
         if (mobileNav) mobileNav.innerHTML = categories.map(c => {
-            const ukSlug = CATEGORY_EN_TO_UK_SLUG[c.slug] || c.slug;
-            return `<a href="/category/${ukSlug}/" data-category="${c.slug}" class="py-2 active:text-orange-600 font-bold">${c.name}</a>`;
+            return `<a href="/category/${c.slug}/" data-category="${c.slug}" class="py-2 active:text-orange-600 font-bold">${c.name}</a>`;
         }).join('') + `<div class="pt-4 text-orange-600 font-black">LIVE • РЕПОРТАЖІ</div>`;
     }
 

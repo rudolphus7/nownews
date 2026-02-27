@@ -1288,18 +1288,38 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         const type = document.getElementById('setting-type').value;
         const id = document.getElementById('setting-id').value;
+        const newSlug = document.getElementById('setting-slug').value;
         const payload = {
             name: document.getElementById('setting-name').value,
-            slug: document.getElementById('setting-slug').value,
+            slug: newSlug,
             order_index: parseInt(document.getElementById('setting-order').value) || 0
         };
         const table = type === 'category' ? 'categories' : 'cities';
+
         try {
+            // Check for slug change if editing
+            let oldSlug = null;
+            if (id) {
+                const { data: oldData } = await _supabase.from(table).select('slug').eq('id', id).single();
+                oldSlug = oldData?.slug;
+            }
+
             let res;
             if (id) res = await _supabase.from(table).update(payload).eq('id', id);
             else res = await _supabase.from(table).insert([payload]);
 
             if (res.error) throw res.error;
+
+            // If slug changed, offer to update news articles
+            if (id && oldSlug && oldSlug !== newSlug) {
+                const newsCountRes = await _supabase.from('news').select('*', { count: 'exact', head: true }).eq(type, oldSlug);
+                const count = newsCountRes.count || 0;
+
+                if (count > 0 && confirm(`⚠️ Ви змінили посилання (slug) з "${oldSlug}" на "${newSlug}".\nБажаєте оновити усі новини (${count}), що належать до цієї рубрики/міста?`)) {
+                    await _supabase.from('news').update({ [type]: newSlug }).eq(type, oldSlug);
+                    alert("✅ Новини оновлено!");
+                }
+            }
 
             alert("✅ Збережено!");
             window.closeSettingsModal();

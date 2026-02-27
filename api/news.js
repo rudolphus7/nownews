@@ -92,23 +92,37 @@ module.exports = async (req, res) => {
             return res.status(200).send(htmlContent);
         }
 
-        const CATEGORY_EN_TO_UK_SLUG = {
-            'war': 'viyna',
-            'politics': 'polityka',
-            'economy': 'ekonomika',
-            'sport': 'sport',
-            'culture': 'kultura',
-            'tech': 'tekhnolohii',
-            'frankivsk': 'frankivsk',
-            'oblast': 'oblast'
-        };
+        // Fetch categories and cities for dynamic mappings
+        const [catDbRes, cityDbRes] = await Promise.all([
+            fetch(`${SUPABASE_URL}/rest/v1/categories?select=*&order=order_index.asc`, {
+                headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+            }),
+            fetch(`${SUPABASE_URL}/rest/v1/cities?select=*&order=order_index.asc`, {
+                headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+            })
+        ]);
+
+        const categories = await catDbRes.json();
+        const cities = await cityDbRes.json();
+
+        const CAT_MAP = {};
+        const CAT_EN_TO_UK_SLUG = {};
+        categories.forEach(c => {
+            CAT_MAP[c.slug] = c.name;
+            CAT_EN_TO_UK_SLUG[c.slug] = c.slug;
+        });
+
+        const CITY_MAP = {};
+        cities.forEach(c => {
+            CITY_MAP[c.slug] = c.name;
+        });
 
         // Canonical URL logic — preference order: city > category > default news
         let canonicalUrl = `${SITE_URL}/news/${news.slug}/`;
-        if (news.city && CITIES_MAP[news.city]) {
+        if (news.city && CITY_MAP[news.city]) {
             canonicalUrl = `${SITE_URL}/${news.city}/${news.slug}/`;
-        } else if (news.category && CATEGORY_EN_TO_UK_SLUG[news.category]) {
-            canonicalUrl = `${SITE_URL}/category/${CATEGORY_EN_TO_UK_SLUG[news.category]}/${news.slug}/`;
+        } else if (news.category && CAT_EN_TO_UK_SLUG[news.category]) {
+            canonicalUrl = `${SITE_URL}/category/${CAT_EN_TO_UK_SLUG[news.category]}/${news.slug}/`;
         } else if (!news.slug) {
             canonicalUrl = `${SITE_URL}/news/?id=${news.id}`;
         }
@@ -202,7 +216,7 @@ module.exports = async (req, res) => {
             {
                 "@type": "ListItem",
                 "position": 2,
-                "name": "${escapeJson(CITIES_MAP[news.city] || news.city)}",
+                "name": "${escapeJson(CITY_MAP[news.city] || news.city)}",
                 "item": "${SITE_URL}/${escapeJson(news.city)}/"
             },
             {
@@ -224,13 +238,6 @@ module.exports = async (req, res) => {
 
         // Replace <title> tag
         htmlContent = htmlContent.replace(/<title>.*?<\/title>/s, `<title>${escapeHtml(title)}</title>`);
-
-        // Categories map for display
-        const CAT_DISPLAY = {
-            'politics': 'Політика', 'economy': 'Економіка', 'sport': 'Спорт',
-            'culture': 'Культура', 'tech': 'Технології', 'frankivsk': 'Франківськ',
-            'oblast': 'Область', 'war': 'Війна'
-        };
 
         // Date formatting
         const formattedDate = new Date(news.created_at).toLocaleDateString('uk-UA', {
@@ -296,8 +303,8 @@ module.exports = async (req, res) => {
                     </a>
                     
                     <nav id="desktop-nav" class="hidden md:flex items-center gap-6 text-[12px] font-black uppercase tracking-wider text-slate-600">
-                        ${Object.keys(CATEGORY_EN_TO_UK_SLUG).map(key => `
-                            <a href="/category/${CATEGORY_EN_TO_UK_SLUG[key]}/" class="hover:text-orange-600 transition-colors py-2 font-black tracking-tight text-sm">${CAT_DISPLAY[key] || key}</a>
+                        ${categories.map(c => `
+                            <a href="/category/${c.slug}/" class="hover:text-orange-600 transition-colors py-2 font-black tracking-tight text-sm">${c.name}</a>
                         `).join('')}
                         <div class="flex items-center ml-4">
                             <a href="#" class="bg-indigo-950 text-white px-5 py-2.5 rounded-xl transition hover:bg-slate-900 shadow-xl shadow-indigo-100 flex items-center gap-3 group border border-white/10">
@@ -325,10 +332,7 @@ module.exports = async (req, res) => {
                             ВАШЕ МІСТО
                         </span>
                         <div class="flex items-center gap-6" id="city-nav-list">
-                            <a href="/kalush/" class="hover:text-orange-600 transition-colors">Калуш</a>
-                            <a href="/if/" class="hover:text-orange-600 transition-colors">Франківськ</a>
-                            <a href="/kolomyya/" class="hover:text-orange-600 transition-colors">Коломия</a>
-                            <a href="/dolyna/" class="hover:text-orange-600 transition-colors">Долина</a>
+                            ${cities.map(c => `<a href="/${c.slug}/" class="hover:text-orange-600 transition-colors">${c.name}</a>`).join('')}
                         </div>
                     </div>
                 </div>
@@ -353,8 +357,8 @@ module.exports = async (req, res) => {
                         <div>
                             <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6 border-b border-slate-100 pb-2">РУБРИКИ</h3>
                             <div id="mobile-nav-list" class="flex flex-col gap-5 text-lg font-black uppercase text-slate-800 tracking-tight">
-                                ${Object.keys(CATEGORY_EN_TO_UK_SLUG).map(key => `
-                                    <a href="/category/${CATEGORY_EN_TO_UK_SLUG[key]}/" class="py-2 active:text-orange-600 font-bold">${CAT_DISPLAY[key] || key}</a>
+                                ${categories.map(c => `
+                                    <a href="/category/${c.slug}/" class="py-2 active:text-orange-600 font-bold">${c.name}</a>
                                 `).join('')}
                             </div>
                         </div>
@@ -368,7 +372,7 @@ module.exports = async (req, res) => {
         // SSR News content injection
         htmlContent = inject(htmlContent, 'news-title', news.title);
         htmlContent = inject(htmlContent, 'news-text', news.content);
-        htmlContent = inject(htmlContent, 'breadcrumb-category', CAT_DISPLAY[news.category] || news.category);
+        htmlContent = inject(htmlContent, 'breadcrumb-category', CAT_MAP[news.category] || news.category);
         htmlContent = inject(htmlContent, 'news-date', formattedDate);
         htmlContent = inject(htmlContent, 'reading-time', readingTimeText);
         htmlContent = inject(htmlContent, 'view-count', news.views);
