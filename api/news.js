@@ -242,13 +242,57 @@ module.exports = async (req, res) => {
         const min = Math.max(1, Math.round(words / 200));
         const readingTimeText = `${min} ${min === 1 ? 'хвилина' : (min < 5 ? 'хвилини' : 'хвилин')}`;
 
-        // SSR Content Injection
-        // We use regex to inject content into tags with specific IDs
+        // SSR Utility
         const inject = (html, id, value) => {
             const regex = new RegExp(`(id="${id}"[^>]*>)`, 'g');
             return html.replace(regex, `$1${value || ''}`);
         };
 
+        // SSR Header Injection
+        const headerHtml = `
+            <!-- Ticker -->
+            <div class="bg-slate-900 py-2 overflow-hidden border-b border-white/5">
+                <div class="container mx-auto px-4 flex items-center">
+                    <span class="bg-orange-600 text-[10px] font-black uppercase text-white px-2 py-0.5 rounded mr-4 z-10 shadow-lg">Терміново</span>
+                    <div class="flex-1 overflow-hidden relative ticker-mask">
+                        <div class="text-[11px] font-bold text-slate-300 uppercase tracking-widest py-1">
+                            ОСТАННІ НОВИНИ ПРИКАРПАТТЯ • ПЕРЕВІРЕНІ ФАКТИ • АКТУАЛЬНІ ПОДІЇ •
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <header class="bg-white/95 backdrop-blur-xl sticky top-0 z-[100] border-b border-slate-100">
+                <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+                    <a href="/" class="flex items-center space-x-4 group">
+                        <div class="relative">
+                            <span class="bg-orange-600 text-white w-12 h-12 flex items-center justify-center rounded-2xl font-black text-2xl italic tracking-tighter shadow-2xl shadow-orange-200">IF</span>
+                            <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-slate-900 border-2 border-white rounded-full"></div>
+                        </div>
+                        <div class="leading-none text-left">
+                            <span class="text-2xl font-black uppercase tracking-tighter text-slate-900 block mt-1">Прикарпаття <span class="text-orange-600">News</span></span>
+                            <span class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 opacity-80">Незалежна Журналістика</span>
+                        </div>
+                    </a>
+                    
+                    <nav class="hidden md:flex items-center gap-6 text-[12px] font-black uppercase tracking-wider text-slate-600">
+                        ${Object.keys(CATEGORY_EN_TO_UK_SLUG).map(key => `
+                            <a href="/category/${CATEGORY_EN_TO_UK_SLUG[key]}" class="hover:text-orange-600 transition-colors">${CAT_DISPLAY[key] || key}</a>
+                        `).join('')}
+                    </nav>
+
+                    <button class="md:hidden flex flex-col gap-1.5 p-2">
+                        <span class="w-6 h-0.5 bg-slate-900 rounded-full"></span>
+                        <span class="w-6 h-0.5 bg-slate-900 rounded-full"></span>
+                        <span class="w-6 h-0.5 bg-slate-900 rounded-full"></span>
+                    </button>
+                </div>
+            </header>
+        `;
+
+        htmlContent = inject(htmlContent, 'site-header-placeholder', headerHtml);
+
+        // SSR News content injection
         htmlContent = inject(htmlContent, 'news-title', news.title);
         htmlContent = inject(htmlContent, 'news-text', news.content);
         htmlContent = inject(htmlContent, 'breadcrumb-category', CAT_DISPLAY[news.category] || news.category);
