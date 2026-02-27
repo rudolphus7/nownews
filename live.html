@@ -660,9 +660,11 @@
             if (e.code === 'ArrowDown') { audio.volume = Math.max(0, audio.volume - 0.1); document.getElementById('volume-slider').value = audio.volume; }
         });
 
-        // Init
-        window.initSiteHeader(_supabase);
-        loadTracks();
+        // Init — await header so CATEGORIES_UK is populated before rendering playlist
+        (async () => {
+            await window.initSiteHeader(_supabase);
+            await loadTracks();
+        })();
     </script>
 </body>
 

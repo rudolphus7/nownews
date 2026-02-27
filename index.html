@@ -379,8 +379,8 @@
         }
 
         async function init() {
-            // 1. Initialize Shared Header component
-            window.header = window.initSiteHeader(_supabase);
+            // 1. Initialize Shared Header — await so CATEGORIES_UK/CITIES_UK are populated
+            window.header = await window.initSiteHeader(_supabase);
 
             // 2. Initial state from URL (hierarchical path has priority, fallback to query params)
             const cityFromPath = parseCityFromUrl();
