@@ -1,7 +1,9 @@
-// /api/tts.js - Server-side Gemini TTS proxy
-// Converts text to speech using Gemini 2.5 Flash TTS and returns WAV audio
+// /api/tts.js - Server-side Gemini TTS proxy with Supabase caching
+// Flow: Check cache in DB → return cached URL, or Generate → Upload → Save URL → Return audio
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 function pcmToWav(pcmBuffer, sampleRate = 24000, channels = 1, bitDepth = 16) {
     const dataLength = pcmBuffer.length;
@@ -23,10 +25,60 @@ function pcmToWav(pcmBuffer, sampleRate = 24000, channels = 1, bitDepth = 16) {
     return buffer;
 }
 
-// Extract retry delay in ms from Gemini quota error message
 function parseRetryDelay(message) {
     const match = message && message.match(/retry in ([\d.]+)s/i);
     return match ? Math.ceil(parseFloat(match[1]) * 1000) : 60000;
+}
+
+// Upload WAV buffer to Supabase Storage using service role key (bypasses RLS)
+async function uploadToSupabase(wavBuffer, articleId) {
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY || !articleId) return null;
+    try {
+        const fileName = `${articleId}.wav`;
+        const uploadUrl = `${SUPABASE_URL}/storage/v1/object/tts_audio/${fileName}`;
+
+        const uploadRes = await fetch(uploadUrl, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+                'Content-Type': 'audio/wav',
+                'x-upsert': 'true'
+            },
+            body: wavBuffer
+        });
+
+        if (!uploadRes.ok) {
+            const errText = await uploadRes.text();
+            console.error('Supabase upload failed:', uploadRes.status, errText.slice(0, 200));
+            return null;
+        }
+
+        // Get public URL
+        const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/tts_audio/${fileName}`;
+
+        // Save URL to news table
+        const updateRes = await fetch(`${SUPABASE_URL}/rest/v1/news?id=eq.${articleId}`, {
+            method: 'PATCH',
+            headers: {
+                'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+                'apikey': SUPABASE_SERVICE_KEY,
+                'Content-Type': 'application/json',
+                'Prefer': 'return=minimal'
+            },
+            body: JSON.stringify({ tts_audio_url: publicUrl })
+        });
+
+        if (!updateRes.ok) {
+            console.error('Supabase DB update failed:', updateRes.status);
+        } else {
+            console.log('TTS cached successfully:', publicUrl);
+        }
+
+        return publicUrl;
+    } catch (err) {
+        console.error('Supabase upload exception:', err.message);
+        return null;
+    }
 }
 
 module.exports = async (req, res) => {
@@ -37,7 +89,7 @@ module.exports = async (req, res) => {
     if (req.method === 'OPTIONS') return res.status(200).end();
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-    const { text } = req.body;
+    const { text, articleId } = req.body;
     if (!text || text.trim().length === 0) return res.status(400).json({ error: 'Text is required' });
 
     const apiKey = GEMINI_API_KEY;
@@ -47,7 +99,7 @@ module.exports = async (req, res) => {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
     try {
-        console.log(`TTS API call: ${text.length} chars`);
+        console.log(`TTS API call: ${text.length} chars, articleId: ${articleId || 'none'}`);
 
         const response = await fetch(url, {
             method: 'POST',
@@ -75,13 +127,9 @@ module.exports = async (req, res) => {
             const msg = data.error.message || '';
             console.error('Gemini API Error:', data.error.code, msg.slice(0, 100));
 
-            // Quota / rate limit error — return 429 with retry delay
             if (data.error.code === 429 || msg.includes('quota') || msg.includes('RESOURCE_EXHAUSTED')) {
                 const retryAfterMs = parseRetryDelay(msg);
-                return res.status(429).json({
-                    error: 'rate_limit',
-                    retryAfterMs
-                });
+                return res.status(429).json({ error: 'rate_limit', retryAfterMs });
             }
 
             return res.status(500).json({ error: data.error.message });
@@ -96,7 +144,12 @@ module.exports = async (req, res) => {
         const pcmBuffer = Buffer.from(audioBase64, 'base64');
         const wavBuffer = pcmToWav(pcmBuffer);
 
-        console.log(`TTS success: ${pcmBuffer.length} PCM bytes → ${wavBuffer.length} WAV bytes`);
+        console.log(`TTS success: ${pcmBuffer.length} PCM → ${wavBuffer.length} WAV bytes`);
+
+        // Upload to Supabase Storage server-side (bypasses RLS using service role key)
+        if (articleId) {
+            uploadToSupabase(wavBuffer, articleId).catch(e => console.error('Cache upload error:', e.message));
+        }
 
         res.setHeader('Content-Type', 'audio/wav');
         res.setHeader('Content-Length', wavBuffer.length);

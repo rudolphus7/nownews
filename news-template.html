@@ -1336,8 +1336,11 @@
             // Reset any previous state
             stopTTS();
 
-            // Check if Ukrainian voice exists
-            let ukVoice = ttsVoices.find(v => v.lang.toLowerCase().includes('uk') || v.name.toLowerCase().includes('ukrainian'));
+            // On mobile, always use Cloud TTS (browser voice sounds robotic on phones)
+            const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+            // Check if Ukrainian voice exists (desktop only)
+            let ukVoice = !isMobile && ttsVoices.find(v => v.lang.toLowerCase().includes('uk') || v.name.toLowerCase().includes('ukrainian'));
 
             if (ukVoice) {
                 console.log("Using Native TTS:", ukVoice.name);
@@ -1346,9 +1349,9 @@
                 if (anim) anim.classList.remove('hidden');
                 playNativeTTS(cleanText, ukVoice);
             } else {
-                console.warn("Ukrainian voice not found locally. Using Cloud Fallback.");
+                console.log(isMobile ? "Mobile detected. Using Cloud TTS." : "Ukrainian voice not found. Using Cloud TTS.");
                 isCloudMode = true;
-                // Show loading state while generating
+                // Show LOADING state while waiting for API
                 if (icon) icon.innerText = '⏳';
                 if (anim) anim.classList.remove('hidden');
                 if (ttsBtn) { ttsBtn.style.opacity = '0.7'; ttsBtn.style.pointerEvents = 'none'; }
@@ -1425,10 +1428,13 @@
             const chunk = cloudChunks[currentChunkIndex];
 
             try {
+                // Pass articleId only on first (and only) chunk so server can cache
+                const articleId = (currentChunkIndex === 0 && cloudChunks.length === 1 && currentPost && !currentPost.tts_audio_url)
+                    ? currentPost.id : undefined;
                 const response = await fetch('/api/tts', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text: chunk })
+                    body: JSON.stringify({ text: chunk, articleId })
                 });
 
                 // Handle rate limit: auto-retry with countdown
@@ -1463,27 +1469,8 @@
                 const blob = new Blob([wavBuffer], { type: 'audio/wav' });
                 const blobUrl = URL.createObjectURL(blob);
 
-                // --- CACHING: Upload to Supabase Storage on first generation ---
-                if (cloudChunks.length === 1 && currentPost && !currentPost.tts_audio_url) {
-                    const fileName = `${currentPost.id}.wav`;
-                    try {
-                        const { error: uploadError } = await _supabase.storage
-                            .from('tts_audio')
-                            .upload(fileName, blob, { upsert: true });
-
-                        if (!uploadError) {
-                            const { data: { publicUrl } } = _supabase.storage
-                                .from('tts_audio')
-                                .getPublicUrl(fileName);
-                            if (publicUrl) {
-                                await _supabase.from('news').update({ tts_audio_url: publicUrl }).eq('id', currentPost.id);
-                                currentPost.tts_audio_url = publicUrl;
-                            }
-                        }
-                    } catch (storageErr) {
-                        console.warn("Storage exception:", storageErr);
-                    }
-                }
+                // Caching is handled server-side in /api/tts (uses service role key)
+                // No client-side upload needed
 
                 if (cloudAudio) {
                     cloudAudio.pause();
