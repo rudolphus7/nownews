@@ -244,7 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const tbody = document.getElementById('news-table-body');
         if (!tbody || !_supabase) return;
 
-        tbody.innerHTML = '<tr><td colspan="5" class="p-5 text-center text-gray-500 italic">Синхронізація...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="p-5 text-center text-gray-500 italic">Синхронізація...</td></tr>';
 
         const { data, error } = await _supabase.from('news').select('*').order('created_at', { ascending: false });
 
@@ -264,8 +264,19 @@ document.addEventListener('DOMContentLoaded', () => {
             <td class="p-4 text-center font-mono text-[11px] font-black text-slate-400">
                 👁️ ${item.views || 0}
             </td>
+            <td class="p-4 text-center">
+                ${item.tts_audio_url ?
+                `<span class="text-green-500 font-black cursor-help" title="${item.tts_audio_url}">✅</span>` :
+                `<span class="text-slate-200 font-black">⚪</span>`
+            }
+            </td>
             <td class="p-4 text-xs text-gray-400 font-bold">${new Date(item.created_at).toLocaleDateString()}</td>
             <td class="p-4 text-right space-x-2">
+                <button id="btn-tts-${item.id}" onclick="window.generateTTS('${item.id}')" 
+                    class="text-indigo-500 font-bold hover:underline uppercase text-xs"
+                    ${item.tts_audio_url ? 'disabled' : ''}>
+                    ${item.tts_audio_url ? '🎙️ Готово' : '🎙️ Озвучити'}
+                </button>
                 <button onclick="window.editItem('${item.id}')" class="text-orange-500 font-bold hover:underline uppercase text-xs">Редагувати</button>
                 <button onclick="window.deleteItem('${item.id}')" class="text-red-500 font-bold hover:underline uppercase text-xs">Видалити</button>
             </td>
@@ -338,6 +349,52 @@ document.addEventListener('DOMContentLoaded', () => {
         if (confirm('⚠️ Видалити назавжди?') && _supabase) {
             await _supabase.from('news').delete().eq('id', id);
             window.loadNews();
+        }
+    };
+
+    window.generateTTS = async (id) => {
+        if (!_supabase) return;
+        const btn = document.getElementById(`btn-tts-${id}`);
+        if (btn) {
+            btn.disabled = true;
+            btn.innerText = '⏳ Озвучую...';
+        }
+
+        try {
+            // 1. Отримуємо текст статті
+            const { data, error } = await _supabase.from('news').select('title, content').eq('id', id).single();
+            if (error || !data) throw new Error("Статтю не знайдено");
+
+            // Очищуємо HTML та об'єднуємо заголовок з контентом
+            const cleanContent = data.content.replace(/<[^>]*>/g, ' ');
+            const text = data.title + ". " + cleanContent;
+
+            // 2. Викликаємо TTS API (сервер сам завантажить у Storage та оновить DB)
+            const response = await fetch('/api/tts', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text, articleId: id })
+            });
+
+            if (!response.ok) {
+                const err = await response.json().catch(() => ({ error: 'Server error' }));
+                if (err.error === 'rate_limit') {
+                    throw new Error(`Ліміт Google AI. Повторіть через ${Math.ceil(err.retryAfterMs / 1000)} сек.`);
+                }
+                throw new Error(err.error || `Помилка ${response.status}`);
+            }
+
+            // 3. Успіх! Оновлюємо список
+            if (btn) btn.innerText = '✅ Готово';
+            setTimeout(() => window.loadNews(), 1500);
+
+        } catch (err) {
+            console.error("TTS Generation error:", err);
+            alert("Помилка: " + err.message);
+            if (btn) {
+                btn.disabled = false;
+                btn.innerText = '🎙️ Повторити';
+            }
         }
     };
 
