@@ -279,23 +279,23 @@
         }
 
         /**
-         * Parse category from pathname (e.g. /category/viyna/ → 'war' EN for DB)
-         * Also reads SSR variable from api/category.js
+         * Parse category slug from URL.
+         * api/category.js injects window.__SSR_CATEGORY_SLUG__ on category pages.
+         * The slug in DB is the same as the URL slug.
          */
         function parseCategoryFromUrl() {
-            // SSR: api/category.js injects window.__SSR_CATEGORY_EN__
-            if (window.__SSR_CATEGORY_EN__ && window.__SSR_CATEGORY_EN__ !== 'undefined') {
-                return window.__SSR_CATEGORY_EN__;
+            // SSR: api/category.js injects window.__SSR_CATEGORY_SLUG__
+            if (window.__SSR_CATEGORY_SLUG__ && window.__SSR_CATEGORY_SLUG__ !== 'undefined') {
+                return window.__SSR_CATEGORY_SLUG__;
             }
             const pathParts = window.location.pathname.replace(/^\/|\/$/g, '').split('/');
             if (pathParts[0] === 'category' && pathParts[1]) {
-                // CATEGORY_UK_SLUG_TO_EN is in header.js, but let's provide a safe fallback
-                const ukToEn = {
-                    'viyna': 'war', 'polityka': 'politics', 'ekonomika': 'economy',
-                    'sport': 'sport', 'kultura': 'culture', 'tekhnolohii': 'tech',
-                    'frankivsk': 'frankivsk', 'oblast': 'oblast'
-                };
-                return ukToEn[pathParts[1]] || (typeof CATEGORY_UK_SLUG_TO_EN !== 'undefined' ? CATEGORY_UK_SLUG_TO_EN[pathParts[1]] : null);
+                // Try dynamic map from header first, then use slug directly (they match in DB)
+                const header = window.header;
+                if (header && header.catUkToEn && header.catUkToEn[pathParts[1]]) {
+                    return header.catUkToEn[pathParts[1]];
+                }
+                return pathParts[1];
             }
             return new URLSearchParams(window.location.search).get('category') || null;
         }
