@@ -61,22 +61,25 @@ class SiteHeader {
     }
 
     _parseFiltersFromUrl() {
-        const params = new URLSearchParams(window.location.search);
-        // City: /kolomyya/ → city='kolomyya'
-        const pathParts = window.location.pathname.replace(/^\/|\/$/g, '').split('/');
+        try {
+            const params = new URLSearchParams(window.location.search);
+            const pathParts = window.location.pathname.replace(/^\/|\/$/g, '').split('/');
 
-        // Priority: /category/cat/ or /city/ or ?query
-        let cityFromPath = pathParts[0] && CITIES_FALLBACK[pathParts[0]] ? pathParts[0] : null;
+            let cityFromPath = pathParts[0] && CITIES_FALLBACK[pathParts[0]] ? pathParts[0] : null;
 
-        let categoryFromPath = null;
-        if (pathParts[0] === 'category' && pathParts[1]) {
-            categoryFromPath = CATEGORY_UK_SLUG_TO_EN[pathParts[1]] || null;
+            let categoryFromPath = null;
+            if (pathParts[0] === 'category' && pathParts[1]) {
+                categoryFromPath = CATEGORY_UK_SLUG_TO_EN[pathParts[1]] || null;
+            }
+
+            return {
+                category: categoryFromPath || params.get('category'),
+                city: cityFromPath || params.get('city')
+            };
+        } catch (e) {
+            console.error("Filter parsing failed:", e);
+            return { category: null, city: null };
         }
-
-        return {
-            category: categoryFromPath || params.get('category'),
-            city: cityFromPath || params.get('city')
-        };
     }
 
     getNewsLink(post) {
@@ -101,11 +104,29 @@ class SiteHeader {
     }
 
     async init() {
-        this.renderPlaceholder();
-        this.setupEventListeners();
-        await this.loadDynamicData();
-        this.updateActiveHighlights();
-        this.loadTickerData();
+        try {
+            this.renderPlaceholder();
+            this.setupEventListeners();
+            await this.loadDynamicData();
+            this.updateActiveHighlights();
+            this.loadTickerData();
+        } catch (e) {
+            console.error("Header init failed:", e);
+        }
+    }
+
+    _safeStorageSet(type, key, val) {
+        try {
+            const storage = type === 'local' ? window.localStorage : window.sessionStorage;
+            if (storage) storage.setItem(key, val);
+        } catch (e) { console.warn(`Storage ${type} blocked:`, key); }
+    }
+
+    _safeStorageGet(type, key) {
+        try {
+            const storage = type === 'local' ? window.localStorage : window.sessionStorage;
+            return storage ? storage.getItem(key) : null;
+        } catch (e) { return null; }
     }
 
     renderPlaceholder() {

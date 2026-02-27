@@ -12,8 +12,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    <link rel="stylesheet" href="/components/header.css">
-    <script src="/components/header.js"></script>
+    <link rel="stylesheet" href="/components/header.css?v=2">
+    <script src="/components/header.js?v=2"></script>
 
     <style>
         :root {
@@ -424,12 +424,26 @@
 
         // Progress Scroll
         window.onscroll = () => {
-            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
-            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-            const scrolled = (winScroll / height) * 100;
-            const progress = document.getElementById("scroll-progress");
-            if (progress) progress.style.width = scrolled + "%";
+            try {
+                const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+                const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+                const scrolled = (winScroll / height) * 100;
+                const progress = document.getElementById("scroll-progress");
+                if (progress) progress.style.width = scrolled + "%";
+            } catch (e) { }
         };
+
+        function _safeStorageGet(key) {
+            try { return localStorage.getItem(key); } catch (e) { return null; }
+        }
+        function _safeStorageSet(key, val) {
+            try { localStorage.setItem(key, val); } catch (e) { }
+        }
+        function _safeSessSet(key, val) {
+            try { sessionStorage.setItem(key, val); } catch (e) { }
+        }
+
+        const currentViewMode = _safeStorageGet('newsViewMode') || 'detailed';
 
         // ── URL HELPERS ─────────────────────────────────────────────────
         function getSlugFromUrl() {
@@ -562,9 +576,9 @@
 
                 // Інкремент переглядів все одно потрібен
                 const viewedKey = `viewed_${data.id}`;
-                if (!sessionStorage.getItem(viewedKey)) {
+                if (!_safeSessGet(viewedKey)) {
                     await _supabase.rpc('increment_views', { post_id: data.id });
-                    sessionStorage.setItem(viewedKey, 'true');
+                    _safeSessSet(viewedKey, 'true');
                 }
                 return;
             }
@@ -622,9 +636,9 @@
 
                 // Increment Views (with session guard)
                 const viewedKey = `viewed_${data.id}`;
-                if (!sessionStorage.getItem(viewedKey)) {
+                if (!_safeSessGet(viewedKey)) {
                     await _supabase.rpc('increment_views', { post_id: data.id });
-                    sessionStorage.setItem(viewedKey, 'true');
+                    _safeSessSet(viewedKey, 'true');
 
                     // Fetch updated count to show in UI
                     const { data: updatedPost } = await _supabase.from('news').select('views').eq('id', data.id).single();
@@ -762,7 +776,7 @@
                 if (error) throw error;
 
                 if (data) {
-                    const saved = localStorage.getItem(`reaction_${id}`);
+                    const saved = _safeStorageGet(`reaction_${id}`);
 
                     container.innerHTML = allowedList.map(type => {
                         const countField = type === 'like' ? 'likes' : type;
@@ -791,18 +805,23 @@
         let cloudChunks = [];
         let currentChunkIndex = 0;
 
-        // Force voices loading
         const loadVoices = () => {
-            const voices = window.speechSynthesis.getVoices();
-            if (voices.length > 0) {
-                ttsVoices = voices;
-                console.log("TTS Voices Loaded. Total:", ttsVoices.length);
-            }
+            try {
+                if (window.speechSynthesis) {
+                    const voices = window.speechSynthesis.getVoices();
+                    if (voices.length > 0) {
+                        ttsVoices = voices;
+                        console.log("TTS Voices Loaded. Total:", ttsVoices.length);
+                    }
+                }
+            } catch (e) { console.warn("SpeechSynthesis not available"); }
         };
-        loadVoices();
-        if (window.speechSynthesis.onvoiceschanged !== undefined) {
-            window.speechSynthesis.onvoiceschanged = loadVoices;
-        }
+        try {
+            loadVoices();
+            if (window.speechSynthesis && window.speechSynthesis.onvoiceschanged !== undefined) {
+                window.speechSynthesis.onvoiceschanged = loadVoices;
+            }
+        } catch (e) { }
 
         window.toggleTTS = () => {
             console.log("TTS Toggle Triggered. Mode:", isCloudMode ? "Cloud" : "Native", "State:", { isTtsPlaying, isTtsPaused });
@@ -1062,7 +1081,9 @@
         }
 
         window.stopTTS = () => {
-            if (window.speechSynthesis) window.speechSynthesis.cancel();
+            try {
+                if (window.speechSynthesis) window.speechSynthesis.cancel();
+            } catch (e) { }
             if (cloudAudio) {
                 cloudAudio.pause();
                 cloudAudio = null;
