@@ -882,87 +882,33 @@
             }
 
             const chunk = cloudChunks[currentChunkIndex];
-            const key = localStorage.getItem('gemini_api_key');
-            const model = "gemini-2.5-flash-preview-tts";
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
-
-            console.log("Calling Gemini TTS API for chunk", currentChunkIndex, `(${chunk.length} chars)...`);
-
-            // Timeout: abort if API takes more than 45 seconds
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 45000);
+            console.log(`Calling /api/tts for chunk ${currentChunkIndex} (${chunk.length} chars)...`);
 
             try {
-                const response = await fetch(url, {
+                const response = await fetch('/api/tts', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    signal: controller.signal,
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: `Прочитай цей текст як новинний диктор українського телебачення. Голос має бути чітким, впевненим, нейтральним та авторитетним. Темп — рівний, паузи між реченнями природні. Текст: ${chunk}` }] }],
-                        generationConfig: {
-                            responseModalities: ["AUDIO"],
-                            speechConfig: {
-                                voiceConfig: {
-                                    prebuiltVoiceConfig: {
-                                        voiceName: "Charon"
-                                    }
-                                }
-                            }
-                        }
-                    })
+                    body: JSON.stringify({ text: chunk })
                 });
 
-                console.log("Gemini API response status:", response.status);
-                clearTimeout(timeoutId);
-                const data = await response.json();
-                console.log("Gemini API response data:", JSON.stringify(data).slice(0, 200));
+                console.log("TTS API response status:", response.status);
 
-                if (data.error) throw new Error(data.error.message);
-
-                const audioBase64 = data.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-                const mimeType = data.candidates?.[0]?.content?.parts?.[0]?.inlineData?.mimeType || 'audio/wav';
-                console.log("Got audio base64:", !!audioBase64, audioBase64 ? `(${audioBase64.length} chars, mime:${mimeType})` : '');
-                if (!audioBase64) throw new Error("No audio data received from Gemini");
-
-                const byteCharacters = atob(audioBase64);
-                const byteNumbers = new Array(byteCharacters.length);
-                for (let i = 0; i < byteCharacters.length; i++) {
-                    byteNumbers[i] = byteCharacters.charCodeAt(i);
-                }
-                const pcmData = new Uint8Array(byteNumbers);
-
-                // Gemini TTS returns raw PCM16 at 24000Hz mono.
-                // We must wrap it in a WAV container so browsers can play it.
-                function pcmToWav(pcmData, sampleRate = 24000, channels = 1, bitDepth = 16) {
-                    const dataLength = pcmData.length;
-                    const buffer = new ArrayBuffer(44 + dataLength);
-                    const view = new DataView(buffer);
-                    const writeStr = (offset, str) => { for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i)); };
-                    writeStr(0, 'RIFF');
-                    view.setUint32(4, 36 + dataLength, true);
-                    writeStr(8, 'WAVE');
-                    writeStr(12, 'fmt ');
-                    view.setUint32(16, 16, true);
-                    view.setUint16(20, 1, true); // PCM
-                    view.setUint16(22, channels, true);
-                    view.setUint32(24, sampleRate, true);
-                    view.setUint32(28, sampleRate * channels * (bitDepth / 8), true);
-                    view.setUint16(32, channels * (bitDepth / 8), true);
-                    view.setUint16(34, bitDepth, true);
-                    writeStr(36, 'data');
-                    view.setUint32(40, dataLength, true);
-                    new Uint8Array(buffer, 44).set(pcmData);
-                    return new Blob([buffer], { type: 'audio/wav' });
+                if (!response.ok) {
+                    const err = await response.json().catch(() => ({ error: 'Unknown server error' }));
+                    throw new Error(err.error || `Server error ${response.status}`);
                 }
 
-                const blob = pcmToWav(pcmData);
+                // Server returns binary WAV audio directly
+                const wavBuffer = await response.arrayBuffer();
+                console.log("Received WAV audio:", wavBuffer.byteLength, "bytes");
+
+                const blob = new Blob([wavBuffer], { type: 'audio/wav' });
                 const blobUrl = URL.createObjectURL(blob);
-                console.log("WAV Blob URL created:", blobUrl);
 
-                // --- CACHING LOGIC ---
+                // --- CACHING: Upload WAV to Supabase Storage on first generation ---
                 if (cloudChunks.length === 1 && currentPost && !currentPost.tts_audio_url) {
-                    console.log("Uploading narration to Supabase Storage...");
-                    const fileName = `${currentPost.id}.mp3`;
+                    console.log("Uploading to Supabase Storage...");
+                    const fileName = `${currentPost.id}.wav`;
                     try {
                         const { error: uploadError } = await _supabase.storage
                             .from('tts_audio')
@@ -974,12 +920,12 @@
                                 .getPublicUrl(fileName);
 
                             if (publicUrl) {
-                                console.log("Narration cached successfully:", publicUrl);
+                                console.log("Narration cached:", publicUrl);
                                 await _supabase.from('news').update({ tts_audio_url: publicUrl }).eq('id', currentPost.id);
                                 currentPost.tts_audio_url = publicUrl;
                             }
                         } else {
-                            console.warn("Storage upload failed (verify 'tts_audio' bucket):", uploadError.message);
+                            console.warn("Storage upload skipped:", uploadError.message);
                         }
                     } catch (storageErr) {
                         console.warn("Storage exception:", storageErr);
@@ -1011,9 +957,8 @@
                 });
 
             } catch (err) {
-                console.error("Gemini TTS Error:", err.message);
-                console.error("Full error:", err);
-                alert("Помилка Premium-озвучення: " + err.message);
+                console.error("TTS Error:", err.message);
+                alert("Помилка озвучення: " + err.message);
                 stopTTS();
             }
         }
