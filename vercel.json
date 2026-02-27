@@ -196,6 +196,10 @@
         "api/sitemap-news.xml.js": {
             "memory": 128,
             "maxDuration": 15
+        },
+        "api/tts.js": {
+            "memory": 256,
+            "maxDuration": 60
         }
     }
 }

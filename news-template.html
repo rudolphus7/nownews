@@ -1323,6 +1323,7 @@
         function startTTS() {
             const icon = document.getElementById('tts-icon');
             const anim = document.getElementById('tts-status-anim');
+            const ttsBtn = document.getElementById('tts-btn');
 
             if (ttsVoices.length === 0) ttsVoices = window.speechSynthesis.getVoices();
 
@@ -1341,16 +1342,18 @@
             if (ukVoice) {
                 console.log("Using Native TTS:", ukVoice.name);
                 isCloudMode = false;
+                if (icon) icon.innerText = '⏸';
+                if (anim) anim.classList.remove('hidden');
                 playNativeTTS(cleanText, ukVoice);
             } else {
                 console.warn("Ukrainian voice not found locally. Using Cloud Fallback.");
                 isCloudMode = true;
+                // Show loading state while generating
+                if (icon) icon.innerText = '⏳';
+                if (anim) anim.classList.remove('hidden');
+                if (ttsBtn) { ttsBtn.style.opacity = '0.7'; ttsBtn.style.pointerEvents = 'none'; }
                 playCloudTTS(cleanText);
             }
-
-            // Update UI
-            if (icon) icon.innerText = '⏸';
-            if (anim) anim.classList.remove('hidden');
         }
 
         function playNativeTTS(text, voice) {
@@ -1476,6 +1479,11 @@
                     stopTTS();
                 };
 
+                // Switch from ⏳ loading to ⏸ playing state
+                const icon = document.getElementById('tts-icon');
+                const ttsBtn = document.getElementById('tts-btn');
+                if (icon) icon.innerText = '⏸';
+                if (ttsBtn) { ttsBtn.style.opacity = ''; ttsBtn.style.pointerEvents = ''; }
                 cloudAudio.play().catch(e => {
                     console.error("Playback Blocked:", e);
                     stopTTS();
@@ -1483,6 +1491,10 @@
 
             } catch (err) {
                 console.error("TTS Error:", err.message);
+                const icon = document.getElementById('tts-icon');
+                const ttsBtn = document.getElementById('tts-btn');
+                if (icon) icon.innerText = '▶';
+                if (ttsBtn) { ttsBtn.style.opacity = ''; ttsBtn.style.pointerEvents = ''; }
                 alert("Помилка озвучення: " + err.message);
                 stopTTS();
             }
@@ -1502,8 +1514,10 @@
 
             const icon = document.getElementById('tts-icon');
             const anim = document.getElementById('tts-status-anim');
+            const ttsBtn = document.getElementById('tts-btn');
             if (icon) icon.innerText = '▶';
             if (anim) anim.classList.add('hidden');
+            if (ttsBtn) { ttsBtn.style.opacity = ''; ttsBtn.style.pointerEvents = ''; }
         };
 
         // Stop speech when leaving page
