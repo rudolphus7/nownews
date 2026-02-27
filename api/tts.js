@@ -148,10 +148,18 @@ module.exports = async (req, res) => {
 
         // Upload to Supabase Storage server-side (bypasses RLS using service role key)
         if (articleId) {
-            const predictedUrl = `${SUPABASE_URL}/storage/v1/object/public/tts_audio/${articleId}.wav`;
-            uploadToSupabase(wavBuffer, articleId).catch(e => console.error('Cache upload error:', e.message));
-            // Return the predicted public URL in a header so the client can update its state immediately
-            res.setHeader('X-TTS-Cached-URL', predictedUrl);
+            console.log(`Starting persistence for articleId: ${articleId}`);
+            try {
+                const persistenceResult = await uploadToSupabase(wavBuffer, articleId);
+                if (persistenceResult) {
+                    console.log(`Persistence successful: ${persistenceResult}`);
+                    res.setHeader('X-TTS-Cached-URL', persistenceResult);
+                } else {
+                    console.error(`Persistence returned null (check SUPABASE_SERVICE_ROLE_KEY or SQL setup)`);
+                }
+            } catch (err) {
+                console.error(`Persistence failed: ${err.message}`);
+            }
         }
 
         res.setHeader('Content-Type', 'audio/wav');
