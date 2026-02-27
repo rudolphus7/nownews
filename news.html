@@ -1243,7 +1243,29 @@
         }
 
         async function playCloudTTS(text) {
-            console.log("Starting Gemini Premium TTS...");
+            console.log("Starting Premium TTS...");
+
+            // 1. Check if we already have a cached audio URL
+            if (currentPost && currentPost.tts_audio_url) {
+                console.log("Using cached audio from Supabase:", currentPost.tts_audio_url);
+                isTtsPlaying = true;
+                isTtsPaused = false;
+
+                if (cloudAudio) cloudAudio.pause();
+                cloudAudio = new Audio(currentPost.tts_audio_url);
+                cloudAudio.onended = () => { stopTTS(); };
+                cloudAudio.onerror = (e) => {
+                    console.error("Cached Audio Error:", e);
+                    currentPost.tts_audio_url = null;
+                    playCloudTTS(text);
+                };
+                cloudAudio.play().catch(e => {
+                    console.error("Playback Blocked:", e);
+                    stopTTS();
+                });
+                return;
+            }
+
             const key = localStorage.getItem('gemini_api_key');
             if (!key) {
                 console.error("Gemini API Key missing!");
@@ -1256,7 +1278,7 @@
             isTtsPaused = false;
 
             const cleanText = text.replace(/\s+/g, ' ').trim();
-            cloudChunks = cleanText.match(/.{1,2000}(?:\s|$)/g) || [cleanText];
+            cloudChunks = cleanText.match(/.{1,8000}(?:\s|$)/g) || [cleanText];
             currentChunkIndex = 0;
 
             playNextCloudChunk();
@@ -1278,13 +1300,13 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        contents: [{ parts: [{ text: `Прочитай цей текст новини чітко та професійно українською мовою: ${chunk}` }] }],
+                        contents: [{ parts: [{ text: `Прочитай цей текст як новинний диктор українського телебачення. Голос має бути чітким, впевненим, нейтральним та авторитетним. Темп — рівний, паузи між реченнями природні. Текст: ${chunk}` }] }],
                         generationConfig: {
                             responseModalities: ["AUDIO"],
                             speechConfig: {
                                 voiceConfig: {
                                     prebuiltVoiceConfig: {
-                                        voiceName: "Puck"
+                                        voiceName: "Charon"
                                     }
                                 }
                             }
@@ -1307,14 +1329,39 @@
                 const blob = new Blob([byteArray], { type: 'audio/mp3' });
                 const blobUrl = URL.createObjectURL(blob);
 
+                // --- CACHING LOGIC ---
+                if (cloudChunks.length === 1 && currentPost && !currentPost.tts_audio_url) {
+                    console.log("Uploading narration to Supabase Storage...");
+                    const fileName = `${currentPost.id}.mp3`;
+                    try {
+                        const { data: uploadData, error: uploadError } = await _supabase.storage
+                            .from('tts_audio')
+                            .upload(fileName, blob, { upsert: true });
+
+                        if (!uploadError) {
+                            const { data: { publicUrl } } = _supabase.storage
+                                .from('tts_audio')
+                                .getPublicUrl(fileName);
+
+                            if (publicUrl) {
+                                console.log("Narration cached successfully:", publicUrl);
+                                await _supabase.from('news').update({ tts_audio_url: publicUrl }).eq('id', currentPost.id);
+                                currentPost.tts_audio_url = publicUrl;
+                            }
+                        }
+                    } catch (storageErr) {
+                        console.warn("Storage exception:", storageErr);
+                    }
+                }
+
                 if (cloudAudio) {
                     cloudAudio.pause();
-                    URL.revokeObjectURL(cloudAudio.src);
+                    if (cloudAudio.src.startsWith('blob:')) URL.revokeObjectURL(cloudAudio.src);
                 }
 
                 cloudAudio = new Audio(blobUrl);
                 cloudAudio.onended = () => {
-                    URL.revokeObjectURL(blobUrl);
+                    if (blobUrl.startsWith('blob:')) URL.revokeObjectURL(blobUrl);
                     currentChunkIndex++;
                     playNextCloudChunk();
                 };
