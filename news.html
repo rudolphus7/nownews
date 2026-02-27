@@ -631,7 +631,7 @@
         // ── Navigation ──────────────────────────────────────────────────
         async function init() {
             // 1. Initialize Shared Header component
-            window.initSiteHeader(_supabase);
+            await window.initSiteHeader(_supabase);
 
             // Localhost 404 Fix: Intercept /news/ links and route them through news.html
             if (isLocal) {

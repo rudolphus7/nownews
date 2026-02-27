@@ -1559,9 +1559,9 @@
             }
         }
 
-        // Запускаємо шапку та статтю паралельно
-        window.onload = () => {
-            initNav();
+        // Запускаємо шапку та статтю послідовно
+        window.onload = async () => {
+            await initNav();
             loadFullNews();
         };
 
