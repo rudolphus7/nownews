@@ -135,8 +135,8 @@ module.exports = async (req, res) => {
             <div class="container mx-auto px-4 flex items-center">
                 <span class="bg-orange-600 text-[10px] font-black uppercase text-white px-2 py-0.5 rounded mr-4 z-10 shadow-lg">Терміново</span>
                 <div class="flex-1 overflow-hidden relative ticker-mask">
-                    <div class="text-[11px] font-bold text-slate-300 uppercase tracking-widest py-1">
-                        ОСТАННІ НОВИНИ ПРИКАРПАТТЯ • ПЕРЕВІРЕНІ ФАКТИ • АКТУАЛЬНІ ПОДІЇ •
+                    <div id="news-ticker" class="ticker-animate text-[11px] font-bold text-slate-300 uppercase tracking-widest py-1">
+                        ОСТАННІ НОВИНИ ПРИКАРПАТТЯ • ПЕРЕВІРЕНІ ФАКТИ • АКТУАЛЬНІ ПОДІЇ • ОПЕРАТИВНО ТА ЧЕСНО •
                     </div>
                 </div>
             </div>
@@ -155,19 +155,72 @@ module.exports = async (req, res) => {
                     </div>
                 </a>
                 
-                <nav class="hidden md:flex items-center gap-6 text-[12px] font-black uppercase tracking-wider text-slate-600">
+                <nav id="desktop-nav" class="hidden md:flex items-center gap-6 text-[12px] font-black uppercase tracking-wider text-slate-600">
                     ${Object.keys(CATEGORY_EN_TO_UK_SLUG).map(key => `
-                        <a href="/category/${CATEGORY_EN_TO_UK_SLUG[key]}" class="hover:text-orange-600 transition-colors">${CAT_DISPLAY[key] || key}</a>
+                        <a href="/category/${CATEGORY_EN_TO_UK_SLUG[key]}/" class="hover:text-orange-600 transition-colors py-2 font-black tracking-tight text-sm">${CAT_DISPLAY[key] || key}</a>
                     `).join('')}
+                    <div class="flex items-center ml-4">
+                        <a href="#" class="bg-indigo-950 text-white px-5 py-2.5 rounded-xl transition hover:bg-slate-900 shadow-xl shadow-indigo-100 flex items-center gap-3 group border border-white/10">
+                            <span class="flex h-2.5 w-2.5 relative">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-600"></span>
+                            </span>
+                            <span class="font-black tracking-tighter text-[11px]">LIVE • ЕФІР</span>
+                        </a>
+                    </div>
                 </nav>
 
-                <button class="md:hidden flex flex-col gap-1.5 p-2">
-                    <span class="w-6 h-0.5 bg-slate-900 rounded-full"></span>
-                    <span class="w-6 h-0.5 bg-slate-900 rounded-full"></span>
-                    <span class="w-6 h-0.5 bg-slate-900 rounded-full"></span>
+                <button id="mobile-menu-toggle" class="md:hidden flex flex-col gap-1.5 p-2">
+                    <span class="w-6 h-0.5 bg-slate-900 rounded-full transition-all duration-300"></span>
+                    <span class="w-6 h-0.5 bg-slate-900 rounded-full transition-all duration-300"></span>
+                    <span class="w-6 h-0.5 bg-slate-900 rounded-full transition-all duration-300"></span>
                 </button>
             </div>
+
+            <!-- City Filter Row -->
+            <div class="bg-white border-t border-slate-100 overflow-x-auto no-scrollbar shadow-sm">
+                <div class="container mx-auto px-4 py-4 flex items-center space-x-8 text-[11px] font-black uppercase tracking-[0.1em] text-slate-500 whitespace-nowrap">
+                    <span class="text-slate-900 border-r border-slate-200 pr-6 mr-2 flex items-center">
+                        <span class="w-1.5 h-4 bg-orange-600 mr-3 rounded-full"></span>
+                        ВАШЕ МІСТО
+                    </span>
+                    <div class="flex items-center gap-6" id="city-nav-list">
+                        <a href="/kalush/" class="hover:text-orange-600 transition-colors">Калуш</a>
+                        <a href="/if/" class="hover:text-orange-600 transition-colors">Франківськ</a>
+                        <a href="/kolomyya/" class="hover:text-orange-600 transition-colors">Коломия</a>
+                        <a href="/dolyna/" class="hover:text-orange-600 transition-colors">Долина</a>
+                    </div>
+                </div>
+            </div>
         </header>
+
+        <!-- Mobile Menu Overlay -->
+        <div id="mobile-menu-overlay" class="fixed inset-0 z-[200] bg-white/95 backdrop-blur-xl translate-x-full transition-transform duration-500 md:hidden overflow-y-auto">
+            <div class="p-8">
+                <div class="flex justify-between items-center mb-12">
+                    <a href="/" class="flex items-center space-x-4 group">
+                        <div class="relative">
+                            <span class="bg-orange-600 text-white w-10 h-10 flex items-center justify-center rounded-xl font-black text-xl italic tracking-tighter">IF</span>
+                            <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-slate-900 border border-white rounded-full"></div>
+                        </div>
+                        <div class="leading-none text-left">
+                            <span class="text-xl font-black uppercase tracking-tighter text-slate-900 block">Прикарпаття <span class="text-orange-600">News</span></span>
+                        </div>
+                    </a>
+                    <button id="close-mobile-menu" class="p-4 -mr-4 text-slate-400 hover:text-orange-600 font-black text-4xl transition-colors">&times;</button>
+                </div>
+                <div class="space-y-8">
+                    <div>
+                        <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6 border-b border-slate-100 pb-2">РУБРИКИ</h3>
+                        <div id="mobile-nav-list" class="flex flex-col gap-5 text-lg font-black uppercase text-slate-800 tracking-tight">
+                            ${Object.keys(CATEGORY_EN_TO_UK_SLUG).map(key => `
+                                <a href="/category/${CATEGORY_EN_TO_UK_SLUG[key]}/" class="py-2 active:text-orange-600 font-bold">${CAT_DISPLAY[key] || key}</a>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     `;
 
     // Replace <title> and inject metas before </head>

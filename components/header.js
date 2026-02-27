@@ -112,6 +112,13 @@ class SiteHeader {
         const headerPlaceholder = document.getElementById('site-header-placeholder');
         if (!headerPlaceholder) return;
 
+        // If it's already pre-rendered by SSR, don't overwrite it to avoid flickering
+        // We check if it has any substantial content (more than just whitespace)
+        if (headerPlaceholder.innerHTML.trim().length > 0) {
+            console.log("Header already pre-rendered, skipping placeholder injection.");
+            return;
+        }
+
         headerPlaceholder.innerHTML = `
             <!-- Ticker -->
             <div class="bg-slate-900 py-2 overflow-hidden border-b border-white/5">
@@ -201,6 +208,8 @@ class SiteHeader {
                 this.supabase.from('cities').select('*').order('order_index', { ascending: true })
             ]);
 
+            // If we have existing content in nav (SSR), we might want to skip heavy rendering 
+            // but for safety we refresh it to ensure it's up to date.
             if (catRes.data && catRes.data.length > 0) {
                 this.categories = {};
                 catRes.data.forEach(c => this.categories[c.slug] = c.name);
@@ -218,8 +227,12 @@ class SiteHeader {
             }
         } catch (err) {
             console.warn("Header dynamic data load failed:", err);
-            this.renderNav(Object.keys(CATEGORIES_FALLBACK).map(k => ({ slug: k, name: CATEGORIES_FALLBACK[k] })));
-            this.renderCities(Object.keys(CITIES_FALLBACK).map(k => ({ slug: k, name: CITIES_FALLBACK[k] })));
+            // Only re-render if it's currently empty
+            const nav = document.getElementById('desktop-nav');
+            if (nav && nav.innerHTML.trim().length === 0) {
+                this.renderNav(Object.keys(CATEGORIES_FALLBACK).map(k => ({ slug: k, name: CATEGORIES_FALLBACK[k] })));
+                this.renderCities(Object.keys(CITIES_FALLBACK).map(k => ({ slug: k, name: CITIES_FALLBACK[k] })));
+            }
         }
     }
 
