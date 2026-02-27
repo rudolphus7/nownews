@@ -968,8 +968,8 @@
 
             const cleanText = text.replace(/\s+/g, ' ').trim();
             console.log("Text length:", cleanText.length);
-            // Keep chunks small (2000 chars) so each API call responds quickly
-            cloudChunks = cleanText.match(/.{1,2000}(?:\s|$)/gs) || [cleanText];
+            // Chunking: 2500 chars is safe for Vercel timeouts (60s)
+            cloudChunks = cleanText.match(/.{1,2500}(?:\s|$)/gs) || [cleanText];
             console.log("Chunks count:", cloudChunks.length);
             currentChunkIndex = 0;
 
@@ -986,13 +986,16 @@
             const chunk = cloudChunks[currentChunkIndex];
 
             try {
-                // Pass articleId only on first (and only) chunk so server can cache
-                const articleId = (currentChunkIndex === 0 && cloudChunks.length === 1 && currentPost && !currentPost.tts_audio_url)
-                    ? currentPost.id : undefined;
+                const articleId = currentPost ? currentPost.id : undefined;
                 const response = await fetch('/api/tts', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text: chunk, articleId })
+                    body: JSON.stringify({
+                        text: chunk,
+                        articleId,
+                        chunkIndex: currentChunkIndex,
+                        totalChunks: cloudChunks.length
+                    })
                 });
 
                 // Handle rate limit: auto-retry after the specified delay
