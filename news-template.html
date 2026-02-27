@@ -1271,7 +1271,11 @@
 
         // Force voices loading
         const loadVoices = () => {
-            ttsVoices = window.speechSynthesis.getVoices();
+            const voices = window.speechSynthesis.getVoices();
+            if (voices.length > 0) {
+                ttsVoices = voices;
+                console.log("TTS Voices Loaded. Total:", ttsVoices.length);
+            }
         };
         loadVoices();
         if (window.speechSynthesis.onvoiceschanged !== undefined) {
@@ -1312,63 +1316,79 @@
             const icon = document.getElementById('tts-icon');
             const anim = document.getElementById('tts-status-anim');
 
+            // Try to reload voices if empty
+            if (ttsVoices.length === 0) {
+                ttsVoices = window.speechSynthesis.getVoices();
+                console.log("Voices were empty, re-fetched. Count:", ttsVoices.length);
+            }
+
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = (currentPost.title || "") + ". " + (currentPost.content || "");
             const cleanText = tempDiv.innerText || tempDiv.textContent || "";
 
-            console.log("Preparing TTS. Text length:", cleanText.length, "First 20 chars:", cleanText.substring(0, 20));
+            console.log("Preparing TTS. Text length:", cleanText.length, "Total Voices:", ttsVoices.length);
             if (!cleanText.trim()) {
                 console.warn("TTS Aborted: Empty text");
                 return;
             }
 
+            // Reset UI proactively to show activity
+            if (icon) icon.innerText = '⏸';
+            if (anim) anim.classList.remove('hidden');
+
             window.speechSynthesis.cancel();
-            console.log("Synthesis Cancelled. Proceeding in 300ms...");
+            console.log("Synthesis Cancelled. Waiting 500ms for reset...");
 
             setTimeout(() => {
-                console.log("Creating Utterance for:", cleanText.substring(0, 30) + "...");
+                console.log("Creating Utterance...");
                 ttsUtterance = new SpeechSynthesisUtterance(cleanText);
                 ttsUtterance.lang = 'uk-UA';
                 ttsUtterance.rate = 1.0;
                 ttsUtterance.pitch = 1.0;
                 ttsUtterance.volume = 1.0;
 
-                const ukVoice = ttsVoices.find(v => v.lang.startsWith('uk')) || ttsVoices[0];
+                // Robust voice search: 'uk' code or 'ukrainian' name
+                let ukVoice = ttsVoices.find(v => v.lang.toLowerCase().includes('uk'));
+                if (!ukVoice) ukVoice = ttsVoices.find(v => v.name.toLowerCase().includes('ukrainian'));
+
                 if (ukVoice) {
-                    console.log("Selected Voice:", ukVoice.name, ukVoice.lang);
+                    console.log("Selected Ukrainian Voice:", ukVoice.name, ukVoice.lang);
                     ttsUtterance.voice = ukVoice;
                 } else {
-                    console.warn("No voices found at all!");
+                    console.warn("UKRAINIAN VOICE NOT FOUND. Available langs:", [...new Set(ttsVoices.map(v => v.lang))]);
+                    if (ttsVoices.length > 0) {
+                        console.log("Falling back to system default:", ttsVoices[0].name);
+                        ttsUtterance.voice = ttsVoices[0];
+                    }
                 }
 
                 ttsUtterance.onstart = () => {
-                    console.log("TTS: onstart fired");
+                    console.log("TTS Event: onstart");
                     isTtsPlaying = true;
                     isTtsPaused = false;
-                    if (icon) icon.innerText = '⏸';
-                    if (anim) anim.classList.remove('hidden');
                 };
 
                 ttsUtterance.onend = () => {
-                    console.log("TTS: onend fired");
+                    console.log("TTS Event: onend");
                     stopTTS();
                 };
 
                 ttsUtterance.onerror = (e) => {
-                    console.error("TTS: onerror fired", e);
-                    if (e.error !== 'interrupted') stopTTS();
+                    console.error("TTS Event: onerror", e);
+                    stopTTS();
                 };
 
-                console.log("Calling window.speechSynthesis.speak()...");
+                console.log("Executing speechSynthesis.speak()...");
                 window.speechSynthesis.speak(ttsUtterance);
 
-                // Secondary check
+                // Final safety push
                 setTimeout(() => {
-                    if (!window.speechSynthesis.speaking && isTtsPlaying) {
-                        console.warn("TTS is not speaking although it should be.");
+                    if (isTtsPlaying && !window.speechSynthesis.speaking) {
+                        console.warn("TTS seems stuck. Attempting resume push.");
+                        window.speechSynthesis.resume();
                     }
                 }, 1000);
-            }, 300);
+            }, 500);
         }
 
         window.stopTTS = () => {
