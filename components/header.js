@@ -3,12 +3,8 @@
  * Handles Ticker, Navigation, City Filters, and Mobile Menu
  */
 
-// EN slug (DB) → UA display name
-const CATEGORIES_FALLBACK = {
-    'politics': 'Політика', 'economy': 'Економіка', 'sport': 'Спорт',
-    'culture': 'Культура', 'tech': 'Технології', 'frankivsk': 'Франківськ',
-    'oblast': 'Область', 'war': 'Війна'
-};
+// EN slug (DB) → UA display name (will be initialized below)
+let CATEGORIES_FALLBACK;
 
 // EN slug (DB) → UA URL slug
 const CATEGORY_EN_TO_UK_SLUG = {
@@ -34,7 +30,7 @@ const CATEGORY_UK_SLUG_TO_EN = {
     'oblast': 'oblast'
 };
 
-const CITIES_FALLBACK = {
+const CITIES_UK = {
     'kalush': 'Калуш', 'if': 'Івано-Франківськ', 'kolomyya': 'Коломия',
     'dolyna': 'Долина', 'bolekhiv': 'Болехів', 'nadvirna': 'Надвірна',
     'burshtyn': 'Бурштин', 'kosiv': 'Косів', 'yaremche': 'Яремче'
@@ -45,6 +41,9 @@ const CATEGORIES_UK = {
     'culture': 'Культура', 'tech': 'Технології', 'frankivsk': 'Франківськ',
     'oblast': 'Область', 'war': 'Війна'
 };
+
+const CITIES_FALLBACK = CITIES_UK;
+CATEGORIES_FALLBACK = CATEGORIES_UK;
 
 class SiteHeader {
     constructor(supabaseClient) {
@@ -86,7 +85,7 @@ class SiteHeader {
         if (!slug) return `/news/?id=${id}`;
 
         // Hierarchical URLs: /city/slug/ or /category/cat/slug/
-        if (post.city && CITIES_FALLBACK[post.city]) {
+        if (post.city && CITIES_UK[post.city]) {
             return `/${post.city}/${slug}/`;
         }
         if (post.category && CATEGORY_EN_TO_UK_SLUG[post.category]) {

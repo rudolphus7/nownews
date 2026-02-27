@@ -243,23 +243,7 @@
         const SUPABASE_KEY = 'sb_publishable_L4_HhLhbj_m6wbEc3ZqhcQ_QNGOLWXU';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let CATEGORIES_UK = {
-            'politics': 'Політика',
-            'economy': 'Економіка',
-            'sport': 'Спорт',
-            'culture': 'Культура',
-            'tech': 'Технології',
-            'frankivsk': 'Франківськ',
-            'oblast': 'Область',
-            'war': 'Війна'
-        };
-
-        let CITIES_UK = {
-            'kalush': 'Калуш', 'if': 'Івано-Франківськ', 'kolomyya': 'Коломия',
-            'dolyna': 'Долина', 'bolekhiv': 'Болехів', 'nadvirna': 'Надвірна',
-            'burshtyn': 'Бурштин', 'kosiv': 'Косів', 'yaremche': 'Яремче'
-        };
-
+        // CATEGORIES_UK and CITIES_UK are now provided globally by /components/header.js
         const isLocal = window.location.hostname === 'localhost' ||
             window.location.hostname.startsWith('192.168.') ||
             window.location.hostname.startsWith('127.0.0.1') ||
