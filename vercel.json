@@ -133,19 +133,19 @@
         },
         {
             "source": "/sitemap.xml",
-            "destination": "/api/sitemap.xml"
+            "destination": "/api/sitemap"
         },
         {
             "source": "/sitemap-pages.xml",
-            "destination": "/api/sitemap-pages.xml"
+            "destination": "/api/sitemap?type=pages"
         },
         {
             "source": "/sitemap-posts.xml",
-            "destination": "/api/sitemap-posts.xml"
+            "destination": "/api/sitemap?type=posts"
         },
         {
             "source": "/sitemap-news.xml",
-            "destination": "/api/sitemap-news.xml"
+            "destination": "/api/sitemap?type=news"
         },
         {
             "source": "/news/:slug/",
