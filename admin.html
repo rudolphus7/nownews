@@ -670,10 +670,16 @@
                             <p class="text-[9px] text-slate-400 font-black uppercase tracking-widest mt-0.5">Перевірка в
                                 реальному часі</p>
                         </div>
-                        <button onclick="window.refreshRSS()"
-                            class="w-full sm:w-auto bg-orange-600 text-white px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-orange-500 shadow-xl shadow-orange-100 transition-all active:scale-95 flex items-center justify-center gap-2">
-                            <span>🔄</span> Оновити стрічку
-                        </button>
+                        <div class="flex items-center gap-4 w-full sm:w-auto">
+                            <select id="rss-source-filter" onchange="window.renderRSSArticles()"
+                                class="flex-1 sm:w-48 bg-slate-50 border border-slate-100 rounded-2xl p-4 text-[10px] font-black uppercase tracking-widest focus:ring-2 focus:ring-orange-500 appearance-none cursor-pointer">
+                                <option value="all">Усі джерела</option>
+                            </select>
+                            <button onclick="window.refreshRSS()"
+                                class="w-full sm:w-auto bg-orange-600 text-white px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-orange-500 shadow-xl shadow-orange-100 transition-all active:scale-95 flex items-center justify-center gap-2">
+                                <span>🔄</span> Оновити
+                            </button>
+                        </div>
                     </div>
 
                     <div id="rss-status-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">

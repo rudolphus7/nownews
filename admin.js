@@ -470,6 +470,20 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!error && data) {
             rssSources = data;
             renderRSSSources();
+
+            // Populate filter dropdown
+            const filter = document.getElementById('rss-source-filter');
+            if (filter) {
+                const currentVal = filter.value;
+                filter.innerHTML = '<option value="all">Усі джерела</option>';
+                rssSources.forEach(s => {
+                    try {
+                        const host = new URL(s.url).hostname;
+                        filter.innerHTML += `<option value="${host}">${host}</option>`;
+                    } catch (e) { }
+                });
+                filter.value = currentVal;
+            }
         }
     }
 
@@ -567,11 +581,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const grid = document.getElementById('rss-items-grid');
         if (!grid || !_supabase) return;
 
-        const { data: articles, error } = await _supabase
+        const filter = document.getElementById('rss-source-filter');
+        const sourceName = filter ? filter.value : 'all';
+
+        let query = _supabase
             .from('rss_articles')
             .select('*')
             .eq('is_dismissed', false)
-            .eq('is_imported', false)
+            .eq('is_imported', false);
+
+        if (sourceName !== 'all') {
+            query = query.eq('source_name', sourceName);
+        }
+
+        const { data: articles, error } = await query
             .order('pub_date', { ascending: false })
             .limit(50);
 
@@ -615,6 +638,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
     `).join('');
     }
+    window.renderRSSArticles = renderRSSArticles;
 
     // Clear interval when switching sections
     const originalShowSection = window.showSection;
