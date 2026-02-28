@@ -198,16 +198,12 @@
             "maxDuration": 10
         },
         "api/category.js": {
-            "memory": 128,
-            "maxDuration": 10
+            "maxDuration": 10,
+            "memory": 128
         },
-        "api/sitemap.xml.js": {
-            "memory": 128,
-            "maxDuration": 30
-        },
-        "api/sitemap-news.xml.js": {
-            "memory": 128,
-            "maxDuration": 15
+        "api/sitemap.js": {
+            "maxDuration": 30,
+            "memory": 128
         },
         "api/tts.js": {
             "memory": 256,
