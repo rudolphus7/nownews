@@ -31,20 +31,8 @@ module.exports = async (req, res) => {
     xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
     xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">
 ${validArticles.map(a => {
-            const pubDate = new Date(a.created_at).toISOString();
-            const CATEGORY_EN_TO_UK_SLUG = {
-                'war': 'viyna', 'politics': 'polityka', 'economy': 'ekonomika',
-                'sport': 'sport', 'culture': 'kultura', 'tech': 'tekhnolohii',
-                'frankivsk': 'frankivsk', 'oblast': 'oblast'
-            };
-
-            let loc = `${SITE_URL}/news/${a.slug}/`;
-            if (a.city) {
-                loc = `${SITE_URL}/${a.city}/${a.slug}/`;
-            } else if (a.category && CATEGORY_EN_TO_UK_SLUG[a.category]) {
-                const ukCat = CATEGORY_EN_TO_UK_SLUG[a.category];
-                loc = `${SITE_URL}/category/${ukCat}/${a.slug}/`;
-            }
+            const pubDate = formatDate(a.created_at);
+            const loc = `${SITE_URL}/news/${a.slug}/`;
 
             return `  <url>
     <loc>${escapeXml(loc)}</loc>
@@ -70,6 +58,24 @@ ${validArticles.map(a => {
         return res.status(500).send('News sitemap generation failed');
     }
 };
+
+/**
+ * Formats date to ISO 8601 without milliseconds: YYYY-MM-DDThh:mm:ss+02:00
+ */
+function formatDate(dateStr) {
+    const d = new Date(dateStr);
+    const pad = (num) => String(num).padStart(2, '0');
+
+    const year = d.getFullYear();
+    const month = pad(d.getMonth() + 1);
+    const day = pad(d.getDate());
+    const hours = pad(d.getHours());
+    const minutes = pad(d.getMinutes());
+    const seconds = pad(d.getSeconds());
+
+    // Assume +02:00 as per user request/local time
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}+02:00`;
+}
 
 function escapeXml(str) {
     return String(str || '')

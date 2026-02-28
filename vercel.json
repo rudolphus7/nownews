@@ -136,6 +136,14 @@
             "destination": "/api/sitemap.xml"
         },
         {
+            "source": "/sitemap-pages.xml",
+            "destination": "/api/sitemap-pages.xml"
+        },
+        {
+            "source": "/sitemap-posts.xml",
+            "destination": "/api/sitemap-posts.xml"
+        },
+        {
             "source": "/sitemap-news.xml",
             "destination": "/api/sitemap-news.xml"
         },
