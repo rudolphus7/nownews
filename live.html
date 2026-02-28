@@ -572,7 +572,7 @@
                     }
                         </div>
                     </div>
-                `}).join('')
+                `}).join('')}
                     `).join('');
         }
 
@@ -624,7 +624,7 @@
             renderPlaylist();
             // Scroll to active in playlist
             setTimeout(() => {
-                const el = document.getElementById(`pi - ${ index }`);
+                const el = document.getElementById(`pi-${index}`);
                 if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             }, 100);
         }
@@ -690,7 +690,7 @@
         audio.addEventListener('timeupdate', () => {
             if (!audio.duration) return;
             const pct = (audio.currentTime / audio.duration) * 100;
-            document.getElementById('progress-fill').style.width = `${ pct } %`;
+            document.getElementById('progress-fill').style.width = `${pct}%`;
             document.getElementById('time-current').textContent = formatTime(audio.currentTime);
             document.getElementById('time-total').textContent = formatTime(audio.duration);
         });
