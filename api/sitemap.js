@@ -51,12 +51,12 @@ async function servePages(res, headers) {
         'frankivsk': 'frankivsk', 'oblast': 'oblast'
     };
 
-    const urls = [{ loc: `${SITE_URL}/`, priority: '1.0', changefreq: 'hourly' }];
+    const urls = [{ loc: `${SITE_URL}/`, priority: '1.0', changefreq: 'daily' }];
     categories.forEach(c => {
-        if (c.slug) urls.push({ loc: `${SITE_URL}/category/${CAT_MAP[c.slug] || c.slug}/`, priority: '0.7', changefreq: 'hourly' });
+        if (c.slug) urls.push({ loc: `${SITE_URL}/category/${CAT_MAP[c.slug] || c.slug}/`, priority: '0.7', changefreq: 'daily' });
     });
     cities.forEach(c => {
-        if (c.slug) urls.push({ loc: `${SITE_URL}/${c.slug}/`, priority: '0.6', changefreq: 'daily' });
+        if (c.slug) urls.push({ loc: `${SITE_URL}/${c.slug}/`, priority: '0.6', changefreq: 'weekly' });
     });
 
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -82,7 +82,7 @@ ${articles.filter(a => a.slug).map(a => {
         return `  <url>
     <loc>${escapeXml(`${SITE_URL}/news/${a.slug}/`)}</loc>
     <lastmod>${lastmod}</lastmod>
-    <changefreq>weekly</changefreq>
+    <changefreq>hourly</changefreq>
     <priority>0.85</priority>
   </url>`;
     }).join('\n')}
