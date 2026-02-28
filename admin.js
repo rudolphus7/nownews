@@ -1022,10 +1022,21 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (scraped) fullContent = scraped;
                     }
 
-                    const pubDateString = item.querySelector("pubDate, published, updated")?.textContent || "";
+                    // ROBUST DATE PARSING
+                    let pubDateString = item.querySelector("pubDate, published, updated, date")?.textContent || "";
+                    if (!pubDateString) {
+                        const dcDate = item.getElementsByTagName("dc:date")[0] || item.getElementsByTagNameNS("*", "date")[0];
+                        if (dcDate) pubDateString = dcDate.textContent;
+                    }
+
                     let pubDate = null;
                     if (pubDateString) {
                         try { pubDate = new Date(pubDateString).toISOString(); } catch (e) { }
+                    }
+
+                    // Fallback to "Right Now" if date is missing (common with rss.app)
+                    if (!pubDate) {
+                        pubDate = new Date().toISOString();
                     }
 
                     let image = "";
