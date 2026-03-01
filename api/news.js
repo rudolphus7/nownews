@@ -304,120 +304,65 @@ module.exports = async (req, res) => {
         }
 
         const headerHtml = `
-            <link rel="stylesheet" href="/components/header.css?v=3">
-            <script src="/components/header.js?v=3"></script>
             <!-- Ticker -->
-            <div class="bg-slate-900 py-2 overflow-hidden border-b border-white/5">
-                <div class="container mx-auto px-4 flex items-center">
+            <div class="bg-slate-900 py-2 overflow-hidden border-b border-white/5 h-[40px]">
+                <div class="container mx-auto px-4 flex items-center h-full">
                     <span class="bg-orange-600 text-[10px] font-black uppercase text-white px-2 py-0.5 rounded mr-4 z-10 shadow-lg">Терміново</span>
-                    <div class="flex-1 overflow-hidden relative ticker-mask">
+                    <div class="flex-1 overflow-hidden relative ticker-mask h-full flex items-center">
                         <div id="news-ticker" class="ticker-animate text-[11px] font-bold text-slate-300 uppercase tracking-widest py-1">
                             ${tickerHtml}
                         </div>
                     </div>
                 </div>
             </div>
-
-            <header class="bg-white/95 backdrop-blur-xl sticky top-0 z-[100] border-b border-slate-100">
-                <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-                    <a href="/" class="flex items-center space-x-4 group">
-                        <div class="relative">
-                            <span class="bg-orange-600 text-white w-12 h-12 flex items-center justify-center rounded-2xl font-black text-2xl italic tracking-tighter shadow-2xl shadow-orange-200">IF</span>
-                            <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-slate-900 border-2 border-white rounded-full"></div>
-                        </div>
-                        <div class="leading-none text-left">
-                            <span class="text-2xl font-black uppercase tracking-tighter text-slate-900 block mt-1">Прикарпаття <span class="text-orange-600">News</span></span>
-                            <span class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 opacity-80">Незалежна Журналістика</span>
-                        </div>
-                    </a>
-                    
-                    <nav id="desktop-nav" class="hidden md:flex items-center gap-6 text-[12px] font-black uppercase tracking-wider text-slate-600">
-                        ${categories.map(c => `
-                            <a href="/category/${c.slug}/" class="hover:text-orange-600 transition-colors py-2 font-black tracking-tight text-sm">${c.name}</a>
-                        `).join('')}
-                        <div class="flex items-center ml-4">
-                            <a href="#" class="bg-indigo-950 text-white px-5 py-2.5 rounded-xl transition hover:bg-slate-900 shadow-xl shadow-indigo-100 flex items-center gap-3 group border border-white/10">
-                                <span class="flex h-2.5 w-2.5 relative">
-                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-600"></span>
-                                </span>
-                                <span class="font-black tracking-tighter text-[11px]">LIVE • ЕФІР</span>
-                            </a>
-                        </div>
-                    </nav>
-
-                    <button id="mobile-menu-toggle" class="md:hidden flex flex-col gap-1.5 p-2">
-                        <span class="w-6 h-0.5 bg-slate-900 rounded-full"></span>
-                        <span class="w-6 h-0.5 bg-slate-900 rounded-full"></span>
-                        <span class="w-6 h-0.5 bg-slate-900 rounded-full"></span>
-                    </button>
-                </div>
-
-                <!-- City Filter Row -->
-                <div class="bg-white border-t border-slate-100 overflow-x-auto no-scrollbar shadow-sm">
-                    <div class="container mx-auto px-4 py-4 flex items-center space-x-8 text-[11px] font-black uppercase tracking-[0.1em] text-slate-500 whitespace-nowrap">
-                        <span class="text-slate-900 border-r border-slate-200 pr-6 mr-2 flex items-center">
-                            <span class="w-1.5 h-4 bg-orange-600 mr-3 rounded-full"></span>
-                            ВАШЕ МІСТО
-                        </span>
-                        <div class="flex items-center gap-6" id="city-nav-list">
-                            ${cities.map(c => `<a href="/${c.slug}/" class="hover:text-orange-600 transition-colors">${c.name}</a>`).join('')}
-                        </div>
-                    </div>
-                </div>
-            </header>
-
-            <!-- Mobile Menu Overlay -->
-            <div id="mobile-menu-overlay" class="fixed inset-0 z-[200] bg-white/95 backdrop-blur-xl translate-x-full transition-transform duration-500 md:hidden overflow-y-auto">
-                <div class="p-8">
-                    <div class="flex justify-between items-center mb-12">
-                        <a href="/" class="flex items-center space-x-4 group">
-                            <div class="relative">
-                                <span class="bg-orange-600 text-white w-10 h-10 flex items-center justify-center rounded-xl font-black text-xl italic tracking-tighter">IF</span>
-                                <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-slate-900 border border-white rounded-full"></div>
-                            </div>
-                            <div class="leading-none text-left">
-                                <span class="text-xl font-black uppercase tracking-tighter text-slate-900 block">Прикарпаття <span class="text-orange-600">News</span></span>
-                            </div>
-                        </a>
-                        <button id="close-mobile-menu" class="p-4 -mr-4 text-slate-400 hover:text-orange-600 font-black text-4xl transition-colors">&times;</button>
-                    </div>
-                    <div class="space-y-8">
-                        <div>
-                            <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6 border-b border-slate-100 pb-2">РУБРИКИ</h3>
-                            <div id="mobile-nav-list" class="flex flex-col gap-5 text-lg font-black uppercase text-slate-800 tracking-tight">
-                                ${categories.map(c => `
-                                    <a href="/category/${c.slug}/" class="py-2 active:text-orange-600 font-bold">${c.name}</a>
-                                `).join('')}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <!-- Header placeholder -->
+            <div class="h-[80px]"></div> 
         `;
 
-        htmlContent = inject(htmlContent, 'site-header-placeholder', headerHtml);
+        htmlContent = htmlContent.replace(/<div id="site-header-placeholder"><\/div>/, `<div id="site-header-placeholder">${headerHtml}</div>`);
 
-        // SSR News content injection
-        htmlContent = inject(htmlContent, 'news-title', news.title);
-        htmlContent = inject(htmlContent, 'news-text', news.content);
-        htmlContent = inject(htmlContent, 'breadcrumb-category', CAT_MAP[news.category] || news.category);
-        htmlContent = inject(htmlContent, 'news-date', formattedDate);
-        htmlContent = inject(htmlContent, 'reading-time', readingTimeText);
-        htmlContent = inject(htmlContent, 'view-count', news.views);
+        // SSR Content Injection
+        const ssrScript = `<script>
+        window.__SSR_ID__ = '${news.id}';
+        window.__SSR_SLUG__ = '${news.slug}';
+        window.__SSR_CONTENT_PRE_RENDERED__ = true;
+        window.__SSR_POST_DATA__ = ${JSON.stringify(news)};
+        window.__SSR_CATEGORIES__ = ${JSON.stringify(categories)};
+        window.__SSR_CITIES__ = ${JSON.stringify(cities)};
+        window.__SSR_TICKER__ = ${JSON.stringify(tickerNews)};
+    </script>`;
 
-        // Handle image separately
+        // Utility for injecting content into specific IDs
+        const injectIntoId = (html, id, content) => {
+            const regex = new RegExp(`(id=["']${id}["'][^>]*>)`, 'g');
+            return html.replace(regex, `$1${content || ''}`);
+        };
+
+        // Deep SSR Injections
+        htmlContent = injectIntoId(htmlContent, 'news-title', news.title);
+        htmlContent = injectIntoId(htmlContent, 'news-text', news.content);
+        htmlContent = injectIntoId(htmlContent, 'breadcrumb-category', CAT_MAP[news.category] || news.category);
+        htmlContent = injectIntoId(htmlContent, 'news-date', formattedDate);
+        htmlContent = injectIntoId(htmlContent, 'reading-time', readingTimeText);
+        htmlContent = injectIntoId(htmlContent, 'view-count', news.views || 0);
+
+        // Image
         if (news.image_url) {
-            htmlContent = htmlContent.replace(/id="news-image"\s+src=""/, `id="news-image" src="${escapeAttr(news.image_url)}"`);
+            htmlContent = htmlContent.replace('id="news-image" src=""', `id="news-image" src="${news.image_url}" alt="${escapeAttr(news.title)}"`);
         }
 
-        // Add a flag to indicate content is pre-rendered to prevent flickering/re-loading
-        const ssrScript = `<script>
-    window.__SSR_CONTENT_PRE_RENDERED__ = true;
-    window.__SSR_POST_DATA__ = ${JSON.stringify(news).replace(/</g, '\\u003c')};
-    window.__SSR_SLUG__ = '${escapeJson(news.slug || '')}';
-    window.__SSR_ID__ = '${escapeJson(String(news.id || ''))}'; 
-<\/script>`;
+        // Initial state: Show content, Hide loader
+        htmlContent = htmlContent.replace('id="loader"', 'id="loader" class="hidden"');
+        htmlContent = htmlContent.replace('id="news-content" class="hidden"', 'id="news-content"');
+
+        // Meta Badges
+        let metaBadgesHtml = '';
+        if (news.city) metaBadgesHtml += `<div class="inline-flex items-center gap-2 bg-orange-50 text-orange-600 px-4 py-2 rounded-2xl text-[11px] font-black uppercase tracking-widest border border-orange-100 shadow-sm leading-none">${CITY_MAP[news.city] || news.city}</div>`;
+        metaBadgesHtml += `<div class="inline-flex items-center bg-indigo-50 text-indigo-600 px-4 py-2 rounded-2xl text-[11px] font-black uppercase tracking-widest border border-indigo-100 shadow-sm leading-none">${CAT_MAP[news.category] || news.category}</div>`;
+        if (news.tags) news.tags.forEach(t => {
+            metaBadgesHtml += `<span class="bg-slate-50 text-slate-500 px-4 py-2 rounded-2xl text-[11px] font-black uppercase tracking-widest border border-slate-100 shadow-sm leading-none">#${t}</span>`;
+        });
+        htmlContent = injectIntoId(htmlContent, 'news-meta-tags', metaBadgesHtml);
 
         // Inject meta tags after title
         htmlContent = htmlContent.replace(/<title>.*?<\/title>/s, `<title>${escapeHtml(title)}</title>\n${metaTags}\n${ssrScript}`);

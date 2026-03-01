@@ -151,9 +151,12 @@ module.exports = async (req, res) => {
 
     // SSR data for client-side city filtering
     const ssrScript = `<script>
-    window.__SSR_CITY__ = '${escapeAttr(citySlug)}';
-    window.__SSR_CITY_NAME__ = '${escapeAttr(cityName)}';
-<\/script>`;
+        window.__SSR_CITY__ = '${escapeAttr(citySlug)}';
+        window.__SSR_CITY_NAME__ = '${escapeAttr(cityName)}';
+        window.__SSR_CATEGORIES__ = ${JSON.stringify(categories)};
+        window.__SSR_CITIES__ = ${JSON.stringify(cities)};
+        // Ticker is optional for city pages but good for hydration
+    </script>`;
 
     // Build SSR nav from DB data
     const navLinksHtml = categories.map(c =>
@@ -175,10 +178,10 @@ module.exports = async (req, res) => {
 
     const headerHtml = `
         <!-- Ticker -->
-        <div class="bg-slate-900 py-2 overflow-hidden border-b border-white/5">
-            <div class="container mx-auto px-4 flex items-center">
+        <div class="bg-slate-900 py-2 overflow-hidden border-b border-white/5 h-[40px]">
+            <div class="container mx-auto px-4 flex items-center h-full">
                 <span class="bg-orange-600 text-[10px] font-black uppercase text-white px-2 py-0.5 rounded mr-4 z-10 shadow-lg">Терміново</span>
-                <div class="flex-1 overflow-hidden relative ticker-mask">
+                <div class="flex-1 overflow-hidden relative ticker-mask h-full flex items-center">
                     <div id="news-ticker" class="ticker-animate text-[11px] font-bold text-slate-300 uppercase tracking-widest py-1">
                         ОСТАННІ НОВИНИ ПРИКАРПАТТЯ • ПЕРЕВІРЕНІ ФАКТИ • АКТУАЛЬНІ ПОДІЇ • ОПЕРАТИВНО ТА ЧЕСНО •
                     </div>

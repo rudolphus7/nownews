@@ -95,11 +95,25 @@ class SiteHeader {
         try {
             this.renderPlaceholder();
             this.setupEventListeners();
-            await this.loadDynamicData();
+
+            // Hydration: Check if data is already provided by SSR
+            if (window.__SSR_CATEGORIES__ && window.__SSR_CITIES__) {
+                console.log("Using SSR data for header hydration");
+                this._handleDynamicData(window.__SSR_CATEGORIES__, window.__SSR_CITIES__);
+
+                if (window.__SSR_TICKER__) {
+                    this._renderTicker(window.__SSR_TICKER__);
+                } else {
+                    this.loadTickerData();
+                }
+            } else {
+                await this.loadDynamicData();
+                this.loadTickerData();
+            }
+
             // Re-parse filters after we have dynamic maps
             this.currentFilters = this._parseFiltersFromUrl();
             this.updateActiveHighlights();
-            this.loadTickerData();
         } catch (e) {
             console.error("Header init failed:", e);
         }
@@ -218,43 +232,47 @@ class SiteHeader {
                 this.supabase.from('categories').select('*').order('order_index', { ascending: true }),
                 this.supabase.from('cities').select('*').order('order_index', { ascending: true })
             ]);
-
-            if (catRes.data && catRes.data.length > 0) {
-                this.categories = {};
-                this.catUkToEn = {};
-                this.catEnToUk = {};
-
-                catRes.data.forEach(c => {
-                    this.categories[c.slug] = c.name;
-                    this.catUkToEn[c.slug] = c.slug;
-                    this.catEnToUk[c.slug] = c.slug;
-                    // Update global maps for any other scripts
-                    CATEGORIES_UK[c.slug] = c.name;
-                    CATEGORY_EN_TO_UK_SLUG[c.slug] = c.slug;
-                });
-                this.renderNav(catRes.data);
-            } else {
-                console.warn('No categories found in DB');
-            }
-
-            if (cityRes.data && cityRes.data.length > 0) {
-                this.cities = {};
-                cityRes.data.forEach(c => {
-                    this.cities[c.slug] = c.name;
-                    CITIES_UK[c.slug] = c.name;
-                });
-                this.renderCities(cityRes.data);
-            } else {
-                console.warn('No cities found in DB');
-            }
+            this._handleDynamicData(catRes.data, cityRes.data);
         } catch (err) {
             console.error('Header dynamic data load failed:', err);
+        }
+    }
+
+    _handleDynamicData(categoriesData, citiesData) {
+        if (categoriesData && categoriesData.length > 0) {
+            this.categories = {};
+            this.catUkToEn = {};
+            this.catEnToUk = {};
+
+            categoriesData.forEach(c => {
+                this.categories[c.slug] = c.name;
+                this.catUkToEn[c.slug] = c.slug;
+                this.catEnToUk[c.slug] = c.slug;
+                CATEGORIES_UK[c.slug] = c.name;
+                CATEGORY_EN_TO_UK_SLUG[c.slug] = c.slug;
+            });
+            this.renderNav(categoriesData);
+        }
+
+        if (citiesData && citiesData.length > 0) {
+            this.cities = {};
+            citiesData.forEach(c => {
+                this.cities[c.slug] = c.name;
+                CITIES_UK[c.slug] = c.name;
+            });
+            this.renderCities(citiesData);
         }
     }
 
     renderNav(categories) {
         const nav = document.getElementById('desktop-nav');
         const mobileNav = document.getElementById('mobile-nav-list');
+
+        // Check if already rendered by SSR
+        if (nav && nav.children.length > 0) {
+            console.log("Nav already rendered by SSR, skipping re-render");
+            return;
+        }
 
         const liveHtml = `
             <div class="flex items-center ml-4">
@@ -280,6 +298,12 @@ class SiteHeader {
     renderCities(cities) {
         const cityContainer = document.getElementById('city-nav-list');
         const mobileCities = document.getElementById('mobile-city-list');
+
+        // Check if already rendered by SSR
+        if (cityContainer && cityContainer.children.length > 0) {
+            console.log("Cities already rendered by SSR, skipping re-render");
+            return;
+        }
 
         // Cities now use path-based URLs: /:city/
         const html = cities.map(c => `
@@ -401,23 +425,32 @@ class SiteHeader {
                 .limit(5);
 
             if (data && data.length > 0) {
-                const tickerItems = data.map(n => {
-                    const link = this.getNewsLink(n);
-                    return `<a href="${link}" class="hover:text-orange-500 transition-colors mx-4">${n.title}</a>`;
-                });
-                const separator = `<span class="text-orange-600 font-bold px-2 mx-2">/</span>`;
-                const tickerElem = document.getElementById('news-ticker');
-                if (tickerElem) tickerElem.innerHTML = tickerItems.join(separator);
+                this._renderTicker(data);
             }
         } catch (err) {
             console.warn("Ticker load failed:", err);
+        }
+    }
+
+    _renderTicker(data) {
+        const tickerItems = data.map(n => {
+            const link = this.getNewsLink(n);
+            return `<a href="${link}" class="hover:text-orange-500 transition-colors mx-4">${n.title}</a>`;
+        });
+        const separator = `<span class="text-orange-600 font-bold px-2 mx-2">/</span>`;
+        const tickerElem = document.getElementById('news-ticker');
+        if (tickerElem) {
+            // Check if already rendered by SSR - if it contains links, it's already there
+            if (tickerElem.innerHTML.includes('<a')) {
+                console.log("Ticker already rendered by SSR, skipping re-render");
+                return;
+            }
+            tickerElem.innerHTML = tickerItems.join(separator);
         }
     }
 }
 
 // Global initialization — returns a Promise that resolves after dynamic data is loaded
 window.initSiteHeader = async (supabaseClient) => {
-    const siteHeader = new SiteHeader(supabaseClient);
-    await siteHeader.init();
     return siteHeader;
 };
