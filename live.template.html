@@ -4,26 +4,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>LIVE • Аудіо-Новини — Прикарпаття News</title>
-    <meta name="description"
-        content="Слухайте новини Прикарпаття голосом диктора. Оберіть місто або рубрику і слухайте по дорозі.">
+    <title>LIVE • Infinite Radio — Прикарпаття News</title>
+    <meta name="description" content="Слухайте новини Прикарпаття. Хронологія дня голосом диктора.">
     <link rel="canonical" href="https://ifnews-omega.vercel.app/live/">
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
         rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="/components/header.css">
     <script src="/components/header.js"></script>
     <style>
+        :root {
+            --accent: #ff4d00;
+            --accent-light: #ff7d45;
+            --bg: #09090b;
+            --card: #141417;
+        }
+
         * {
             font-family: 'Inter', sans-serif;
             -webkit-tap-highlight-color: transparent;
         }
 
+        h1,
+        h2,
+        .font-outfit {
+            font-family: 'Outfit', sans-serif;
+        }
+
         html,
         body {
-            background: #0d0d14;
+            background: var(--bg);
             color: #fff;
             margin: 0;
             padding: 0;
@@ -31,7 +43,7 @@
             overscroll-behavior-y: contain;
         }
 
-        /* ── Scrollbar invisible ───────────────────────────────── */
+        /* ── Scrollbar ────────────────────────────────────────── */
         ::-webkit-scrollbar {
             display: none;
         }
@@ -40,637 +52,467 @@
             scrollbar-width: none;
         }
 
-        /* ── Channel cards ────────────────────────────────────── */
-        .channel-cards {
-            display: flex;
-            gap: 10px;
-            padding: 0 16px 4px;
-            overflow-x: auto;
-            scroll-snap-type: x mandatory;
+        /* ── Timeline Styles ─────────────────────────────────── */
+        .date-group {
+            margin-bottom: 24px;
+            position: relative;
         }
 
-        .channel-card {
-            flex: 0 0 auto;
-            width: 100px;
-            height: 90px;
-            border-radius: 18px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            cursor: pointer;
-            scroll-snap-align: start;
-            border: 2px solid transparent;
-            transition: all 0.2s ease;
-            font-size: 10px;
+        .date-header {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background: rgba(9, 9, 11, 0.85);
+            backdrop-filter: blur(12px);
+            padding: 16px 20px 8px;
+            font-size: 11px;
             font-weight: 900;
+            color: #71717a;
             text-transform: uppercase;
-            letter-spacing: 0.06em;
-            text-align: center;
-            line-height: 1.2;
-            padding: 8px;
-            background: rgba(255, 255, 255, 0.04);
-            color: rgba(255, 255, 255, 0.5);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .channel-card .icon {
-            font-size: 22px;
-            line-height: 1;
-        }
-
-        .channel-card:hover {
-            background: rgba(255, 255, 255, 0.08);
-            color: rgba(255, 255, 255, 0.8);
-        }
-
-        .channel-card.active {
-            color: #fff;
-            border-color: var(--card-accent, rgba(234, 88, 12, 0.7));
-            background: var(--card-bg, rgba(234, 88, 12, 0.15));
-            box-shadow: 0 0 20px var(--card-glow, rgba(234, 88, 12, 0.2));
-        }
-
-        .channel-card::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            opacity: 0;
-            background: linear-gradient(135deg, var(--card-accent2, rgba(234, 88, 12, 0.3)), transparent);
-            transition: opacity 0.3s;
-        }
-
-        .channel-card.active::before {
-            opacity: 1;
-        }
-
-        .channel-card .dot {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: var(--card-accent, #ea580c);
-            opacity: 0;
-            box-shadow: 0 0 6px var(--card-accent, #ea580c);
-        }
-
-        .channel-card.active .dot {
-            opacity: 1;
-            animation: blink 2s ease-in-out infinite;
-        }
-
-        @keyframes blink {
-
-            0%,
-            100% {
-                opacity: 1
-            }
-
-            50% {
-                opacity: 0.3
-            }
-        }
-
-        /* ── Track list ────────────────────────────────────────── */
-        .track-row {
+            letter-spacing: 0.2em;
             display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 16px;
+            items-center;
+            justify-content: space-between;
+        }
+
+        /* ── Track Tile ────────────────────────────────────────── */
+        .track-tile {
+            display: flex;
+            gap: 16px;
+            padding: 12px 20px;
             cursor: pointer;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-            transition: background 0.15s;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
             position: relative;
         }
 
-        .track-row:active {
-            background: rgba(255, 255, 255, 0.05);
+        .track-tile:active {
+            background: rgba(255, 255, 255, 0.03);
         }
 
-        .track-row.active {
-            background: rgba(234, 88, 12, 0.08);
+        .track-tile.active {
+            background: rgba(255, 77, 0, 0.08);
         }
 
-        .track-row.active::before {
+        .track-tile.active::before {
             content: '';
             position: absolute;
             left: 0;
             top: 0;
             bottom: 0;
             width: 3px;
-            background: #ea580c;
-            border-radius: 0 2px 2px 0;
+            background: var(--accent);
         }
 
-        .track-thumb {
-            width: 52px;
-            height: 52px;
-            border-radius: 12px;
+        .track-img-container {
+            position: relative;
+            width: 64px;
+            height: 64px;
+            flex-shrink: 0;
+        }
+
+        .track-img {
+            width: 100%;
+            height: 100%;
+            border-radius: 14px;
             object-fit: cover;
-            flex-shrink: 0;
-            background: #1e293b;
+            background: #1e1e24;
         }
 
-        .track-thumb-placeholder {
-            width: 52px;
-            height: 52px;
-            border-radius: 12px;
-            flex-shrink: 0;
-            background: #1a1f2e;
+        .track-play-hint {
+            position: absolute;
+            inset: 0;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 14px;
+            opacity: 0;
+            transition: opacity 0.2s;
         }
 
-        /* ── Sticky bottom player ──────────────────────────────── */
+        .track-tile:hover .track-play-hint {
+            opacity: 1;
+        }
+
+        .track-tile.active .track-play-hint {
+            opacity: 1;
+            background: rgba(255, 77, 0, 0.3);
+        }
+
+        .track-meta {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .track-tag {
+            font-size: 10px;
+            font-weight: 800;
+            color: #a1a1aa;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 2px;
+        }
+
+        .track-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #f4f4f5;
+            line-height: 1.35;
+            margin-bottom: 6px;
+        }
+
+        .track-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-top: auto;
+        }
+
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 10px;
+            font-weight: 700;
+            color: #71717a;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: color 0.2s;
+        }
+
+        .action-btn:hover {
+            color: var(--accent);
+        }
+
+        /* ── Sticky Bottom Player ──────────────────────────────── */
         #player-bar {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            z-index: 500;
-            background: rgba(13, 13, 20, 0.97);
-            backdrop-filter: blur(24px) saturate(180%);
-            -webkit-backdrop-filter: blur(24px) saturate(180%);
-            border-top: 1px solid rgba(255, 255, 255, 0.07);
-            padding-bottom: env(safe-area-inset-bottom, 0);
+            z-index: 100;
+            background: rgba(18, 18, 22, 0.98);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            padding-bottom: env(safe-area-inset-bottom, 12px);
         }
 
-        .player-progress {
+        .progress-bar {
             height: 2px;
-            background: rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.1);
+            width: 100%;
             cursor: pointer;
         }
 
-        .player-progress-fill {
+        .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #ea580c, #f97316);
+            background: var(--accent);
             width: 0%;
-            transition: width 0.3s linear;
+            transition: width 0.1s linear;
         }
 
-        .player-main {
+        .player-content {
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 12px 16px;
+            padding: 12px 20px;
         }
 
-        .player-art {
-            width: 48px;
-            height: 48px;
+        .mini-art {
+            width: 44px;
+            height: 44px;
             border-radius: 10px;
             object-fit: cover;
-            flex-shrink: 0;
         }
 
-        .player-info {
+        .mini-info {
             flex: 1;
             min-width: 0;
         }
 
-        .player-title {
+        .mini-title {
             font-size: 13px;
             font-weight: 700;
-            color: #fff;
-            line-height: 1.3;
+            white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            white-space: nowrap;
         }
 
-        .player-cat {
+        .mini-sub {
             font-size: 10px;
-            font-weight: 900;
-            color: #f97316;
+            color: #71717a;
+            font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.08em;
+            letter-spacing: 0.1em;
         }
 
-        .player-controls {
+        .player-btns {
             display: flex;
-            align-items: center;
-            gap: 4px;
-            flex-shrink: 0;
+            items-center;
+            gap: 8px;
         }
 
-        .ctrl {
+        .p-btn {
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            border: none;
-            background: transparent;
-            color: rgba(255, 255, 255, 0.6);
-            cursor: pointer;
             display: flex;
-            align-items: center;
+            items-center;
             justify-content: center;
-            transition: all 0.15s;
-        }
-
-        .ctrl:active {
-            transform: scale(0.9);
-        }
-
-        .ctrl-play {
-            width: 48px;
-            height: 48px;
-            background: linear-gradient(135deg, #ea580c, #dc2626);
-            color: #fff;
-            box-shadow: 0 4px 16px rgba(234, 88, 12, 0.4);
-        }
-
-        .ctrl-play:active {
-            box-shadow: 0 2px 8px rgba(234, 88, 12, 0.3);
-        }
-
-        .ctrl:hover {
             color: #fff;
         }
 
-        /* ── Expanded player overlay ──────────────────────────── */
-        #player-full {
+        .p-btn-play {
+            background: #fff;
+            color: #000;
+            box-shadow: 0 4px 12px rgba(255, 255, 255, 0.15);
+        }
+
+        /* ── Filter Modal ─────────────────────────────────────── */
+        #filter-modal {
             position: fixed;
             inset: 0;
-            z-index: 600;
-            background: rgba(10, 10, 18, 0.98);
-            backdrop-filter: blur(40px);
-            display: flex;
-            flex-direction: column;
+            z-index: 200;
             transform: translateY(100%);
-            transition: transform 0.4s cubic-bezier(.32, .72, 0, 1);
-            padding-top: env(safe-area-inset-top, 0);
+            transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
         }
 
-        #player-full.open {
+        #filter-modal.open {
             transform: translateY(0);
         }
 
-        .full-header {
+        .modal-bg {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+        }
+
+        .modal-content {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            top: 15%;
+            background: #18181b;
+            border-radius: 32px 32px 0 0;
+            padding: 32px 24px;
             display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 16px 20px;
+            flex-direction: column;
+            gap: 32px;
+            box-shadow: 0 -20px 40px rgba(0, 0, 0, 0.4);
         }
 
-        .full-cover {
-            width: min(280px, 80vw);
-            aspect-ratio: 1;
-            border-radius: 24px;
-            object-fit: cover;
-            margin: 0 auto 20px;
-            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.6);
-            transition: transform 0.4s ease;
-        }
-
-        .full-cover.spin {
-            animation: cover-float 6s ease-in-out infinite;
-        }
-
-        @keyframes cover-float {
-
-            0%,
-            100% {
-                transform: scale(1.02) translateY(0)
-            }
-
-            50% {
-                transform: scale(1.02) translateY(-6px)
-            }
-        }
-
-        .full-progress {
+        .modal-handle {
+            width: 40px;
             height: 4px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
-            cursor: pointer;
-            margin: 0 20px;
-        }
-
-        .full-progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #ea580c, #f97316);
-            border-radius: 4px;
-            width: 0%;
-            transition: width 0.3s linear;
-        }
-
-        .full-controls {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 20px;
-            padding: 24px 20px 16px;
-        }
-
-        .full-ctrl {
-            width: 52px;
-            height: 52px;
-            border-radius: 50%;
-            border: none;
-            background: rgba(255, 255, 255, 0.06);
-            color: rgba(255, 255, 255, 0.7);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.15s;
-        }
-
-        .full-ctrl:active {
-            transform: scale(0.9);
-            background: rgba(255, 255, 255, 0.12);
-        }
-
-        .full-ctrl-play {
-            width: 68px;
-            height: 68px;
-            background: linear-gradient(135deg, #ea580c, #dc2626);
-            color: #fff;
-            box-shadow: 0 8px 32px rgba(234, 88, 12, 0.5);
-        }
-
-        .full-ctrl-play:active {
-            box-shadow: 0 4px 16px rgba(234, 88, 12, 0.3);
-        }
-
-        .vol-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 0 20px 8px;
-        }
-
-        input[type=range] {
-            -webkit-appearance: none;
-            appearance: none;
-            height: 3px;
-            background: rgba(255, 255, 255, 0.12);
-            border-radius: 3px;
-            outline: none;
-            flex: 1;
-        }
-
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            background: #ea580c;
-            cursor: pointer;
-            box-shadow: 0 0 8px rgba(234, 88, 12, 0.5);
-        }
-
-        /* ── Wave animation ────────────────────────────────────── */
-        .wave {
-            display: flex;
-            align-items: center;
-            gap: 2px;
-            height: 20px;
-        }
-
-        .wave-b {
-            width: 3px;
-            background: #ea580c;
+            background: rgba(255, 255, 255, 0.2);
             border-radius: 2px;
-            animation: wav 1s ease-in-out infinite;
+            margin: -16px auto 16px;
         }
 
-        @keyframes wav {
+        .filter-section-title {
+            font-size: 11px;
+            font-weight: 900;
+            color: #71717a;
+            text-transform: uppercase;
+            letter-spacing: 0.25em;
+            margin-bottom: 16px;
+        }
+
+        .chip-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .chip {
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            font-size: 13px;
+            font-weight: 600;
+            color: #d4d4d8;
+            transition: all 0.2s;
+        }
+
+        .chip.active {
+            background: var(--accent);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(255, 77, 0, 0.3);
+        }
+
+        /* ── Misc ────────────────────────────────────────────── */
+        .badge-live {
+            background: var(--accent);
+            color: #fff;
+            font-size: 9px;
+            font-weight: 900;
+            padding: 2px 8px;
+            border-radius: 10px;
+            display: inline-flex;
+            items-center;
+            gap: 4px;
+        }
+
+        main {
+            padding-top: calc(70px);
+            padding-bottom: 120px;
+        }
+
+        .header-fixed {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 40;
+            height: 70px;
+            background: rgba(9, 9, 11, 0.9);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Wave bar animation */
+        .wave-container {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            height: 18px;
+        }
+
+        .wave-bar {
+            width: 3px;
+            background: var(--accent);
+            border-radius: 1.5px;
+            animation: wave-anim 1s ease-in-out infinite;
+        }
+
+        @keyframes wave-anim {
 
             0%,
             100% {
-                height: 4px
+                height: 4px;
             }
 
             50% {
-                height: 16px
+                height: 18px;
             }
-        }
-
-        /* ── Skeleton ──────────────────────────────────────────── */
-        .skeleton {
-            background: linear-gradient(90deg, rgba(255, 255, 255, 0.04) 25%, rgba(255, 255, 255, 0.08) 50%, rgba(255, 255, 255, 0.04) 75%);
-            background-size: 200% 100%;
-            animation: shimmer 1.5s infinite;
-        }
-
-        @keyframes shimmer {
-            0% {
-                background-position: -200% 0
-            }
-
-            100% {
-                background-position: 200% 0
-            }
-        }
-
-        /* ── Content spacing for player bar ───────────────────── */
-        main {
-            padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px) + 8px);
         }
     </style>
 </head>
 
 <body>
-    <!-- Header -->
     <div id="site-header-placeholder" class="relative z-10"></div>
 
-    <main class="max-w-2xl mx-auto">
-
-        <!-- Page head -->
-        <div class="px-4 pt-6 pb-2">
-            <div class="flex items-center gap-2 mb-2">
-                <span class="flex h-2.5 w-2.5 relative">
-                    <span
-                        class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-600"></span>
-                </span>
-                <span class="text-[10px] font-black text-red-500 uppercase tracking-[0.3em]">Live • Ефір</span>
+    <!-- Persistent Header -->
+    <div class="header-fixed flex items-center justify-between px-6">
+        <div class="flex flex-col">
+            <h1 class="text-xl font-outfit font-black tracking-tight leading-none">INFINITE <span
+                    class="text-orange-600">RADIO</span></h1>
+            <div class="flex items-center gap-1.5 mt-1">
+                <span class="badge-live"><span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+                    LIVE</span>
+                <span id="active-filter-label"
+                    class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Всі новини</span>
             </div>
-            <div class="flex items-end justify-between">
-                <div>
-                    <h1 class="text-3xl font-black tracking-tighter text-white italic">Аудіо<span
-                            class="text-orange-500">-новини</span></h1>
-                    <p class="text-[12px] text-slate-400 mt-0.5">Слухай по дорозі — без рук</p>
-                </div>
-                <!-- Radio toggle -->
-                <button id="radio-toggle" onclick="toggleRadioMode()"
-                    class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.05] border border-white/[0.08] transition-all">
-                    <span class="text-[9px] font-black uppercase tracking-widest text-slate-400"
-                        id="radio-label">Авторадіо</span>
-                    <div id="radio-dot" class="w-2 h-2 rounded-full bg-slate-600 transition-colors"></div>
+        </div>
+        <button onclick="openFilters()"
+            class="w-11 h-11 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 active:scale-95 transition-transform">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path d="M4 6h16M4 12h16m-7 6h7" />
+            </svg>
+        </button>
+    </div>
+
+    <main class="max-w-xl mx-auto">
+        <!-- Radio Toggle Row -->
+        <div class="px-6 py-4 flex items-center justify-between bg-white/[0.02] border-b border-white/[0.04]">
+            <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Автоматичний ефір</p>
+            <div class="flex items-center gap-3">
+                <span class="text-[10px] font-bold text-orange-600" id="radio-status">ВИМКНЕНO</span>
+                <button onclick="toggleRadioMode()" id="radio-btn"
+                    class="w-12 h-6 rounded-full bg-slate-800 p-1 transition-colors relative">
+                    <div id="radio-knob" class="w-4 h-4 bg-slate-400 rounded-full transition-transform"></div>
                 </button>
             </div>
         </div>
 
-        <!-- Channel selector label -->
-        <p class="px-4 pt-5 pb-2 text-[9px] font-black text-slate-600 uppercase tracking-[0.25em]">Канал</p>
-
-        <!-- Channel cards row -->
-        <div class="channel-cards pb-2" id="channel-cards">
-            <!-- Injected by JS -->
+        <!-- Timeline Container -->
+        <div id="timeline">
+            <!-- Loading Skeletons -->
+            <div class="p-6 space-y-8">
+                <div class="animate-pulse space-y-4">
+                    <div class="h-4 w-24 bg-white/5 rounded"></div>
+                    <div class="flex gap-4">
+                        <div class="w-16 h-16 bg-white/5 rounded-2xl"></div>
+                        <div class="flex-1 space-y-2">
+                            <div class="h-4 w-3/4 bg-white/5 rounded"></div>
+                            <div class="h-3 w-1/2 bg-white/5 rounded"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-
-        <!-- Section label -->
-        <div class="flex items-center justify-between px-4 pt-5 pb-3">
-            <p class="text-[9px] font-black text-slate-600 uppercase tracking-[0.25em]">Черга</p>
-            <span id="queue-count" class="text-[9px] font-bold text-slate-600"></span>
-        </div>
-
-        <!-- Loading skeletons -->
-        <div id="loading-state" class="px-4 space-y-3">
-            <div class="skeleton h-16 rounded-2xl"></div>
-            <div class="skeleton h-16 rounded-2xl"></div>
-            <div class="skeleton h-16 rounded-2xl"></div>
-            <div class="skeleton h-16 rounded-2xl"></div>
-        </div>
-
-        <!-- Empty state -->
-        <div id="empty-state" class="hidden text-center py-16 px-4">
-            <div class="text-5xl mb-4">🎙️</div>
-            <p class="text-slate-300 font-bold">Немає аудіо-новин у цьому каналі</p>
-            <p class="text-slate-500 text-sm mt-2">Спробуйте іншу рубрику або місто</p>
-        </div>
-
-        <!-- Track list -->
-        <div id="track-list"></div>
-
     </main>
 
-    <!-- ──────────────── Sticky Bottom Player ──────────────── -->
+    <!-- ──────────────── Sticky Player Bar ──────────────── -->
     <div id="player-bar" class="hidden">
-        <div class="player-progress" id="min-progress" onclick="seekFromMini(event)">
-            <div class="player-progress-fill" id="min-progress-fill"></div>
+        <div class="progress-bar" id="p-bar" onclick="seek(event)">
+            <div class="progress-fill" id="p-fill"></div>
         </div>
-        <div class="player-main" onclick="openFullPlayer()">
-            <img id="min-art" src="" alt="" class="player-art" onerror="this.style.display='none'">
-            <div class="player-info">
-                <div class="player-cat" id="min-cat">Новини</div>
-                <div class="player-title" id="min-title">Завантаження...</div>
+        <div class="player-content" onclick="togglePlay()">
+            <img id="m-art" src="" alt="" class="mini-art">
+            <div class="mini-info">
+                <p id="m-sub" class="mini-sub">Політика</p>
+                <h3 id="m-title" class="mini-title">Завантаження...</h3>
             </div>
-            <div class="player-controls" onclick.stop="">
-                <button class="ctrl" onclick="event.stopPropagation();prevTrack()" title="Назад">
-                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M6 6h2v12H6zm3.5 6 8.5 6V6z" />
-                    </svg>
-                </button>
-                <button class="ctrl ctrl-play" id="min-play-btn" onclick="event.stopPropagation();togglePlay()">
-                    <svg id="min-play-icon" width="22" height="22" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M8 5v14l11-7z" />
-                    </svg>
-                    <svg id="min-pause-icon" class="hidden" width="22" height="22" fill="currentColor"
-                        viewBox="0 0 24 24">
-                        <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
-                    </svg>
-                </button>
-                <button class="ctrl" onclick="event.stopPropagation();nextTrack()" title="Далі">
-                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+            <div class="player-btns">
+                <button class="p-btn text-slate-400" onclick="event.stopPropagation();nextTrack()">
+                    <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M6 18l8.5-6L6 6v12zm2-8.14L11.03 12 8 14.14V9.86zM16 6h2v12h-2z" />
                     </svg>
                 </button>
+                <div id="p-wrap" class="p-btn p-btn-play">
+                    <svg id="p-play" width="22" height="22" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M8 5v14l11-7z" />
+                    </svg>
+                    <svg id="p-pause" class="hidden" width="22" height="22" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+                    </svg>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- ──────────────── Full Player Overlay ──────────────── -->
-    <div id="player-full">
-        <div class="full-header">
-            <button onclick="closeFullPlayer()" class="p-2 -ml-2 text-slate-400 hover:text-white transition-colors">
-                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                    <path d="M19 9l-7 7-7-7" />
-                </svg>
-            </button>
-            <div class="text-center">
-                <p class="text-[9px] font-black text-slate-500 uppercase tracking-[0.25em]" id="full-channel-label">Всі
-                    новини</p>
-                <p class="text-xs font-bold text-slate-300">← Свайп вниз →</p>
+    <!-- ──────────────── Filter Modal ──────────────── -->
+    <div id="filter-modal">
+        <div class="modal-bg" onclick="closeFilters()"></div>
+        <div class="modal-content">
+            <div class="modal-handle"></div>
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-2xl font-outfit font-black">Фільтри</h2>
+                <button onclick="closeFilters()"
+                    class="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Готово</button>
             </div>
-            <button onclick="copyShareLink()" class="p-2 -mr-2 text-slate-400 hover:text-orange-400 transition-colors">
-                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                </svg>
-            </button>
-        </div>
 
-        <!-- Cover art -->
-        <div class="flex-1 flex flex-col overflow-hidden px-6">
-            <div class="flex-1 flex items-center justify-center">
-                <div class="relative">
-                    <img id="full-art" class="full-cover" src="" alt="">
-                    <div class="absolute top-3 left-3 px-2.5 py-1 bg-orange-600/90 backdrop-blur-sm rounded-full text-[9px] font-black text-white uppercase tracking-widest"
-                        id="full-cat"></div>
+            <div class="overflow-y-auto flex-1 space-y-8">
+                <div>
+                    <h3 class="filter-section-title">РУБРИКИ</h3>
+                    <div class="chip-grid" id="cat-grid"></div>
+                </div>
+                <div>
+                    <h3 class="filter-section-title">МІСТА</h3>
+                    <div class="chip-grid" id="city-grid"></div>
                 </div>
             </div>
 
-            <!-- Track info -->
-            <div class="mb-4 px-2">
-                <h2 id="full-title" class="text-xl font-black text-white leading-tight mb-1"></h2>
-                <p id="full-date" class="text-sm text-slate-400 font-medium"></p>
-                <a id="full-link" href="#"
-                    class="inline-flex items-center gap-1 text-[10px] font-black text-slate-500 hover:text-orange-400 mt-1 transition-colors uppercase tracking-wider">
-                    Читати статтю
-                    <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5"
-                        viewBox="0 0 24 24">
-                        <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6m4-3h6m0 0v6m0-6L10 14" />
-                    </svg>
-                </a>
-            </div>
-
-            <!-- Progress -->
-            <div class="mb-2 px-2">
-                <div class="full-progress" id="full-progress" onclick="seekFromFull(event)">
-                    <div class="full-progress-fill" id="full-progress-fill"></div>
-                </div>
-                <div class="flex justify-between mt-1.5 text-[10px] font-bold text-slate-500">
-                    <span id="full-cur">0:00</span>
-                    <span id="full-dur">0:00</span>
-                </div>
-            </div>
-
-            <!-- Controls -->
-            <div class="full-controls">
-                <button class="full-ctrl" onclick="prevTrack()">
-                    <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M6 6h2v12H6zm3.5 6 8.5 6V6z" />
-                    </svg>
-                </button>
-                <button class="full-ctrl full-ctrl-play" id="full-play-btn" onclick="togglePlay()">
-                    <svg id="full-play-icon" width="28" height="28" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M8 5v14l11-7z" />
-                    </svg>
-                    <svg id="full-pause-icon" class="hidden" width="28" height="28" fill="currentColor"
-                        viewBox="0 0 24 24">
-                        <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
-                    </svg>
-                </button>
-                <button class="full-ctrl" onclick="nextTrack()">
-                    <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M6 18l8.5-6L6 6v12zm2-8.14L11.03 12 8 14.14V9.86zM16 6h2v12h-2z" />
-                    </svg>
-                </button>
-            </div>
-
-            <!-- Volume -->
-            <div class="vol-row pb-4">
-                <svg width="14" height="14" fill="currentColor" class="text-slate-500 flex-shrink-0"
-                    viewBox="0 0 24 24">
-                    <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z" />
-                </svg>
-                <input type="range" id="vol-slider" min="0" max="1" step="0.02" value="0.85"
-                    oninput="setVolume(this.value)">
-                <svg width="16" height="16" fill="currentColor" class="text-slate-400 flex-shrink-0"
-                    viewBox="0 0 24 24">
-                    <path
-                        d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
-                </svg>
-            </div>
+            <button onclick="resetFilters()"
+                class="w-11px py-4 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500 border border-white/5 rounded-2xl">Скинути
+                все</button>
         </div>
     </div>
 
@@ -679,116 +521,12 @@
         const SUPABASE_KEY = 'sb_publishable_L4_HhLhbj_m6wbEc3ZqhcQ_QNGOLWXU';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let allTracks = [], tracks = [];
-        let currentIndex = 0;
-        let audio = new Audio();
-        let isPlaying = false;
-        let radioMode = false;
-        let filterType = 'all', filterValue = null;
-        audio.volume = 0.85;
+        let allTracks = [], tracks = [], currentIndex = -1, isPlaying = false, radioMode = false;
+        let activeFilter = { type: 'all', val: null };
+        const audio = new Audio();
+        audio.volume = 0.9;
 
-        // ── Channel config ─────────────────────────────────────
-        // Dynamic entries get generated once categories/cities load
-        const CHANNEL_COLORS = {
-            // categories (slug → colors)
-            polityka: { bg: 'rgba(99,102,241,0.15)', border: 'rgba(99,102,241,0.6)', glow: 'rgba(99,102,241,0.2)', icon: '🏛️' },
-            novyny: { bg: 'rgba(234,88,12,0.15)', border: 'rgba(234,88,12,0.6)', glow: 'rgba(234,88,12,0.2)', icon: '📰' },
-            ekonomika: { bg: 'rgba(16,185,129,0.15)', border: 'rgba(16,185,129,0.6)', glow: 'rgba(16,185,129,0.2)', icon: '💹' },
-            sport: { bg: 'rgba(59,130,246,0.15)', border: 'rgba(59,130,246,0.6)', glow: 'rgba(59,130,246,0.2)', icon: '⚽' },
-            kultura: { bg: 'rgba(168,85,247,0.15)', border: 'rgba(168,85,247,0.6)', glow: 'rgba(168,85,247,0.2)', icon: '🎭' },
-            tekhnolohii: { bg: 'rgba(14,165,233,0.15)', border: 'rgba(14,165,233,0.6)', glow: 'rgba(14,165,233,0.2)', icon: '💻' },
-            frankivsk: { bg: 'rgba(234,88,12,0.15)', border: 'rgba(234,88,12,0.6)', glow: 'rgba(234,88,12,0.2)', icon: '🏙️' },
-            oblast: { bg: 'rgba(250,204,21,0.15)', border: 'rgba(250,204,21,0.5)', glow: 'rgba(250,204,21,0.15)', icon: '🌲' },
-            viyna: { bg: 'rgba(239,68,68,0.15)', border: 'rgba(239,68,68,0.6)', glow: 'rgba(239,68,68,0.2)', icon: '🛡️' },
-            pogoda: { bg: 'rgba(14,165,233,0.15)', border: 'rgba(14,165,233,0.6)', glow: 'rgba(14,165,233,0.2)', icon: '⛅' },
-        };
-        const CITY_COLORS = {
-            if: { bg: 'rgba(234,88,12,0.15)', border: 'rgba(234,88,12,0.6)', glow: 'rgba(234,88,12,0.2)', icon: '🏛️' },
-            kalush: { bg: 'rgba(99,102,241,0.15)', border: 'rgba(99,102,241,0.6)', glow: 'rgba(99,102,241,0.2)', icon: '⚗️' },
-            kolomyya: { bg: 'rgba(16,185,129,0.15)', border: 'rgba(16,185,129,0.6)', glow: 'rgba(16,185,129,0.2)', icon: '🌿' },
-            dolyna: { bg: 'rgba(250,204,21,0.15)', border: 'rgba(250,204,21,0.5)', glow: 'rgba(250,204,21,0.15)', icon: '⛰️' },
-            bolekhiv: { bg: 'rgba(168,85,247,0.15)', border: 'rgba(168,85,247,0.6)', glow: 'rgba(168,85,247,0.2)', icon: '🏰' },
-            nadvirna: { bg: 'rgba(59,130,246,0.15)', border: 'rgba(59,130,246,0.6)', glow: 'rgba(59,130,246,0.2)', icon: '🌊' },
-            burshtyn: { bg: 'rgba(251,146,60,0.15)', border: 'rgba(251,146,60,0.6)', glow: 'rgba(251,146,60,0.2)', icon: '⚡' },
-            kosiv: { bg: 'rgba(34,197,94,0.15)', border: 'rgba(34,197,94,0.6)', glow: 'rgba(34,197,94,0.2)', icon: '🌺' },
-            yaremche: { bg: 'rgba(14,165,233,0.15)', border: 'rgba(14,165,233,0.6)', glow: 'rgba(14,165,233,0.2)', icon: '🏔️' },
-        };
-        const DEFAULT_COLORS = { bg: 'rgba(234,88,12,0.15)', border: 'rgba(234,88,12,0.5)', glow: 'rgba(234,88,12,0.15)', icon: '📡' };
-
-        // ── Build channel cards ──────────────────────────────────
-        function buildChannelCards(categories, cities) {
-            const container = document.getElementById('channel-cards');
-            container.innerHTML = '';
-
-            // "All" card
-            const allCard = makeCard('all', null, { bg: DEFAULT_COLORS.bg, border: 'rgba(234,88,12,0.6)', glow: 'rgba(234,88,12,0.2)', icon: '📻' }, 'Всі новини');
-            allCard.classList.add('active');
-            container.appendChild(allCard);
-
-            // Category cards
-            categories.forEach(c => {
-                const colors = CHANNEL_COLORS[c.slug] || DEFAULT_COLORS;
-                container.appendChild(makeCard('category', c.slug, colors, c.name));
-            });
-
-            // City cards
-            cities.forEach(c => {
-                const colors = CITY_COLORS[c.slug] || DEFAULT_COLORS;
-                container.appendChild(makeCard('city', c.slug, colors, c.name));
-            });
-        }
-
-        function makeCard(type, slug, colors, label) {
-            const div = document.createElement('div');
-            div.className = 'channel-card';
-            div.id = `card-${type}-${slug || 'all'}`;
-            div.style.setProperty('--card-bg', colors.bg);
-            div.style.setProperty('--card-accent', colors.border);
-            div.style.setProperty('--card-accent2', colors.glow);
-            div.style.setProperty('--card-glow', colors.glow);
-            div.innerHTML = `<div class="dot"></div><div class="icon">${colors.icon}</div><div>${label}</div>`;
-            div.onclick = () => setFilter(type, slug);
-            return div;
-        }
-
-        // ── Filter ─────────────────────────────────────────────
-        function setFilter(type, slug) {
-            filterType = type; filterValue = slug;
-
-            document.querySelectorAll('.channel-card').forEach(c => c.classList.remove('active'));
-            const id = `card-${type}-${slug || 'all'}`;
-            document.getElementById(id)?.classList.add('active');
-
-            // Scroll active card into view
-            const el = document.getElementById(id);
-            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-
-            // Filter tracks
-            tracks = type === 'all' ? allTracks
-                : type === 'category' ? allTracks.filter(t => t.category === slug)
-                    : allTracks.filter(t => t.city === slug);
-
-            currentIndex = 0;
-
-            // Update channel label in full player
-            const catName = type === 'all' ? 'Всі новини'
-                : type === 'category' ? (window.CATEGORIES_UK?.[slug] || slug)
-                    : (window.CITIES_UK?.[slug] || slug);
-            document.getElementById('full-channel-label').textContent = catName;
-
-            if (tracks.length === 0) {
-                document.getElementById('track-list').innerHTML = '';
-                document.getElementById('empty-state').classList.remove('hidden');
-                document.getElementById('queue-count').textContent = '';
-            } else {
-                document.getElementById('empty-state').classList.add('hidden');
-                document.getElementById('queue-count').textContent = `${tracks.length} аудіо`;
-                renderList();
-                loadTrack(0, false);
-            }
-        }
-
-        // ── Load all tracks ──────────────────────────────────────
+        // ── Load & Group ───────────────────────────────────────
         async function loadTracks() {
             const { data, error } = await _supabase
                 .from('news')
@@ -798,214 +536,183 @@
                 .order('created_at', { ascending: false })
                 .limit(100);
 
-            document.getElementById('loading-state').classList.add('hidden');
+            if (data) { allTracks = data; filterAndRender(); }
+        }
 
-            if (error || !data || !data.length) {
-                document.getElementById('empty-state').classList.remove('hidden');
+        function filterAndRender() {
+            tracks = activeFilter.type === 'all' ? allTracks
+                : activeFilter.type === 'cat' ? allTracks.filter(t => t.category === activeFilter.val)
+                    : allTracks.filter(t => t.city === activeFilter.val);
+
+            renderTimeline();
+
+            // Auto-load first track if none playing
+            if (currentIndex === -1 && tracks.length > 0) loadTrack(0, false);
+        }
+
+        function renderTimeline() {
+            const timeline = document.getElementById('timeline');
+            if (tracks.length === 0) {
+                timeline.innerHTML = '<div class="p-20 text-center opacity-30 font-black uppercase tracking-widest text-xs">Порожньо</div>';
                 return;
             }
 
-            allTracks = data; tracks = data;
-            document.getElementById('queue-count').textContent = `${tracks.length} аудіо`;
-            renderList();
+            // Group by day
+            const groups = {};
+            tracks.forEach(track => {
+                const date = new Date(track.created_at).toLocaleDateString('uk-UA', { day: 'numeric', month: 'long' });
+                const today = new Date().toLocaleDateString('uk-UA', { day: 'numeric', month: 'long' });
+                const label = date === today ? 'Сьогодні' : date;
+                if (!groups[label]) groups[label] = [];
+                groups[label].push(track);
+            });
 
-            // Deep-link
-            const urlParams = new URLSearchParams(window.location.search);
-            const initialId = window.__PRELOADED_TRACK_ID__ || urlParams.get('id');
-            let idx = 0;
-            if (initialId) { const f = tracks.findIndex(t => t.id === initialId); if (f !== -1) idx = f; }
-            loadTrack(idx, !!initialId);
-        }
-
-        // ── Render list ──────────────────────────────────────────
-        function renderList() {
-            const container = document.getElementById('track-list');
-            const listened = getListened();
-            container.innerHTML = tracks.map((t, i) => {
-                const listened_class = listened.includes(t.id) ? 'opacity-50' : '';
-                const active_class = i === currentIndex ? 'active' : '';
-                const catName = window.CATEGORIES_UK?.[t.category] || t.category || '';
+            timeline.innerHTML = Object.entries(groups).map(([date, items]) => `
+                <div class="date-group">
+                    <div class="date-header"><span>${date}</span><span>${items.length} НОВИН</span></div>
+                    ${items.map(track => {
+                const globalIdx = tracks.findIndex(t => t.id === track.id);
+                const isActive = globalIdx === currentIndex;
+                const catName = window.CATEGORIES_UK?.[track.category] || track.category || 'Новини';
                 return `
-                <div class="track-row ${active_class} ${listened_class}" id="tr-${i}" onclick="loadTrack(${i},true)">
-                    ${t.image_url
-                        ? `<img src="${t.image_url}" class="track-thumb" onerror="this.parentNode.innerHTML='<div class=track-thumb-placeholder>🎙️</div>'+this.parentNode.innerHTML.replace(this.outerHTML,'');">`
-                        : `<div class="track-thumb-placeholder">🎙️</div>`
-                    }
-                    <div class="flex-1 min-w-0">
-                        <p class="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-0.5">${catName}</p>
-                        <h3 class="text-[13px] font-bold text-white leading-snug line-clamp-2">${t.title}</h3>
-                        <p class="text-[10px] text-slate-500 mt-0.5">${formatDate(t.created_at)}</p>
-                    </div>
-                    <div class="flex-shrink-0 ml-2">
-                        ${i === currentIndex && isPlaying
-                        ? `<div class="wave">${[0, 0.15, 0.3, 0.1, 0.25].map(d => `<div class="wave-b" style="animation-delay:${d}s"></div>`).join('')}</div>`
-                        : `<svg width="14" height="14" fill="currentColor" class="text-slate-700" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`}
-                    </div>
-                </div>`;
-            }).join('');
+                        <div class="track-tile ${isActive ? 'active' : ''}" onclick="handleTileClick(${globalIdx})">
+                            <div class="track-img-container">
+                                <img src="${track.image_url || ''}" class="track-img" onerror="this.src='/favicon.ico';">
+                                <div class="track-play-hint">
+                                    ${isActive && isPlaying
+                        ? `<div class="wave-container">${[0, 0.1, 0.2, 0.3, 0.15].map(d => `<div class="wave-bar" style="animation-delay:${d}s"></div>`).join('')}</div>`
+                        : `<svg width="24" height="24" fill="white" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`}
+                                </div>
+                            </div>
+                            <div class="track-meta">
+                                <span class="track-tag">${catName}</span>
+                                <h3 class="track-title">${track.title}</h3>
+                                <div class="track-actions">
+                                    <button onclick="event.stopPropagation();share('${track.title}','${getLink(track)}')" class="action-btn">
+                                        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg> 
+                                        Share
+                                    </button>
+                                    <a href="${getLink(track)}" onclick="event.stopPropagation()" class="action-btn">
+                                        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                                        Читати
+                                    </a>
+                                </div>
+                            </div>
+                        </div>`;
+            }).join('')}
+                </div>
+            `).join('');
         }
 
-        // ── Track load ───────────────────────────────────────────
-        function loadTrack(index, andPlay = true) {
-            if (index < 0 || index >= tracks.length) return;
+        // ── Player Logic ───────────────────────────────────────
+        function handleTileClick(index) {
+            if (index === currentIndex) togglePlay();
+            else loadTrack(index, true);
+        }
+
+        function loadTrack(index, play = true) {
             currentIndex = index;
             const t = tracks[index];
+            if (!t) return;
 
-            // Mini player
-            const art = document.getElementById('min-art');
-            art.src = t.image_url || '';
-            art.style.display = t.image_url ? '' : 'none';
-            document.getElementById('min-title').textContent = t.title;
-            document.getElementById('min-cat').textContent = window.CATEGORIES_UK?.[t.category] || t.category || 'Новини';
             document.getElementById('player-bar').classList.remove('hidden');
+            document.getElementById('m-art').src = t.image_url || '';
+            document.getElementById('m-title').textContent = t.title;
+            document.getElementById('m-sub').textContent = window.CATEGORIES_UK?.[t.category] || t.category || 'Новини';
 
-            // Full player
-            const fullArt = document.getElementById('full-art');
-            fullArt.src = t.image_url || '';
-            fullArt.onerror = () => { fullArt.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300"><rect fill="%230f172a" width="300" height="300" rx="24"/><text fill="%23ea580c" font-size="80" x="95" y="175">🎙</text></svg>'; };
-            document.getElementById('full-cat').textContent = window.CATEGORIES_UK?.[t.category] || t.category || 'Новини';
-            document.getElementById('full-title').textContent = t.title;
-            document.getElementById('full-date').textContent = formatDate(t.created_at);
-            document.getElementById('full-link').href = getArticleLink(t);
-
-            // Reset progress
-            ['min-progress-fill', 'full-progress-fill'].forEach(id => document.getElementById(id).style.width = '0%');
-            document.getElementById('full-cur').textContent = '0:00';
-            document.getElementById('full-dur').textContent = '0:00';
-
-            audio.pause();
             audio.src = t.tts_audio_url;
-            audio.load();
-
-            if (andPlay) {
-                audio.play().then(() => { setPlayState(true); markListened(t.id); }).catch(console.error);
+            if (play) {
+                audio.play().then(() => setPlayState(true)).catch(console.error);
             } else {
                 setPlayState(false);
             }
-
-            const url = new URL(window.location);
-            url.searchParams.set('id', t.id);
-            window.history.replaceState({}, '', url);
-
-            renderList();
-            setTimeout(() => {
-                const el = document.getElementById(`tr-${index}`);
-                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }, 100);
-        }
-
-        // ── Play state ───────────────────────────────────────────
-        function setPlayState(playing) {
-            isPlaying = playing;
-            // Mini player
-            document.getElementById('min-play-icon').classList.toggle('hidden', playing);
-            document.getElementById('min-pause-icon').classList.toggle('hidden', !playing);
-            // Full player
-            document.getElementById('full-play-icon').classList.toggle('hidden', playing);
-            document.getElementById('full-pause-icon').classList.toggle('hidden', !playing);
-            document.getElementById('full-art').classList.toggle('spin', playing);
-            renderList();
+            renderTimeline();
         }
 
         function togglePlay() {
-            if (audio.paused) { audio.play().then(() => setPlayState(true)).catch(console.error); }
+            if (audio.paused) audio.play().then(() => setPlayState(true));
             else { audio.pause(); setPlayState(false); }
         }
-        function prevTrack() { loadTrack((currentIndex - 1 + tracks.length) % tracks.length, isPlaying); }
-        function nextTrack() { loadTrack((currentIndex + 1) % tracks.length, true); }
-        function setVolume(v) { audio.volume = parseFloat(v); }
 
-        // ── Full player ──────────────────────────────────────────
-        function openFullPlayer() { document.getElementById('player-full').classList.add('open'); }
-        function closeFullPlayer() { document.getElementById('player-full').classList.remove('open'); }
-
-        // Swipe down to close full player
-        let touchStartY = 0;
-        document.getElementById('player-full').addEventListener('touchstart', e => { touchStartY = e.touches[0].clientY; }, { passive: true });
-        document.getElementById('player-full').addEventListener('touchend', e => {
-            if (e.changedTouches[0].clientY - touchStartY > 80) closeFullPlayer();
-        }, { passive: true });
-
-        // ── Progress ─────────────────────────────────────────────
-        function seek(pct) { if (audio.duration) audio.currentTime = pct * audio.duration; }
-        function seekFromMini(e) {
-            e.stopPropagation();
-            const r = e.currentTarget.getBoundingClientRect();
-            seek((e.clientX - r.left) / r.width);
+        function setPlayState(playing) {
+            isPlaying = playing;
+            document.getElementById('p-play').classList.toggle('hidden', playing);
+            document.getElementById('p-pause').classList.toggle('hidden', !playing);
+            document.getElementById('p-wrap').classList.toggle('p-btn-play', !playing);
+            renderTimeline();
         }
-        function seekFromFull(e) {
-            const r = e.currentTarget.getBoundingClientRect();
-            seek((e.clientX - r.left) / r.width);
+
+        function nextTrack() {
+            if (currentIndex < tracks.length - 1) loadTrack(currentIndex + 1, true);
         }
+
         audio.addEventListener('timeupdate', () => {
             if (!audio.duration) return;
-            const pct = (audio.currentTime / audio.duration) * 100;
-            document.getElementById('min-progress-fill').style.width = `${pct}%`;
-            document.getElementById('full-progress-fill').style.width = `${pct}%`;
-            document.getElementById('full-cur').textContent = fmtTime(audio.currentTime);
-            document.getElementById('full-dur').textContent = fmtTime(audio.duration);
+            document.getElementById('p-fill').style.width = (audio.currentTime / audio.duration * 100) + '%';
         });
+
         audio.addEventListener('ended', () => {
-            const next = (currentIndex + 1) % tracks.length;
-            if (radioMode || next !== 0 || currentIndex !== tracks.length - 1) loadTrack(next, true);
+            if (radioMode || currentIndex < tracks.length - 1) nextTrack();
             else setPlayState(false);
         });
 
-        // ── Radio mode ───────────────────────────────────────────
+        function seek(e) {
+            const r = e.currentTarget.getBoundingClientRect();
+            const pct = (e.clientX - r.left) / r.width;
+            if (audio.duration) audio.currentTime = pct * audio.duration;
+        }
+
+        // ── Filters ────────────────────────────────────────────
+        function openFilters() { document.getElementById('filter-modal').classList.add('open'); }
+        function closeFilters() { document.getElementById('filter-modal').classList.remove('open'); }
+
+        function setFilter(type, val, label) {
+            activeFilter = { type, val };
+            document.getElementById('active-filter-label').textContent = label;
+            updateChips();
+            filterAndRender();
+            closeFilters();
+        }
+
+        function resetFilters() { setFilter('all', null, 'Всі новини'); }
+
+        function updateChips() {
+            document.querySelectorAll('.chip').forEach(c => {
+                const isActive = (c.dataset.type === activeFilter.type && c.dataset.val === activeFilter.val) || (activeFilter.type === 'all' && c.dataset.type === 'all');
+                c.classList.toggle('active', isActive);
+            });
+        }
+
+        // ── Init Systems ───────────────────────────────────────
+        async function buildFilterGrids() {
+            const [catRes, cityRes] = await Promise.all([
+                _supabase.from('categories').select('slug,name').order('order_index'),
+                _supabase.from('cities').select('slug,name').order('order_index')
+            ]);
+
+            const catGrid = document.getElementById('cat-grid');
+            catGrid.innerHTML = `<div class="chip active" data-type="all" onclick="resetFilters()">Всі рубрики</div>` +
+                catRes.data.map(c => `<div class="chip" data-type="cat" data-val="${c.slug}" onclick="setFilter('cat','${c.slug}','${c.name}')">${c.name}</div>`).join('');
+
+            const cityGrid = document.getElementById('city-grid');
+            cityGrid.innerHTML = cityRes.data.map(c => `<div class="chip" data-type="city" data-val="${c.slug}" onclick="setFilter('city','${c.slug}','${c.name}')">${c.name}</div>`).join('');
+            updateChips();
+        }
+
         function toggleRadioMode() {
             radioMode = !radioMode;
-            const dot = document.getElementById('radio-dot');
-            const label = document.getElementById('radio-label');
-            dot.style.background = radioMode ? '#ef4444' : '#4b5563';
-            dot.style.boxShadow = radioMode ? '0 0 8px rgba(239,68,68,0.6)' : 'none';
-            label.style.color = radioMode ? '#fca5a5' : '';
-            if (radioMode && audio.paused && tracks.length) loadTrack(currentIndex, true);
+            document.getElementById('radio-knob').style.transform = radioMode ? 'translateX(24px)' : 'translateX(0)';
+            document.getElementById('radio-btn').classList.toggle('bg-orange-600', radioMode);
+            document.getElementById('radio-status').textContent = radioMode ? 'УВІМКНЕНО' : 'ВИМКНЕНО';
+            if (radioMode && audio.paused) nextTrack();
         }
 
-        // ── Utils ────────────────────────────────────────────────
-        function getListened() { try { return JSON.parse(localStorage.getItem('news_listened_tracks') || '[]'); } catch (e) { return []; } }
-        function markListened(id) {
-            const l = getListened(); if (!l.includes(id)) { l.unshift(id); localStorage.setItem('news_listened_tracks', JSON.stringify(l.slice(0, 100))); }
-        }
-        function formatDate(iso) { return new Date(iso).toLocaleDateString('uk-UA', { day: 'numeric', month: 'long' }); }
-        function fmtTime(s) { if (!s || isNaN(s)) return '0:00'; return `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`; }
-        function getArticleLink(t) {
-            if (t.city && window.CITIES_UK?.[t.city]) return `/${t.city}/${t.slug}/`;
-            if (t.category) return `/category/${t.category}/${t.slug}/`;
-            return `/${t.slug}/`;
-        }
+        function getLink(t) { return t.city ? `/${t.city}/${t.slug}/` : t.category ? `/category/${t.category}/${t.slug}/` : `/${t.slug}/`; }
+        async function share(title, url) { if (navigator.share) navigator.share({ title, url }); else alert('URL copied'); }
 
-        // ── Share ────────────────────────────────────────────────
-        async function copyShareLink() {
-            try {
-                if (navigator.share) {
-                    await navigator.share({ title: document.getElementById('full-title').textContent, url: window.location.href });
-                } else {
-                    await navigator.clipboard.writeText(window.location.href);
-                    alert('Посилання скопійовано!');
-                }
-            } catch (e) { console.log('Share cancelled'); }
-        }
-
-        // ── Keyboard ─────────────────────────────────────────────
-        document.addEventListener('keydown', e => {
-            if (e.target.tagName === 'INPUT') return;
-            if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
-            if (e.code === 'ArrowRight') audio.currentTime = Math.min(audio.duration || 0, audio.currentTime + 10);
-            if (e.code === 'ArrowLeft') audio.currentTime = Math.max(0, audio.currentTime - 10);
-            if (e.code === 'KeyN') nextTrack();
-            if (e.code === 'KeyP') prevTrack();
-            if (e.code === 'Escape') closeFullPlayer();
-        });
-
-        // ── Init ─────────────────────────────────────────────────
         (async () => {
             await window.initSiteHeader(_supabase);
-            const [catRes, cityRes] = await Promise.all([
-                _supabase.from('categories').select('slug,name').order('order_index', { ascending: true }),
-                _supabase.from('cities').select('slug,name').order('order_index', { ascending: true })
-            ]);
-            if (catRes.data && cityRes.data) buildChannelCards(catRes.data, cityRes.data);
+            await buildFilterGrids();
             await loadTracks();
         })();
     </script>
