@@ -623,6 +623,18 @@
 
         // ── Content ─────────────────────────────────────────────────────
         async function loadFullNews() {
+            // Guard: if this template is served for a category or city page, redirect
+            if (window.__SSR_CATEGORY_SLUG__) {
+                console.log('News-template loaded on category page, redirecting...');
+                window.location.replace(`/category/${window.__SSR_CATEGORY_SLUG__}/`);
+                return;
+            }
+            if (window.__SSR_CITY__) {
+                console.log('News-template loaded on city page, redirecting...');
+                window.location.replace(`/${window.__SSR_CITY__}/`);
+                return;
+            }
+
             const isPreRendered = window.__SSR_CONTENT_PRE_RENDERED__;
             console.log("Starting loadFullNews... Pre-rendered:", isPreRendered);
 

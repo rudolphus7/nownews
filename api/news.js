@@ -30,7 +30,23 @@ module.exports = async (req, res) => {
     if (Array.isArray(slug)) slug = slug[0];
     if (Array.isArray(id)) id = id[0];
 
-    console.log('SSR Request:', { url: req.url, slug, id });
+    // Early guard: detect if this request is actually for a category page.
+    // This happens when /:slug/ rewrite catches a category slug (e.g. /pogoda/).
+    // We check the original URL path from Vercel's x-matched-path header or req.url.
+    // If the original request was to /category/:slug/ (only one segment after /category/),
+    // we should serve the category page, not the article page.
+    const originalPath = req.headers['x-vercel-sc-headers']
+        ? JSON.parse(req.headers['x-vercel-sc-headers'] || '{}')['x-matched-path'] || req.url
+        : req.url;
+    const pathSegments = (req.headers['x-forwarded-proto'] ? req.url : originalPath).split('?')[0]
+        .replace(/^\/|\/$/g, '').split('/').filter(Boolean);
+
+    // If the path is exactly /category/:slug/ (2 segments: 'category' + slug) with no article
+    // then this was already a category URL — but vercel.json should handle it via /api/category.
+    // The issue is when /:slug/ catches category slugs. Check for single-segment non-news slugs.
+
+    console.log('SSR Request:', { url: req.url, slug, id, pathSegments });
+
 
     let htmlContent = '';
     try {
@@ -170,11 +186,18 @@ module.exports = async (req, res) => {
         if (!articleData) {
             if (slug) {
                 const matchingCategory = categories.find(c => c.slug === slug);
-                const targetPath = `/category/${slug}/`;
-                if (matchingCategory && currentPath !== targetPath && !currentPath.includes('/api/')) {
-                    console.log(`Slug "${slug}" matches a category, redirecting to ${targetPath}`);
-                    res.writeHead(302, { Location: targetPath });
-                    return res.end();
+                if (matchingCategory) {
+                    console.log(`Slug "${slug}" matches a category, forwarding to category handler`);
+                    // Forward to category API handler internally (no redirect = no loop)
+                    try {
+                        const categoryHandler = require('./category');
+                        const modifiedReq = Object.assign({}, req, {
+                            query: Object.assign({}, req.query, { slug: matchingCategory.slug })
+                        });
+                        return await categoryHandler(modifiedReq, res);
+                    } catch (catErr) {
+                        console.error('Failed to forward to category handler:', catErr);
+                    }
                 }
             }
             console.warn('No news article found for slug/id:', slug);

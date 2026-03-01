@@ -636,6 +636,19 @@
 
         // ── Navigation ──────────────────────────────────────────────────
         async function init() {
+            // Guard: if this template is served for a category page, redirect to category URL
+            if (window.__SSR_CATEGORY_SLUG__) {
+                console.log('News template loaded on category page, redirecting...');
+                window.location.replace(`/category/${window.__SSR_CATEGORY_SLUG__}/`);
+                return;
+            }
+            // Guard: if this is a city page, redirect to city URL
+            if (window.__SSR_CITY__) {
+                console.log('News template loaded on city page, redirecting...');
+                window.location.replace(`/${window.__SSR_CITY__}/`);
+                return;
+            }
+
             // 1. Initialize Shared Header component
             await window.initSiteHeader(_supabase);
 
