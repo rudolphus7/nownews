@@ -367,9 +367,7 @@ module.exports = async (req, res) => {
         // Inject meta tags after title
         htmlContent = htmlContent.replace(/<title>.*?<\/title>/s, `<title>${escapeHtml(title)}</title>\n${metaTags}\n${ssrScript}`);
 
-        // Ensure content is visible and loader is hidden
-        htmlContent = htmlContent.replace('id="loader"', 'id="loader" class="hidden"');
-        htmlContent = htmlContent.replace('id="news-content" class="hidden"', 'id="news-content"');
+        // Ensure content is visible and loader is hidden - already handled above
 
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
         res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=60');
