@@ -7,9 +7,15 @@
 .ticker-animate {
     display: inline-block;
     white-space: nowrap;
-    animation: ticker 45s linear infinite;
+    animation: ticker 60s linear infinite;
     cursor: pointer;
     padding-left: 2rem;
+}
+
+@media (max-width: 768px) {
+    .ticker-animate {
+        animation-duration: 30s;
+    }
 }
 
 .ticker-animate:hover {
@@ -18,8 +24,9 @@
 
 @keyframes ticker {
     0% {
-        transform: translateX(100%);
+        transform: translateX(100vw);
     }
+
     100% {
         transform: translateX(-100%);
     }
