@@ -85,7 +85,7 @@ async function servePosts(res, headers) {
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${articles.filter(a => a.slug).map(a => {
         const lastmod = (a.updated_at || a.created_at || new Date().toISOString()).split('T')[0];
-        let path = `/${a.slug}/`;
+        let path = `/news/${a.slug}/`;
         if (a.city) path = `/${a.city}/${a.slug}/`;
         else if (a.category && CAT_MAP[a.category]) path = `/category/${CAT_MAP[a.category]}/${a.slug}/`;
 
@@ -116,7 +116,7 @@ async function serveNews(res, headers) {
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">
 ${validArticles.map(a => {
-        let path = `/${a.slug}/`;
+        let path = `/news/${a.slug}/`;
         if (a.city) path = `/${a.city}/${a.slug}/`;
         else if (a.category && CAT_MAP[a.category]) path = `/category/${CAT_MAP[a.category]}/${a.slug}/`;
 
