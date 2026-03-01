@@ -114,6 +114,9 @@ module.exports = async (req, res) => {
             return res.status(200).send(htmlContent);
         }
 
+        const currentPath = req.url.split('?')[0];
+        console.log('Processing request for:', { currentPath, slug, id });
+
         let articleData = newsData;
         if (!articleData && response.ok) {
             try {
@@ -165,14 +168,16 @@ module.exports = async (req, res) => {
 
         // If no news article found, check if slug matches a category
         if (!articleData) {
-            console.warn('No news article found for slug/id:', slug);
-            const matchingCategory = categories.find(c => c.slug === slug);
-            if (matchingCategory) {
-                console.log(`Slug "${slug}" matches a category, redirecting to /category/${slug}/`);
-                res.writeHead(302, { Location: `/category/${slug}/` });
-                return res.end();
+            if (slug) {
+                const matchingCategory = categories.find(c => c.slug === slug);
+                const targetPath = `/category/${slug}/`;
+                if (matchingCategory && currentPath !== targetPath && !currentPath.includes('/api/')) {
+                    console.log(`Slug "${slug}" matches a category, redirecting to ${targetPath}`);
+                    res.writeHead(302, { Location: targetPath });
+                    return res.end();
+                }
             }
-            // Otherwise, serve the template (client will show "Not Found")
+            console.warn('No news article found for slug/id:', slug);
             res.setHeader('Content-Type', 'text/html; charset=utf-8');
             return res.status(200).send(htmlContent);
         }
@@ -204,8 +209,6 @@ module.exports = async (req, res) => {
         const canonicalUrl = `${SITE_URL}${preferredPath}`;
 
         // 301 Redirect if current path is not the preferred one
-        // Check if we are accessed via /news/ or some other non-preferred path
-        const currentPath = req.url.split('?')[0];
         if (currentPath !== preferredPath && !currentPath.includes('/api/')) {
             console.log(`301 Redirect: ${currentPath} -> ${preferredPath}`);
             res.writeHead(301, { Location: preferredPath });
