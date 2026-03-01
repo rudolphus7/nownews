@@ -124,11 +124,11 @@
     ],
     "rewrites": [
         {
-            "source": "/category/:cat(viyna|polityka|ekonomika|sport|kultura|tekhnolohii|frankivsk|oblast)/:slug/",
+            "source": "/category/:cat/:slug/",
             "destination": "/api/news?slug=:slug"
         },
         {
-            "source": "/:city(kalush|if|kolomyya|dolyna|bolekhiv|nadvirna|burshtyn|kosiv|yaremche)/:slug/",
+            "source": "/:city/:slug/",
             "destination": "/api/news?slug=:slug"
         },
         {
@@ -186,6 +186,10 @@
         {
             "source": "/news/",
             "destination": "/index.html"
+        },
+        {
+            "source": "/:slug/",
+            "destination": "/api/news?slug=:slug"
         }
     ],
     "functions": {
