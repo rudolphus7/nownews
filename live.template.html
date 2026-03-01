@@ -17,7 +17,7 @@
     <style>
         :root {
             --accent: #ff4d00;
-            --accent-dark: #dc2626;
+            --accent-dark: #dc2610;
             --bg: #09090b;
             --card: #141417;
             --text-muted: #71717a;
@@ -54,338 +54,128 @@
             scrollbar-width: none;
         }
 
-        /* ── Unified Header Adjustment ───────────────────────── */
-        body {
-            padding-top: calc(env(safe-area-inset-top, 0px) + 0px);
+        /* ── Hero Section ─────────────────────────────────────── */
+        .hero {
+            padding: 40px 20px;
+            text-align: left;
+            background: linear-gradient(to bottom, rgba(255, 77, 0, 0.08), transparent);
         }
 
-        /* ── Hero / Filter Controls ──────────────────────────── */
-        .page-header {
-            padding: 80px 20px 20px;
-        }
-
-        .filter-trigger {
+        .hero-live {
             display: flex;
-            items-center;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            font-weight: 900;
+            color: #ff4d00;
+            margin-bottom: 12px;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: #ff4d00;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        .hero-title {
+            font-size: 44px;
+            font-weight: 900;
+            font-family: 'Outfit';
+            font-style: italic;
+            line-height: 1;
+            letter-spacing: -0.03em;
+            margin-bottom: 20px;
+        }
+
+        .hero-title span {
+            color: var(--accent);
+        }
+
+        .hero-desc {
+            font-size: 14px;
+            font-weight: 500;
+            color: #a1a1aa;
+            line-height: 1.5;
+            margin-bottom: 24px;
+            max-width: 85%;
+        }
+
+        .hero-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .auto-btn {
+            display: flex;
+            align-items: center;
             gap: 8px;
             padding: 8px 16px;
             border-radius: 20px;
             background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            font-size: 11px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 10px;
             font-weight: 800;
+            color: #71717a;
             text-transform: uppercase;
-            letter-spacing: 0.15em;
-            color: #d4d4d8;
+            letter-spacing: 0.1em;
             transition: all 0.2s;
         }
 
-        .filter-trigger:active {
-            background: rgba(255, 255, 255, 0.1);
-            scale: 0.96;
-        }
-
-        /* ── Timeline ─────────────────────────────────────────── */
-        .date-header {
-            position: sticky;
-            top: 60px;
-            z-index: 30;
-            background: rgba(9, 9, 11, 0.95);
-            backdrop-filter: blur(12px);
-            padding: 16px 20px 10px;
-            display: flex;
-            align-items: flex-end;
-            justify-content: space-between;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-        }
-
-        .date-label {
-            font-size: 18px;
-            font-weight: 900;
-            font-family: 'Outfit';
+        .auto-btn.active {
+            border-color: var(--accent);
             color: #fff;
-            text-transform: lowercase;
         }
 
-        .date-count {
-            font-size: 10px;
-            font-weight: 800;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.15em;
-            margin-bottom: 4px;
+        .auto-val {
+            color: #fff;
+            font-weight: 900;
+            margin-left: 2px;
         }
 
-        /* ── Track Tile ────────────────────────────────────────── */
-        .track-tile {
-            display: flex;
-            gap: 16px;
-            padding: 16px 20px;
-            cursor: pointer;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-            transition: background 0.2s;
-            position: relative;
-        }
-
-        .track-tile:active {
-            background: rgba(255, 255, 255, 0.04);
-        }
-
-        .track-tile.active {
-            background: rgba(255, 77, 0, 0.06);
-        }
-
-        .track-tile.active::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 3px;
-            background: var(--accent);
-        }
-
-        .track-tile.listened {
-            opacity: 0.45;
-        }
-
-        .thumb-box {
-            position: relative;
-            width: 72px;
-            height: 72px;
-            flex-shrink: 0;
-        }
-
-        .thumb-img {
-            width: 100%;
-            height: 100%;
-            border-radius: 12px;
-            object-fit: cover;
-            background: #18181b;
-        }
-
-        .thumb-overlay {
-            position: absolute;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.25);
-            border-radius: 12px;
+        .city-chip {
             display: flex;
             items-center;
-            justify-content: center;
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-
-        .track-tile:hover .thumb-overlay,
-        .track-tile.active .thumb-overlay {
-            opacity: 1;
-        }
-
-        .track-tile.active .thumb-overlay {
-            background: rgba(255, 77, 0, 0.3);
-        }
-
-        .track-info {
-            flex: 1;
-            min-width: 0;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .track-cat {
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
             font-size: 10px;
             font-weight: 900;
-            color: var(--accent);
+            color: #60a5fa;
             text-transform: uppercase;
             letter-spacing: 0.1em;
-            margin-bottom: 3px;
         }
 
-        .track-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: #f4f4f5;
-            line-height: 1.4;
-            margin-bottom: 8px;
-        }
-
-        .track-row-actions {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            margin-top: auto;
-        }
-
-        .tile-action {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 9px;
-            font-weight: 800;
-            color: #52525b;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-        }
-
-        .tile-action:active {
-            color: #fff;
-        }
-
-        .listened-check {
-            position: absolute;
-            top: 16px;
-            right: 20px;
-            color: #10b981;
-        }
-
-        /* ── Sticky Mini Player (Screenshot 3 style) ─────────── */
-        #player-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            z-index: 100;
-            background: #101014;
-            border-top: 1px solid rgba(255, 255, 255, 0.08);
-            padding-bottom: env(safe-area-inset-bottom, 12px);
-        }
-
-        .p-progress {
-            height: 2px;
-            background: rgba(255, 255, 255, 0.1);
-            cursor: pointer;
-        }
-
-        .p-fill {
-            height: 100%;
-            background: var(--accent);
-            width: 0%;
-            transition: width 0.1s linear;
-        }
-
-        .p-mini-wrap {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            padding: 12px 20px;
-            cursor: pointer;
-        }
-
-        .p-mini-art {
-            width: 48px;
-            height: 48px;
-            border-radius: 10px;
-            object-fit: cover;
-        }
-
-        .p-mini-body {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .p-mini-sub {
-            font-size: 10px;
-            font-weight: 900;
-            color: var(--accent);
-            text-transform: uppercase;
-        }
-
-        .p-mini-title {
-            font-size: 13px;
-            font-weight: 700;
-            color: #fff;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            letter-spacing: -0.01em;
-        }
-
-        .p-mini-btns {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .play-circle {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background: #fff;
-            color: #000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
-        }
-
-        /* ── Full Player Modal (Screenshot 2 style) ──────────── */
-        #full-player {
-            position: fixed;
-            inset: 0;
-            z-index: 500;
-            background: var(--bg);
-            display: flex;
-            flex-direction: column;
-            transform: translateY(100%);
-            transition: transform 0.5s cubic-bezier(0.32, 0.72, 0, 1);
-            padding-top: env(safe-area-inset-top, 0px);
-        }
-
-        #full-player.open {
-            transform: translateY(0);
-        }
-
-        .fp-header {
-            display: flex;
-            items-center;
-            justify-content: space-between;
-            padding: 16px 24px;
-        }
-
-        .fp-close {
-            color: var(--text-muted);
-            padding: 8px;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        .fp-header-title {
-            text-align: center;
-        }
-
-        .fp-header-title p {
-            font-size: 9px;
-            font-weight: 900;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.3em;
-        }
-
-        .fp-body {
-            flex: 1;
+        /* ── Player Stage ─────────────────────────────────────── */
+        .stage {
+            padding: 0 20px 40px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            padding: 0 32px;
         }
 
-        .fp-art-container {
+        .cover-box {
             position: relative;
             width: 100%;
             max-width: 320px;
             aspect-ratio: 1;
-            margin-bottom: 40px;
+            margin-bottom: 32px;
+            filter: drop-shadow(0 40px 80px rgba(0, 0, 0, 0.6));
         }
 
-        .fp-art {
+        .cover-img {
             width: 100%;
             height: 100%;
             border-radius: 28px;
             object-fit: cover;
-            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.6);
         }
 
-        .fp-badge {
+        .cover-badge {
             position: absolute;
             top: 16px;
             left: 16px;
@@ -396,60 +186,53 @@
             padding: 4px 12px;
             border-radius: 20px;
             text-transform: uppercase;
-            letter-spacing: 0.15em;
         }
 
-        .fp-info {
+        .stage-info {
             text-align: center;
-            width: 100%;
-            margin-bottom: 32px;
+            margin-bottom: 24px;
         }
 
-        .fp-title {
+        .stage-title {
             font-size: 20px;
             font-weight: 900;
             color: #fff;
             line-height: 1.25;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
             font-family: 'Outfit';
         }
 
-        .fp-date {
+        .stage-date {
             font-size: 13px;
             font-weight: 600;
             color: var(--text-muted);
         }
 
-        .fp-wave {
+        .wave-vis {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 4px;
+            gap: 3px;
             height: 32px;
-            margin-bottom: 32px;
+            margin-bottom: 24px;
         }
 
         .wave-bar {
             width: 3px;
             background: var(--accent);
             border-radius: 2px;
-            transition: height 0.2s;
         }
 
-        .fp-progress-wrap {
+        .p-main-track {
             width: 100%;
-            margin-bottom: 40px;
-        }
-
-        .fp-progress-track {
             height: 3px;
-            background: rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.1);
             border-radius: 2px;
             position: relative;
-            cursor: pointer;
+            margin-bottom: 12px;
         }
 
-        .fp-progress-fill {
+        .p-main-fill {
             height: 100%;
             background: var(--accent);
             border-radius: 2px;
@@ -457,90 +240,332 @@
             transition: width 0.1s linear;
         }
 
-        .fp-progress-knob {
-            position: absolute;
-            right: -6px;
-            top: -5px;
-            width: 12px;
-            height: 12px;
-            background: #fff;
-            border-radius: 50%;
-            box-shadow: 0 0 10px rgba(255, 77, 0, 0.5);
-        }
-
-        .fp-times {
+        .p-main-labels {
             display: flex;
             justify-content: space-between;
             font-size: 10px;
             font-weight: 700;
             color: var(--text-muted);
-            margin-top: 10px;
         }
 
-        .fp-controls {
+        .p-main-controls {
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 32px;
-            margin-bottom: 48px;
+            margin: 32px 0;
         }
 
-        .fp-btn-side {
-            color: #fff;
-            opacity: 0.6;
-        }
-
-        .fp-btn-main {
-            width: 78px;
-            height: 78px;
+        .p-circle {
+            width: 72px;
+            height: 72px;
             border-radius: 50%;
             background: linear-gradient(135deg, var(--accent), var(--accent-dark));
             color: #fff;
             display: flex;
-            align-items: center;
+            items-center;
             justify-content: center;
             box-shadow: 0 10px 30px rgba(255, 77, 0, 0.4);
         }
 
-        .fp-footer {
+        .p-side-btn {
+            color: #fff;
+            opacity: 0.6;
+        }
+
+        .volume-box {
+            width: 100%;
+            max-width: 240px;
+            display: flex;
+            items-center;
+            gap: 12px;
+            margin-bottom: 32px;
+            opacity: 0.5;
+        }
+
+        .v-slider {
+            flex: 1;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.2);
+            position: relative;
+        }
+
+        .v-fill {
+            height: 100%;
+            background: #fff;
+            width: 80%;
+        }
+
+        .v-knob {
+            position: absolute;
+            right: 0;
+            top: -4px;
+            width: 10px;
+            height: 10px;
+            background: #fff;
+            border-radius: 50%;
+        }
+
+        .act-footer {
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 16px;
-            margin-bottom: 24px;
             width: 100%;
         }
 
-        .fp-read-btn {
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        .read-link {
             font-size: 11px;
             font-weight: 900;
             color: #fff;
             text-transform: uppercase;
-            letter-spacing: 0.1em;
+            letter-spacing: 0.15em;
+            display: flex;
+            items-center;
+            gap: 6px;
         }
 
-        .fp-share-btn {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 12px 24px;
+        .share-pill {
+            padding: 12px 32px;
             border-radius: 24px;
             background: rgba(255, 255, 255, 0.06);
             font-size: 10px;
             font-weight: 900;
-            color: #d4d4d8;
+            color: #a1a1aa;
             text-transform: uppercase;
             letter-spacing: 0.2em;
+            border: 1px solid rgba(255, 255, 255, 0.04);
         }
 
-        /* ── Filter Drawer (E-commerce style) ───────────────── */
+        /* ── Timeline (Feed) ─────────────────────────────────── */
+        .feed-header {
+            position: sticky;
+            top: 0;
+            z-index: 40;
+            background: rgba(9, 9, 11, 0.95);
+            backdrop-filter: blur(16px);
+            padding: 20px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            margin-top: 40px;
+        }
+
+        .feed-label {
+            font-size: 14px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: var(--text-muted);
+        }
+
+        .item {
+            display: flex;
+            gap: 16px;
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            position: relative;
+        }
+
+        .item.active {
+            background: rgba(255, 77, 0, 0.05);
+        }
+
+        .item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: var(--accent);
+        }
+
+        .item.listened {
+            opacity: 0.5;
+        }
+
+        .item-thumb {
+            position: relative;
+            width: 84px;
+            height: 84px;
+            flex-shrink: 0;
+            border: 2px solid transparent;
+            transition: border 0.2s;
+        }
+
+        .item.active .item-thumb {
+            border-color: var(--accent);
+            border-radius: 14px;
+        }
+
+        .item-img {
+            width: 100%;
+            height: 100%;
+            border-radius: 12px;
+            object-fit: cover;
+        }
+
+        .item-play {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            opacity: 0;
+        }
+
+        .item:hover .item-play,
+        .item.active .item-play {
+            opacity: 1;
+        }
+
+        .item-body {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .item-cat {
+            font-size: 10px;
+            font-weight: 900;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 4px;
+        }
+
+        .item-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #fff;
+            line-height: 1.35;
+            margin-bottom: 8px;
+        }
+
+        .item-acts {
+            display: flex;
+            items-center;
+            gap: 16px;
+        }
+
+        .item-act {
+            display: flex;
+            items-center;
+            gap: 4px;
+            font-size: 9px;
+            font-weight: 900;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        /* ── Mini Player ─────────────────────────────────────── */
+        #mini {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: #101014;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+        }
+
+        .m-bar {
+            height: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .m-fill {
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .m-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px 14px;
+        }
+
+        .m-img {
+            width: 44px;
+            height: 44px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        .m-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .m-cat {
+            font-size: 9px;
+            font-weight: 900;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .m-title {
+            font-size: 14px;
+            font-weight: 700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .m-btns {
+            display: flex;
+            items-center;
+            gap: 14px;
+        }
+
+        /* ── Animations ─────────────────────────────────────── */
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.6;
+                transform: scale(1.1);
+            }
+        }
+
+        .wave-active .wave-bar {
+            animation: bar-anim 1s ease-in-out infinite;
+        }
+
+        @keyframes bar-anim {
+
+            0%,
+            100% {
+                height: 4px;
+            }
+
+            50% {
+                height: 32px;
+            }
+        }
+
         #filter-drawer {
             position: fixed;
             inset: 0;
-            z-index: 600;
+            z-index: 500;
             visibility: hidden;
             transition: visibility 0.4s;
         }
@@ -569,65 +594,13 @@
             right: 0;
             background: #18181b;
             border-radius: 24px 24px 0 0;
+            padding: 32px 24px;
             transform: translateY(100%);
             transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
-            padding: 32px 24px 48px;
-            max-height: 85vh;
-            overflow-y: auto;
         }
 
         #filter-drawer.open .drawer-sheet {
             transform: translateY(0);
-        }
-
-        .drawer-section {
-            margin-bottom: 32px;
-        }
-
-        .drawer-title {
-            font-size: 11px;
-            font-weight: 900;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.2em;
-            margin-bottom: 16px;
-        }
-
-        .chip-flex {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
-        .chip {
-            padding: 10px 18px;
-            border-radius: 20px;
-            background: rgba(255, 255, 255, 0.04);
-            font-size: 14px;
-            font-weight: 600;
-            color: #a1a1aa;
-        }
-
-        .chip.active {
-            background: var(--accent);
-            color: #fff;
-        }
-
-        /* Animation */
-        .wave-active .wave-bar {
-            animation: wave-anim 1s ease-in-out infinite;
-        }
-
-        @keyframes wave-anim {
-
-            0%,
-            100% {
-                height: 4px;
-            }
-
-            50% {
-                height: 32px;
-            }
         }
     </style>
 </head>
@@ -635,145 +608,97 @@
 <body>
     <div id="site-header-placeholder"></div>
 
-    <!-- UI: Hero Filters -->
-    <div class="page-header flex flex-col gap-6">
-        <div class="flex items-center justify-between">
-            <div class="flex flex-col">
-                <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">ОБРАНИЙ
-                    КАНАЛ</p>
-                <h1 id="active-station-name" class="text-2xl font-outfit font-black tracking-tight">Усі новини</h1>
+    <main class="max-w-xl mx-auto">
+        <!-- Hero Section -->
+        <div class="hero">
+            <div class="hero-live">
+                <div class="live-dot"></div>
+                LIVE • ЕФІР
             </div>
-            <button onclick="openFilters()" class="filter-trigger">
-                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                    <path d="M4 6h16M4 12h16m-7 6h7" />
-                </svg>
-                ФІЛЬТРИ
-            </button>
-        </div>
+            <h1 class="hero-title">АУДІО-<span>НОВИНИ</span></h1>
+            <p class="hero-desc">Новини Прикарпаття голосом диктора. Слухайте по дорозі — без рук, без зупинок.</p>
 
-        <div class="flex items-center justify-between bg-white/[0.03] p-4 rounded-2xl border border-white/[0.05]">
-            <div class="flex flex-col">
-                <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-0.5">АВТОМАТИЧНИЙ ЕФІР</p>
-                <p id="radio-mode-text" class="text-xs font-bold text-slate-400">ВИМКНЕНО</p>
-            </div>
-            <button onclick="toggleRadioMode()" id="radio-toggle"
-                class="w-11 h-6 bg-slate-800 rounded-full relative p-1 transition-colors">
-                <div id="radio-dot" class="w-4 h-4 bg-slate-400 rounded-full transition-all"></div>
-            </button>
-        </div>
-    </div>
-
-    <main class="max-w-xl mx-auto" id="timeline-container">
-        <!-- Rendered by JS -->
-    </main>
-
-    <!-- UI: Bottom Sticky Bar -->
-    <div id="player-bar" class="hidden">
-        <div class="p-progress" onclick="seek(event)">
-            <div class="p-fill" id="m-p-fill"></div>
-        </div>
-        <div class="p-mini-wrap" onclick="openFullPlayer()">
-            <img id="m-art" src="" class="p-mini-art">
-            <div class="p-mini-body">
-                <p id="m-sub" class="p-mini-sub">НОВИНИ</p>
-                <h3 id="m-title" class="p-mini-title">Завантаження...</h3>
-            </div>
-            <div class="p-mini-btns">
-                <button onclick="event.stopPropagation();nextTrack()" class="text-slate-400">
-                    <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M6 18l8.5-6L6 6v12zm2-8.14L11.03 12 8 14.14V9.86zM16 6h2v12h-2z" />
-                    </svg>
+            <div class="hero-row">
+                <div class="auto-btn" id="radio-btn" onclick="toggleRadio()">
+                    АВТОРАДІО <span class="auto-val" id="radio-status">ВИМК</span>
+                </div>
+                <button onclick="openFilters()" class="city-chip" id="city-label">
+                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+                    ВСІ НОВИНИ
                 </button>
-                <div class="play-circle" onclick="event.stopPropagation();togglePlay()">
-                    <svg id="m-play" width="22" height="22" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M8 5v14l11-7z" />
-                    </svg>
-                    <svg id="m-pause" class="hidden" width="22" height="22" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
-                    </svg>
-                </div>
             </div>
         </div>
-    </div>
 
-    <!-- UI: Full Player Modal -->
-    <div id="full-player">
-        <div class="fp-header">
-            <button onclick="closeFullPlayer()" class="fp-close">
-                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
-                    <path d="M19 9l-7 7-7-7" />
-                </svg>
-            </button>
-            <div class="fp-header-title">
-                <p id="fp-station">ВСІ НОВИНИ</p>
-                <p class="text-[10px] text-zinc-500 tracking-normal normal-case">← Свайп вниз →</p>
-            </div>
-            <button onclick="copyLink()" class="fp-close">
-                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                    <path
-                        d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                </svg>
-            </button>
-        </div>
-
-        <div class="fp-body">
-            <div class="fp-art-container">
-                <img id="fp-art" src="" class="fp-art">
-                <div id="fp-badge" class="fp-badge">Погода</div>
+        <!-- Main Player Stage -->
+        <div class="stage">
+            <div class="cover-box">
+                <img id="p-art" src="" class="cover-img">
+                <div id="p-badge" class="cover-badge">Новини</div>
             </div>
 
-            <div class="fp-info">
-                <h2 id="fp-title" class="fp-title">Заголовок новини...</h2>
-                <p id="fp-date" class="fp-date">1 березня</p>
+            <div class="stage-info">
+                <h2 id="p-title" class="stage-title">Завантаження...</h2>
+                <p id="p-date" class="stage-date">---</p>
             </div>
 
-            <div class="fp-wave" id="fp-wave-container">
-                <!-- Wave bars injected via JS -->
+            <div class="wave-vis" id="wave-box">
+                <!-- Bars via JS -->
             </div>
 
-            <div class="fp-progress-wrap">
-                <div class="fp-progress-track" onclick="seek(event)">
-                    <div class="fp-progress-fill" id="fp-p-fill">
-                        <div class="fp-progress-knob"></div>
-                    </div>
-                </div>
-                <div class="fp-times">
-                    <span id="fp-cur">0:00</span>
-                    <span id="fp-dur">0:00</span>
-                </div>
+            <div class="p-main-track" onclick="seek(event)">
+                <div class="p-main-fill" id="p-fill"></div>
+            </div>
+            <div class="p-main-labels">
+                <span id="p-cur">0:00</span>
+                <span id="p-dur">0:00</span>
             </div>
 
-            <div class="fp-controls">
-                <button onclick="prevTrack()" class="fp-btn-side">
-                    <svg width="32" height="32" fill="currentColor" viewBox="0 0 24 24">
+            <div class="p-main-controls">
+                <button onclick="prevTrack()" class="p-side-btn">
+                    <svg width="28" height="28" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M6 6h2v12H6zm3.5 6 8.5 6V6z" />
                     </svg>
                 </button>
-                <button onclick="togglePlay()" class="fp-btn-main">
-                    <svg id="fp-play" width="36" height="36" fill="currentColor" viewBox="0 0 24 24">
+                <button onclick="togglePlay()" class="p-circle">
+                    <svg id="play-ico" width="32" height="32" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M8 5v14l11-7z" />
                     </svg>
-                    <svg id="fp-pause" class="hidden" width="36" height="36" fill="currentColor" viewBox="0 0 24 24">
+                    <svg id="pause-ico" class="hidden" width="32" height="32" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
                     </svg>
                 </button>
-                <button onclick="nextTrack()" class="fp-btn-side">
-                    <svg width="32" height="32" fill="currentColor" viewBox="0 0 24 24">
+                <button onclick="nextTrack()" class="p-side-btn">
+                    <svg width="28" height="28" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M6 18l8.5-6L6 6v12zm2-8.14L11.03 12 8 14.14V9.86zM16 6h2v12h-2z" />
                     </svg>
                 </button>
             </div>
 
-            <div class="fp-footer">
-                <a id="fp-read" href="#" class="fp-read-btn">
+            <div class="volume-box">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                    <path
+                        d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
+                </svg>
+                <div class="v-slider">
+                    <div class="v-fill"></div>
+                    <div class="v-knob"></div>
+                </div>
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                    <path
+                        d="M14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
+                </svg>
+            </div>
+
+            <div class="act-footer">
+                <a id="p-read" href="#" class="read-link">
                     ЧИТАТИ СТАТТЮ
                     <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
-                        <path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3" />
                     </svg>
                 </a>
-                <button onclick="copyLink()" class="fp-share-btn">
-                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"
-                        viewBox="0 0 24 24">
+                <button onclick="copyLink()" class="share-pill">
+                    <svg class="inline-block mr-2" width="14" height="14" fill="none" stroke="currentColor"
+                        stroke-width="3" viewBox="0 0 24 24">
                         <path
                             d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
                     </svg>
@@ -781,29 +706,65 @@
                 </button>
             </div>
         </div>
+
+        <!-- News Feed Container -->
+        <div id="feed">
+            <!-- Rendered by JS -->
+        </div>
+
+        <div class="h-40"></div>
+    </main>
+
+    <!-- Mini Player Bar -->
+    <div id="mini" class="hidden" onclick="scrollToPlayer()">
+        <div class="m-bar">
+            <div class="m-fill" id="m-fill"></div>
+        </div>
+        <div class="m-content">
+            <img id="m-img" src="" class="m-img">
+            <div class="m-info">
+                <p id="m-cat" class="m-cat">Новини</p>
+                <h3 id="m-title" class="m-title">Завантаження...</h3>
+            </div>
+            <div class="m-btns">
+                <button onclick="event.stopPropagation();nextTrack()" class="text-zinc-500">
+                    <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M6 18l8.5-6L6 6v12zm2-8.14L11.03 12 8 14.14V9.86zM16 6h2v12h-2z" />
+                    </svg>
+                </button>
+                <button onclick="event.stopPropagation();togglePlay()" class="text-white">
+                    <svg id="m-play" width="28" height="28" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M8 5v14l11-7z" />
+                    </svg>
+                    <svg id="m-pause" class="hidden" width="28" height="28" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+                    </svg>
+                </button>
+            </div>
+        </div>
     </div>
 
-    <!-- UI: Filter Drawer -->
+    <!-- Filter Drawer -->
     <div id="filter-drawer">
         <div class="drawer-overlay" onclick="closeFilters()"></div>
         <div class="drawer-sheet">
             <div class="flex items-center justify-between mb-8">
-                <h2 class="text-2xl font-outfit font-black">Фільтри</h2>
+                <h2 class="text-2xl font-outfit font-black">Канали</h2>
                 <button onclick="closeFilters()"
-                    class="text-zinc-500 font-bold uppercase text-[10px] tracking-widest">Закрити</button>
+                    class="text-zinc-500 font-bold uppercase text-[10px] tracking-widest">Готово</button>
             </div>
-
-            <div class="drawer-section">
-                <h3 class="drawer-title">РУБРИКИ</h3>
-                <div class="chip-flex" id="cat-chips"></div>
+            <div class="space-y-8 max-h-[60vh] overflow-y-auto">
+                <div>
+                    <h3 class="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-4">РУБРИКИ</h3>
+                    <div class="flex flex-wrap gap-2" id="cat-grid"></div>
+                </div>
+                <div>
+                    <h3 class="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-4">МІСТА</h3>
+                    <div class="flex flex-wrap gap-2" id="city-grid"></div>
+                </div>
             </div>
-            <div class="drawer-section">
-                <h3 class="drawer-title">МІСТА</h3>
-                <div class="chip-flex" id="city-chips"></div>
-            </div>
-
-            <button onclick="applyFilter('all', null, 'Усі новини')"
-                class="w-full py-4 bg-zinc-800 text-[11px] font-black uppercase tracking-widest rounded-2xl mb-4">Скинути
+            <button onclick="setFilter('all',null,'ВСІ НОВИНИ')"
+                class="w-full mt-8 py-4 bg-zinc-800 rounded-2xl text-[10px] font-black uppercase tracking-widest">Скинути
                 все</button>
         </div>
     </div>
@@ -813,19 +774,12 @@
         const SUPABASE_KEY = 'sb_publishable_L4_HhLhbj_m6wbEc3ZqhcQ_QNGOLWXU';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let allTracks = [], tracks = [], currentIndex = -1, isPlaying = false, radioMode = false;
+        let all = [], tracks = [], currentIndex = -1, isPlaying = false, radio = false;
         let activeFilter = { type: 'all', val: null };
         const audio = new Audio();
         audio.volume = 0.95;
 
-        // ── Listened tracking ──────────────────────────────────
-        function getListened() { return JSON.parse(localStorage.getItem('radio_listened') || '[]'); }
-        function saveListened(id) {
-            const list = getListened();
-            if (!list.includes(id)) { list.push(id); localStorage.setItem('radio_listened', JSON.stringify(list)); }
-        }
-
-        // ── Data Loading ───────────────────────────────────────
+        // Init
         async function init() {
             await window.initSiteHeader(_supabase);
             const { data } = await _supabase.from('news')
@@ -833,120 +787,120 @@
                 .eq('is_published', true).not('tts_audio_url', 'is', null)
                 .order('created_at', { ascending: false }).limit(100);
 
-            allTracks = data || [];
-            buildFilters();
-            renderTimeline();
+            all = data || [];
+            buildFilterUI();
 
-            // Initial wave building
-            const wc = document.getElementById('fp-wave-container');
-            wc.innerHTML = Array.from({ length: 40 }).map(() => `<div class="wave-bar" style="height:${Math.random() * 20 + 4}px"></div>`).join('');
+            // Build Waveform
+            const box = document.getElementById('wave-box');
+            box.innerHTML = Array.from({ length: 40 }).map(() => `<div class="wave-bar" style="height:${Math.random() * 15 + 4}px"></div>`).join('');
+
+            setFilter('all', null, 'ВСІ НОВИНИ');
+
+            // Scroll listener for mini-player
+            window.addEventListener('scroll', () => {
+                const stage = document.querySelector('.stage');
+                const rect = stage.getBoundingClientRect();
+                document.getElementById('mini').classList.toggle('hidden', rect.bottom > 100);
+            });
         }
 
-        function buildFilters() {
-            const cats = [...new Set(allTracks.map(t => t.category))].filter(Boolean);
-            const cities = [...new Set(allTracks.map(t => t.city))].filter(Boolean);
+        function buildFilterUI() {
+            const cats = [...new Set(all.map(t => t.category))].filter(Boolean);
+            const cities = [...new Set(all.map(t => t.city))].filter(Boolean);
 
-            document.getElementById('cat-chips').innerHTML = cats.map(c => `
-                <div class="chip ${activeFilter.val === c ? 'active' : ''}" onclick="applyFilter('cat','${c}','${window.CATEGORIES_UK?.[c] || c}')">
-                    ${window.CATEGORIES_UK?.[c] || c}
-                </div>`).join('');
+            const btn = (type, val, label) => `<button onclick="setFilter('${type}','${val}','${label}')" class="px-4 py-2 rounded-xl bg-white/[0.04] text-xs font-bold border border-white/[0.04] transition-all">${label}</button>`;
 
-            document.getElementById('city-chips').innerHTML = cities.map(c => `
-                <div class="chip ${activeFilter.val === c ? 'active' : ''}" onclick="applyFilter('city','${c}','${window.CITIES_UK?.[c] || c}')">
-                    ${window.CITIES_UK?.[c] || c}
-                </div>`).join('');
+            document.getElementById('cat-grid').innerHTML = cats.map(c => btn('cat', c, window.CATEGORIES_UK?.[c] || c)).join('');
+            document.getElementById('city-grid').innerHTML = cities.map(c => btn('city', c, window.CITIES_UK?.[c] || c)).join('');
         }
 
-        function applyFilter(type, val, label) {
+        function setFilter(type, val, label) {
             activeFilter = { type, val };
-            document.getElementById('active-station-name').textContent = label;
-            document.getElementById('fp-station').textContent = label.toUpperCase();
+            document.getElementById('city-label').innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span> ${label.toUpperCase()}`;
 
-            tracks = type === 'all' ? allTracks
-                : type === 'cat' ? allTracks.filter(t => t.category === val)
-                    : allTracks.filter(t => t.city === val);
+            tracks = type === 'all' ? all
+                : type === 'cat' ? all.filter(t => t.category === val)
+                    : all.filter(t => t.city === val);
 
-            currentIndex = 0;
-            renderTimeline();
-            loadTrack(0, false);
+            renderFeed();
+            if (tracks.length > 0) loadTrack(0, false);
             closeFilters();
-            buildFilters();
         }
 
-        // ── Timeline ───────────────────────────────────────────
-        function renderTimeline() {
-            const container = document.getElementById('timeline-container');
-            const listened = getListened();
-
+        function renderFeed() {
+            const feed = document.getElementById('feed');
             const groups = {};
-            tracks.forEach(track => {
-                const d = new Date(track.created_at);
-                const label = d.toLocaleDateString('uk-UA', { day: 'numeric', month: 'long' });
+            tracks.forEach(t => {
+                const date = new Date(t.created_at).toLocaleDateString('uk-UA', { day: 'numeric', month: 'long' });
                 const today = new Date().toLocaleDateString('uk-UA', { day: 'numeric', month: 'long' });
-                const key = label === today ? 'сьогодні' : label;
+                const key = date === today ? 'сьогодні' : date;
                 if (!groups[key]) groups[key] = [];
-                groups[key].push(track);
+                groups[key].push(t);
             });
 
-            container.innerHTML = Object.entries(groups).map(([date, items]) => `
-                <div class="date-group">
-                    <div class="date-header">
-                        <span class="date-label">${date}</span>
-                        <span class="date-count">${items.length} НОВИН</span>
-                    </div>
-                    ${items.map(t => {
+            feed.innerHTML = Object.entries(groups).map(([date, items]) => `
+                <div class="feed-header">
+                    <span class="feed-label">${date}</span>
+                    <span class="text-[10px] font-black text-zinc-600 tracking-widest">${items.length} НОВИН</span>
+                </div>
+                ${items.map(t => {
                 const idx = tracks.findIndex(x => x.id === t.id);
                 const isActive = idx === currentIndex;
-                const isDone = listened.includes(t.id);
+                const isDone = (JSON.parse(localStorage.getItem('radio_done') || '[]')).includes(t.id);
                 return `
-                        <div class="track-tile ${isActive ? 'active' : ''} ${isDone ? 'listened' : ''}" onclick="handleTileClick(${idx})">
-                            <div class="thumb-box">
-                                <img src="${t.image_url}" class="thumb-img" onerror="this.src='/favicon.ico';">
-                                <div class="thumb-overlay">
-                                    ${isActive && isPlaying
+                    <div class="item ${isActive ? 'active' : ''} ${isDone ? 'listened' : ''}" onclick="handleItemClick(${idx})">
+                        <div class="item-thumb">
+                            <img src="${t.image_url}" class="item-img" onerror="this.src='/favicon.ico';">
+                            <div class="item-play">
+                                ${isActive && isPlaying
                         ? `<svg width="24" height="24" fill="white" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`
                         : `<svg width="24" height="24" fill="white" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`}
-                                </div>
                             </div>
-                            <div class="track-info">
-                                <span class="track-cat">${window.CATEGORIES_UK?.[t.category] || t.category || ''}</span>
-                                <h3 class="track-title">${t.title}</h3>
-                                <div class="track-row-actions">
-                                    <button class="tile-action" onclick="event.stopPropagation();share('${t.title}','${getLink(t)}')">SHARE</button>
-                                    <a href="${getLink(t)}" class="tile-action" onclick="event.stopPropagation()">ЧИТАТИ</a>
-                                </div>
+                        </div>
+                        <div class="item-body">
+                            <p class="item-cat">${window.CATEGORIES_UK?.[t.category] || t.category || ''}</p>
+                            <h3 class="item-title">${t.title}</h3>
+                            <div class="item-acts">
+                                <button class="item-act" onclick="event.stopPropagation();share('${t.title}','${getLink(t)}')">
+                                    <svg class="mr-1" width="10" height="10" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+                                    SHARE
+                                </button>
+                                <a href="${getLink(t)}" class="item-act" onclick="event.stopPropagation()">
+                                    <svg class="mr-1" width="10" height="10" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                                    ЧИТАТИ
+                                </a>
                             </div>
-                            ${isDone ? `<div class="listened-check"><svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></div>` : ''}
-                        </div>`;
+                        </div>
+                    </div>`;
             }).join('')}
-                </div>
             `).join('');
         }
 
-        // ── Player Logic ───────────────────────────────────────
-        function handleTileClick(index) {
-            if (index === currentIndex) togglePlay();
-            else loadTrack(index, true);
+        // Logic
+        function handleItemClick(idx) {
+            if (currentIndex === idx) togglePlay();
+            else loadTrack(idx, true);
         }
 
-        function loadTrack(index, play = true) {
-            currentIndex = index;
-            const t = tracks[index];
+        function loadTrack(idx, play = true) {
+            currentIndex = idx;
+            const t = tracks[idx];
             if (!t) return;
 
-            document.getElementById('player-bar').classList.remove('hidden');
-            document.querySelectorAll('[id$="-art"]').forEach(el => el.src = t.image_url);
-            document.querySelectorAll('[id$="-title"]').forEach(el => el.textContent = t.title);
+            document.getElementById('p-art').src = t.image_url;
+            document.getElementById('m-img').src = t.image_url;
+            document.getElementById('p-title').textContent = t.title;
+            document.getElementById('m-title').textContent = t.title;
             const cat = window.CATEGORIES_UK?.[t.category] || t.category || 'НОВИНИ';
-            document.getElementById('m-sub').textContent = cat;
-            document.getElementById('fp-badge').textContent = cat;
-            document.getElementById('fp-date').textContent = new Date(t.created_at).toLocaleDateString('uk-UA', { day: 'numeric', month: 'long' });
-            document.getElementById('fp-read').href = getLink(t);
+            document.getElementById('p-badge').textContent = cat;
+            document.getElementById('m-cat').textContent = cat;
+            document.getElementById('p-date').textContent = new Date(t.created_at).toLocaleDateString('uk-UA', { day: 'numeric', month: 'long' });
+            document.getElementById('p-read').href = getLink(t);
 
             audio.src = t.tts_audio_url;
             if (play) audio.play().then(() => setPlayState(true));
             else setPlayState(false);
-            renderTimeline();
+            renderFeed();
         }
 
         function togglePlay() {
@@ -954,45 +908,40 @@
             else { audio.pause(); setPlayState(false); }
         }
 
-        function setPlayState(playing) {
-            isPlaying = playing;
-            document.getElementById('m-play').classList.toggle('hidden', playing);
-            document.getElementById('m-pause').classList.toggle('hidden', !playing);
-            document.getElementById('fp-play').classList.toggle('hidden', playing);
-            document.getElementById('fp-pause').classList.toggle('hidden', !playing);
-            document.getElementById('fp-wave-container').classList.toggle('wave-active', playing);
-            renderTimeline();
+        function setPlayState(p) {
+            isPlaying = p;
+            document.getElementById('play-ico').classList.toggle('hidden', p);
+            document.getElementById('pause-ico').classList.toggle('hidden', !p);
+            document.getElementById('m-play').classList.toggle('hidden', p);
+            document.getElementById('m-pause').classList.toggle('hidden', !p);
+            document.getElementById('wave-box').classList.toggle('wave-active', p);
+            renderFeed();
         }
 
-        function nextTrack() {
-            if (currentIndex < tracks.length - 1) loadTrack(currentIndex + 1, true);
-        }
-        function prevTrack() {
-            if (currentIndex > 0) loadTrack(currentIndex - 1, true);
-        }
+        function nextTrack() { if (currentIndex < tracks.length - 1) loadTrack(currentIndex + 1, true); }
+        function prevTrack() { if (currentIndex > 0) loadTrack(currentIndex - 1, true); }
 
         audio.addEventListener('timeupdate', () => {
             if (!audio.duration) return;
             const pct = (audio.currentTime / audio.duration);
-            document.getElementById('m-p-fill').style.width = (pct * 100) + '%';
-            document.getElementById('fp-p-fill').style.width = (pct * 100) + '%';
-            document.getElementById('fp-cur').textContent = fmtTime(audio.currentTime);
-            document.getElementById('fp-dur').textContent = fmtTime(audio.duration);
+            document.getElementById('p-fill').style.width = (pct * 100) + '%';
+            document.getElementById('m-fill').style.width = (pct * 100) + '%';
+            document.getElementById('p-cur').textContent = fmt(audio.currentTime);
+            document.getElementById('p-dur').textContent = fmt(audio.duration);
 
-            if (pct > 0.95) saveListened(tracks[currentIndex].id);
-
-            // Animate wave random heights if active
+            if (pct > 0.95) {
+                const list = JSON.parse(localStorage.getItem('radio_done') || '[]');
+                if (!list.includes(tracks[currentIndex].id)) {
+                    list.push(tracks[currentIndex].id);
+                    localStorage.setItem('radio_done', JSON.stringify(list));
+                }
+            }
             if (isPlaying) {
-                document.querySelectorAll('.wave-bar').forEach(bar => {
-                    bar.style.height = (Math.random() * 28 + 4) + 'px';
-                });
+                document.querySelectorAll('.wave-bar').forEach(b => b.style.height = (Math.random() * 28 + 4) + 'px');
             }
         });
 
-        audio.addEventListener('ended', () => {
-            if (radioMode || currentIndex < tracks.length - 1) nextTrack();
-            else setPlayState(false);
-        });
+        audio.addEventListener('ended', () => { if (radio || currentIndex < tracks.length - 1) nextTrack(); else setPlayState(false); });
 
         function seek(e) {
             const r = e.currentTarget.getBoundingClientRect();
@@ -1000,32 +949,20 @@
             if (audio.duration) audio.currentTime = pct * audio.duration;
         }
 
-        // ── Controls ───────────────────────────────────────────
-        function openFilters() { document.getElementById('filter-drawer').classList.add('open'); }
-        function closeFilters() { document.getElementById('filter-drawer').classList.remove('open'); }
-        function openFullPlayer() { document.getElementById('full-player').classList.add('open'); }
-        function closeFullPlayer() { document.getElementById('full-player').classList.remove('open'); }
-
-        function toggleRadioMode() {
-            radioMode = !radioMode;
-            document.getElementById('radio-dot').style.transform = radioMode ? 'translateX(20px)' : 'translateX(0)';
-            document.getElementById('radio-dot').style.background = radioMode ? '#fff' : '#64748b';
-            document.getElementById('radio-toggle').classList.toggle('bg-orange-600', radioMode);
-            document.getElementById('radio-mode-text').textContent = radioMode ? 'УВІМКНЕНО' : 'ВИМКНЕНО';
-            if (radioMode && audio.paused) nextTrack();
+        function toggleRadio() {
+            radio = !radio;
+            document.getElementById('radio-btn').classList.toggle('active', radio);
+            document.getElementById('radio-status').textContent = radio ? 'УВІМК' : 'ВИМК';
+            if (radio && audio.paused) nextTrack();
         }
 
+        function scrollToPlayer() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
+        function openFilters() { document.getElementById('filter-drawer').classList.add('open'); }
+        function closeFilters() { document.getElementById('filter-drawer').classList.remove('open'); }
         function getLink(t) { return t.city ? `/${t.city}/${t.slug}/` : t.category ? `/category/${t.category}/${t.slug}/` : `/${t.slug}/`; }
-        function fmtTime(s) { const m = Math.floor(s / 60), r = Math.floor(s % 60); return `${m}:${r < 10 ? '0' : ''}${r}`; }
-        function share(title, url) { if (navigator.share) navigator.share({ title, url }); else { navigator.clipboard.writeText(url); alert('URL copied'); } }
-        function copyLink() { share(tracks[currentIndex]?.title, window.location.href); }
-
-        // Swipe support
-        let startY = 0;
-        document.getElementById('full-player').addEventListener('touchstart', e => startY = e.touches[0].clientY, { passive: true });
-        document.getElementById('full-player').addEventListener('touchend', e => {
-            if (e.changedTouches[0].clientY - startY > 100) closeFullPlayer();
-        }, { passive: true });
+        function fmt(s) { const m = Math.floor(s / 60), r = Math.floor(s % 60); return `${m}:${r < 10 ? '0' : ''}${r}`; }
+        function share(t, u) { if (navigator.share) navigator.share({ title: t, url: u }); else { navigator.clipboard.writeText(u); alert('Link copied'); } }
+        function copyLink() { share(tracks[currentIndex]?.title, getLink(tracks[currentIndex])); }
 
         init();
     </script>
