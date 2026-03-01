@@ -11,6 +11,16 @@ const CITIES_MAP = {
     'burshtyn': 'Бурштин', 'kosiv': 'Косів', 'yaremche': 'Яремче'
 };
 
+// SSR Cache
+let globalCache = {
+    categories: null,
+    cities: null,
+    ticker: null,
+    lastUpdate: 0
+};
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const STATIC_TTL = 60 * 60 * 1000; // 1 hour for categories/cities
+
 module.exports = async (req, res) => {
     // slug може прийти як /news/:slug через rewrite або як ?slug= query param
     let slug = req.query.slug;
@@ -85,25 +95,42 @@ module.exports = async (req, res) => {
             return res.status(200).send(htmlContent);
         }
 
-        const news = await response.json();
+        // Fetch everything in parallel
+        const now = Date.now();
+        const promises = [response.json()];
 
-        if (!news || Object.keys(news).length === 0) {
-            res.setHeader('Content-Type', 'text/html; charset=utf-8');
-            return res.status(200).send(htmlContent);
+        if (!globalCache.categories || (now - globalCache.lastUpdate > STATIC_TTL)) {
+            promises.push(fetch(`${SUPABASE_URL}/rest/v1/categories?select=*&order=order_index.asc`, {
+                headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+            }).then(r => r.json()));
+        } else {
+            promises.push(Promise.resolve(globalCache.categories));
         }
 
-        // Fetch categories and cities for dynamic mappings
-        const [catDbRes, cityDbRes] = await Promise.all([
-            fetch(`${SUPABASE_URL}/rest/v1/categories?select=*&order=order_index.asc`, {
+        if (!globalCache.cities || (now - globalCache.lastUpdate > STATIC_TTL)) {
+            promises.push(fetch(`${SUPABASE_URL}/rest/v1/cities?select=*&order=order_index.asc`, {
                 headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
-            }),
-            fetch(`${SUPABASE_URL}/rest/v1/cities?select=*&order=order_index.asc`, {
-                headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
-            })
-        ]);
+            }).then(r => r.json()));
+        } else {
+            promises.push(Promise.resolve(globalCache.cities));
+        }
 
-        const categories = await catDbRes.json();
-        const cities = await cityDbRes.json();
+        // Ticker fetch
+        if (!globalCache.ticker || (now - globalCache.lastUpdate > CACHE_TTL)) {
+            promises.push(fetch(`${SUPABASE_URL}/rest/v1/news?is_published=eq.true&select=id,title,slug&order=created_at.desc&limit=5`, {
+                headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+            }).then(r => r.json()));
+        } else {
+            promises.push(Promise.resolve(globalCache.ticker));
+        }
+
+        const [news, categories, cities, tickerNews] = await Promise.all(promises);
+
+        // Update cache
+        globalCache.categories = categories;
+        globalCache.cities = cities;
+        globalCache.ticker = tickerNews;
+        globalCache.lastUpdate = now;
 
         const CAT_MAP = {};
         const CAT_EN_TO_UK_SLUG = {};
@@ -272,21 +299,8 @@ module.exports = async (req, res) => {
 
         // SSR Header Injection
         let tickerHtml = 'ОСТАННІ НОВИНИ ПРИКАРПАТТЯ • ПЕРЕВІРЕНІ ФАКТИ • АКТУАЛЬНІ ПОДІЇ • ОПЕРАТИВНО ТА ЧЕСНО •';
-        try {
-            const tickerRes = await fetch(`${SUPABASE_URL}/rest/v1/news?is_published=eq.true&select=id,title,slug&order=created_at.desc&limit=5`, {
-                headers: {
-                    'apikey': SUPABASE_KEY,
-                    'Authorization': `Bearer ${SUPABASE_KEY}`
-                }
-            });
-            if (tickerRes.ok) {
-                const tickerNews = await tickerRes.json();
-                if (tickerNews && tickerNews.length > 0) {
-                    tickerHtml = tickerNews.map(tn => `<a href="/news/${tn.slug}/" class="mx-4 hover:text-orange-500 transition-colors">${tn.title}</a>`).join(' <span class="text-orange-600 font-bold mx-2">/</span> ');
-                }
-            }
-        } catch (e) {
-            console.error('Ticker SSR Error:', e);
+        if (tickerNews && tickerNews.length > 0) {
+            tickerHtml = tickerNews.map(tn => `<a href="/news/${tn.slug}/" class="mx-4 hover:text-orange-500 transition-colors">${tn.title}</a>`).join(' <span class="text-orange-600 font-bold mx-2">/</span> ');
         }
 
         const headerHtml = `

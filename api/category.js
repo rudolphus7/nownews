@@ -18,6 +18,14 @@ async function fetchFromSupabase(table, params = '') {
     return res.json();
 }
 
+// SSR Cache
+let globalCache = {
+    categories: null,
+    cities: null,
+    lastUpdate: 0
+};
+const STATIC_TTL = 60 * 60 * 1000; // 1 hour
+
 module.exports = async (req, res) => {
     let slug = req.query.slug;
     if (Array.isArray(slug)) slug = slug[0];
@@ -30,11 +38,27 @@ module.exports = async (req, res) => {
     let categories = [];
     let cities = [];
 
+    const now = Date.now();
     try {
-        [categories, cities] = await Promise.all([
-            fetchFromSupabase('categories', 'select=*&order=order_index.asc'),
-            fetchFromSupabase('cities', 'select=*&order=order_index.asc')
-        ]);
+        const promises = [];
+        if (!globalCache.categories || (now - globalCache.lastUpdate > STATIC_TTL)) {
+            promises.push(fetchFromSupabase('categories', 'select=*&order=order_index.asc'));
+        } else {
+            promises.push(Promise.resolve(globalCache.categories));
+        }
+
+        if (!globalCache.cities || (now - globalCache.lastUpdate > STATIC_TTL)) {
+            promises.push(fetchFromSupabase('cities', 'select=*&order=order_index.asc'));
+        } else {
+            promises.push(Promise.resolve(globalCache.cities));
+        }
+
+        [categories, cities] = await Promise.all(promises);
+
+        // Update cache
+        globalCache.categories = categories;
+        globalCache.cities = cities;
+        globalCache.lastUpdate = now;
     } catch (e) {
         console.error('Supabase fetch error:', e.message);
         res.setHeader('Location', '/');
