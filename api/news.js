@@ -116,14 +116,12 @@ module.exports = async (req, res) => {
 
         let articleData = newsData;
         if (!articleData && response.ok) {
-            const dataArr = await response.json();
-            articleData = dataArr[0];
-        }
-
-        if (!articleData) {
-            console.warn('No news article found for slug/id');
-            res.setHeader('Content-Type', 'text/html; charset=utf-8');
-            return res.status(200).send(htmlContent);
+            try {
+                const dataArr = await response.json();
+                articleData = dataArr[0];
+            } catch (jsonErr) {
+                console.warn('Failed to parse news JSON:', jsonErr);
+            }
         }
 
         // Fetch remaining data in parallel
@@ -158,13 +156,28 @@ module.exports = async (req, res) => {
         }
 
         const [categories, cities, tickerNews] = await Promise.all(promises);
-        const news = articleData;
 
         // Update cache
         globalCache.categories = categories;
         globalCache.cities = cities;
         globalCache.ticker = tickerNews;
         globalCache.lastUpdate = now;
+
+        // If no news article found, check if slug matches a category
+        if (!articleData) {
+            console.warn('No news article found for slug/id:', slug);
+            const matchingCategory = categories.find(c => c.slug === slug);
+            if (matchingCategory) {
+                console.log(`Slug "${slug}" matches a category, redirecting to /category/${slug}/`);
+                res.writeHead(302, { Location: `/category/${slug}/` });
+                return res.end();
+            }
+            // Otherwise, serve the template (client will show "Not Found")
+            res.setHeader('Content-Type', 'text/html; charset=utf-8');
+            return res.status(200).send(htmlContent);
+        }
+
+        const news = articleData;
 
         const CAT_MAP = {};
         const CAT_EN_TO_UK_SLUG = {};

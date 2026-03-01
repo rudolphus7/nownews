@@ -565,7 +565,11 @@
 
             if (!slug && !id) {
                 console.warn("No slug or ID found!");
-                if (loader) loader.innerHTML = `<div class="text-center py-20 text-slate-600 italic">Оберіть новину на <a href="/" class="text-orange-600 underline font-bold">головній сторінці</a>.</div>`;
+                if (loader) {
+                    loader.classList.add('hidden');
+                    loader.innerHTML = `<div class="text-center py-20 text-slate-600 italic">Оберіть новину на <a href="/" class="text-orange-600 underline font-bold">головній сторінці</a>.</div>`;
+                    loader.classList.remove('hidden');
+                }
                 return;
             }
 
@@ -632,40 +636,50 @@
                     return;
                 }
 
-                if (!data) {
-                    console.warn("No data returned for this slug/id");
-                    if (loader) loader.innerHTML = `<div class="text-center py-20 text-slate-400 font-bold uppercase tracking-widest">Статтю не знайдено</div>`;
-                    return;
-                }
+                if (data) {
+                    console.log("Article data received:", data.title);
+                    currentPost = data;
+                    document.title = `${data.title} | IF News`;
 
-                console.log("Article data received:", data.title);
-                currentPost = data;
-                document.title = `${data.title} | IF News`;
+                    // Final URL Sync
+                    if (data.slug && !window.location.pathname.includes(data.slug)) {
+                        window.history.replaceState(null, '', `/news/${data.slug}`);
+                    }
 
-                // Final URL Sync
-                if (data.slug && !window.location.pathname.includes(data.slug)) {
-                    window.history.replaceState(null, '', `/news/${data.slug}`);
-                }
+                    fillUI(data);
+                    loadRelated(data.category, data.id);
+                    loadReactions(data.id, data.allowed_reactions);
+                    loadComments(data.id);
+                    subscribeToReactions(data.id);
 
-                fillUI(data);
-                loadRelated(data.category, data.id);
-                loadReactions(data.id, data.allowed_reactions);
-                loadComments(data.id);
-                subscribeToReactions(data.id);
+                    if (loader) loader.classList.add('hidden');
+                    document.getElementById('news-content').classList.remove('hidden');
 
-                if (loader) loader.classList.add('hidden');
-                document.getElementById('news-content').classList.remove('hidden');
+                    // Increment Views (with session guard)
+                    const viewedKey = `viewed_${data.id}`;
+                    if (!_safeSessGet(viewedKey)) {
+                        await _supabase.rpc('increment_views', { post_id: data.id });
+                        _safeSessSet(viewedKey, 'true');
 
-                // Increment Views (with session guard)
-                const viewedKey = `viewed_${data.id}`;
-                if (!_safeSessGet(viewedKey)) {
-                    await _supabase.rpc('increment_views', { post_id: data.id });
-                    _safeSessSet(viewedKey, 'true');
-
-                    // Fetch updated count to show in UI
-                    const { data: updatedPost } = await _supabase.from('news').select('views').eq('id', data.id).single();
-                    if (updatedPost && document.getElementById('view-count')) {
-                        document.getElementById('view-count').innerText = updatedPost.views || 0;
+                        // Fetch updated count to show in UI
+                        const { data: updatedPost } = await _supabase.from('news').select('views').eq('id', data.id).single();
+                        if (updatedPost && document.getElementById('view-count')) {
+                            document.getElementById('view-count').innerText = updatedPost.views || 0;
+                        }
+                    }
+                } else {
+                    console.warn("Article not found in Supabase");
+                    if (loader) {
+                        loader.classList.add('hidden');
+                        loader.innerHTML = `
+                            <div class="text-center py-20">
+                                <h1 class="text-4xl font-black text-slate-900 mb-4">404</h1>
+                                <p class="text-slate-500 mb-8 font-medium">Статтю не знайдено або її було видалено.</p>
+                                <a href="/" class="inline-flex items-center gap-2 bg-orange-600 text-white px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-orange-700 transition">
+                                    На головну
+                                </a>
+                            </div>`;
+                        loader.classList.remove('hidden');
                     }
                 }
             } catch (err) {
