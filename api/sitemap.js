@@ -71,16 +71,26 @@ ${urls.map(u => `  <url>
 }
 
 async function servePosts(res, headers) {
-    const response = await fetch(`${SUPABASE_URL}/rest/v1/news?is_published=eq.true&select=slug,updated_at,created_at&order=created_at.desc`, { headers });
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/news?is_published=eq.true&select=slug,updated_at,created_at,city,category&order=created_at.desc`, { headers });
     if (!response.ok) throw new Error(`Supabase error: ${response.status}`);
     const articles = await response.json();
+
+    const CAT_MAP = {
+        'war': 'viyna', 'politics': 'polityka', 'economy': 'ekonomika',
+        'sport': 'sport', 'culture': 'kultura', 'tech': 'tekhnolohii',
+        'frankivsk': 'frankivsk', 'oblast': 'oblast'
+    };
 
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${articles.filter(a => a.slug).map(a => {
         const lastmod = (a.updated_at || a.created_at || new Date().toISOString()).split('T')[0];
+        let path = `/${a.slug}/`;
+        if (a.city) path = `/${a.city}/${a.slug}/`;
+        else if (a.category && CAT_MAP[a.category]) path = `/category/${CAT_MAP[a.category]}/${a.slug}/`;
+
         return `  <url>
-    <loc>${escapeXml(`${SITE_URL}/news/${a.slug}/`)}</loc>
+    <loc>${escapeXml(`${SITE_URL}${path}`)}</loc>
     <lastmod>${lastmod}</lastmod>
     <changefreq>hourly</changefreq>
     <priority>0.85</priority>
@@ -92,21 +102,33 @@ ${articles.filter(a => a.slug).map(a => {
 
 async function serveNews(res, headers) {
     const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
-    const apiUrl = `${SUPABASE_URL}/rest/v1/news?is_published=eq.true&created_at=gte.${encodeURIComponent(cutoff)}&select=slug,title,created_at&order=created_at.desc`;
+    const apiUrl = `${SUPABASE_URL}/rest/v1/news?is_published=eq.true&created_at=gte.${encodeURIComponent(cutoff)}&select=slug,title,created_at,city,category&order=created_at.desc`;
     const response = await fetch(apiUrl, { headers });
     const articles = response.ok ? await response.json() : [];
     const validArticles = articles.filter(a => a.slug && a.title);
 
+    const CAT_MAP = {
+        'war': 'viyna', 'politics': 'polityka', 'economy': 'ekonomika',
+        'sport': 'sport', 'culture': 'kultura', 'tech': 'tekhnolohii',
+        'frankivsk': 'frankivsk', 'oblast': 'oblast'
+    };
+
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">
-${validArticles.map(a => `  <url>
-    <loc>${escapeXml(`${SITE_URL}/news/${a.slug}/`)}</loc>
+${validArticles.map(a => {
+        let path = `/${a.slug}/`;
+        if (a.city) path = `/${a.city}/${a.slug}/`;
+        else if (a.category && CAT_MAP[a.category]) path = `/category/${CAT_MAP[a.category]}/${a.slug}/`;
+
+        return `  <url>
+    <loc>${escapeXml(`${SITE_URL}${path}`)}</loc>
     <news:news>
       <news:publication><news:name>Прикарпаття News</news:name><news:language>uk</news:language></news:publication>
       <news:publication_date>${formatDate(a.created_at)}</news:publication_date>
       <news:title>${escapeXml(a.title)}</news:title>
     </news:news>
-  </url>`).join('\n')}
+  </url>`;
+    }).join('\n')}
 </urlset>`;
     return sendXml(res, xml, 300);
 }

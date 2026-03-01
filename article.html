@@ -515,7 +515,9 @@
         function buildNewsUrl(post) {
             const slug = post.slug || '';
             const id = post.id || '';
-            return slug ? `/news/${slug}` : `/news?id=${id}`;
+            if (post.city && CITIES_UK[post.city]) return `/${post.city}/${slug}/`;
+            if (post.category && CATEGORY_EN_TO_UK_SLUG[post.category]) return `/category/${CATEGORY_EN_TO_UK_SLUG[post.category]}/${slug}/`;
+            return slug ? `/${slug}/` : `/news?id=${id}`;
         }
 
         // CATEGORIES_UK and CITIES_UK are now provided globally by /components/header.js

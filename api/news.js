@@ -117,14 +117,25 @@ module.exports = async (req, res) => {
             CITY_MAP[c.slug] = c.name;
         });
 
-        // Canonical URL logic — preference order: city > category > default news
-        let canonicalUrl = `${SITE_URL}/news/${news.slug}/`;
+        // Canonical URL logic — preference order: city > category > fallback
+        let preferredPath = '';
         if (news.city && CITY_MAP[news.city]) {
-            canonicalUrl = `${SITE_URL}/${news.city}/${news.slug}/`;
+            preferredPath = `/${news.city}/${news.slug}/`;
         } else if (news.category && CAT_EN_TO_UK_SLUG[news.category]) {
-            canonicalUrl = `${SITE_URL}/category/${CAT_EN_TO_UK_SLUG[news.category]}/${news.slug}/`;
-        } else if (!news.slug) {
-            canonicalUrl = `${SITE_URL}/news/?id=${news.id}`;
+            preferredPath = `/category/${CAT_EN_TO_UK_SLUG[news.category]}/${news.slug}/`;
+        } else {
+            preferredPath = `/news/${news.slug}/`;
+        }
+
+        const canonicalUrl = `${SITE_URL}${preferredPath}`;
+
+        // 301 Redirect if current path is not the preferred one
+        // Check if we are accessed via /news/ or some other non-preferred path
+        const currentPath = req.url.split('?')[0];
+        if (currentPath !== preferredPath && !currentPath.includes('/api/')) {
+            console.log(`301 Redirect: ${currentPath} -> ${preferredPath}`);
+            res.writeHead(301, { Location: preferredPath });
+            return res.end();
         }
 
         const title = `${news.title} | IF News`;
@@ -134,7 +145,6 @@ module.exports = async (req, res) => {
             .trim()
             .substring(0, 160);
         const image = news.image_url || `${SITE_URL}/og-default.jpg`;
-        const publishedDate = news.created_at ? new Date(news.created_at).toISOString() : '';
         const author = news.author || 'Редакція IF News';
         const siteName = 'Прикарпаття News | IF News';
 

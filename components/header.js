@@ -83,7 +83,7 @@ class SiteHeader {
             return `/category/${catSlug}/${slug}/`;
         }
 
-        return `/news/${slug}/`;
+        return `/${slug}/`;
     }
 
     syncFilters() {
