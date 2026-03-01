@@ -17,9 +17,10 @@
     <style>
         :root {
             --accent: #ff4d00;
-            --accent-light: #ff7d45;
+            --accent-dark: #dc2626;
             --bg: #09090b;
             --card: #141417;
+            --text-muted: #71717a;
         }
 
         * {
@@ -29,6 +30,7 @@
 
         h1,
         h2,
+        h3,
         .font-outfit {
             font-family: 'Outfit', sans-serif;
         }
@@ -40,7 +42,7 @@
             margin: 0;
             padding: 0;
             min-height: 100dvh;
-            overscroll-behavior-y: contain;
+            overscroll-behavior: none;
         }
 
         /* ── Scrollbar ────────────────────────────────────────── */
@@ -52,46 +54,85 @@
             scrollbar-width: none;
         }
 
-        /* ── Timeline Styles ─────────────────────────────────── */
-        .date-group {
-            margin-bottom: 24px;
-            position: relative;
+        /* ── Unified Header Adjustment ───────────────────────── */
+        body {
+            padding-top: calc(env(safe-area-inset-top, 0px) + 0px);
         }
 
-        .date-header {
-            position: sticky;
-            top: 0;
-            z-index: 20;
-            background: rgba(9, 9, 11, 0.85);
-            backdrop-filter: blur(12px);
-            padding: 16px 20px 8px;
-            font-size: 11px;
-            font-weight: 900;
-            color: #71717a;
-            text-transform: uppercase;
-            letter-spacing: 0.2em;
+        /* ── Hero / Filter Controls ──────────────────────────── */
+        .page-header {
+            padding: 80px 20px 20px;
+        }
+
+        .filter-trigger {
             display: flex;
             items-center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: #d4d4d8;
+            transition: all 0.2s;
+        }
+
+        .filter-trigger:active {
+            background: rgba(255, 255, 255, 0.1);
+            scale: 0.96;
+        }
+
+        /* ── Timeline ─────────────────────────────────────────── */
+        .date-header {
+            position: sticky;
+            top: 60px;
+            z-index: 30;
+            background: rgba(9, 9, 11, 0.95);
+            backdrop-filter: blur(12px);
+            padding: 16px 20px 10px;
+            display: flex;
+            align-items: flex-end;
             justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .date-label {
+            font-size: 18px;
+            font-weight: 900;
+            font-family: 'Outfit';
+            color: #fff;
+            text-transform: lowercase;
+        }
+
+        .date-count {
+            font-size: 10px;
+            font-weight: 800;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-bottom: 4px;
         }
 
         /* ── Track Tile ────────────────────────────────────────── */
         .track-tile {
             display: flex;
             gap: 16px;
-            padding: 12px 20px;
+            padding: 16px 20px;
             cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            transition: background 0.2s;
             position: relative;
         }
 
         .track-tile:active {
-            background: rgba(255, 255, 255, 0.03);
+            background: rgba(255, 255, 255, 0.04);
         }
 
         .track-tile.active {
-            background: rgba(255, 77, 0, 0.08);
+            background: rgba(255, 77, 0, 0.06);
         }
 
         .track-tile.active::before {
@@ -104,290 +145,476 @@
             background: var(--accent);
         }
 
-        .track-img-container {
+        .track-tile.listened {
+            opacity: 0.45;
+        }
+
+        .thumb-box {
             position: relative;
-            width: 64px;
-            height: 64px;
+            width: 72px;
+            height: 72px;
             flex-shrink: 0;
         }
 
-        .track-img {
+        .thumb-img {
             width: 100%;
             height: 100%;
-            border-radius: 14px;
+            border-radius: 12px;
             object-fit: cover;
-            background: #1e1e24;
+            background: #18181b;
         }
 
-        .track-play-hint {
+        .thumb-overlay {
             position: absolute;
             inset: 0;
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 12px;
             display: flex;
-            align-items: center;
+            items-center;
             justify-content: center;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 14px;
             opacity: 0;
             transition: opacity 0.2s;
         }
 
-        .track-tile:hover .track-play-hint {
+        .track-tile:hover .thumb-overlay,
+        .track-tile.active .thumb-overlay {
             opacity: 1;
         }
 
-        .track-tile.active .track-play-hint {
-            opacity: 1;
+        .track-tile.active .thumb-overlay {
             background: rgba(255, 77, 0, 0.3);
         }
 
-        .track-meta {
+        .track-info {
             flex: 1;
             min-width: 0;
             display: flex;
             flex-direction: column;
-            justify-content: center;
         }
 
-        .track-tag {
+        .track-cat {
             font-size: 10px;
-            font-weight: 800;
-            color: #a1a1aa;
+            font-weight: 900;
+            color: var(--accent);
             text-transform: uppercase;
             letter-spacing: 0.1em;
-            margin-bottom: 2px;
+            margin-bottom: 3px;
         }
 
         .track-title {
             font-size: 14px;
             font-weight: 600;
             color: #f4f4f5;
-            line-height: 1.35;
-            margin-bottom: 6px;
+            line-height: 1.4;
+            margin-bottom: 8px;
         }
 
-        .track-actions {
+        .track-row-actions {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 14px;
             margin-top: auto;
         }
 
-        .action-btn {
+        .tile-action {
             display: flex;
             align-items: center;
             gap: 4px;
-            font-size: 10px;
-            font-weight: 700;
-            color: #71717a;
+            font-size: 9px;
+            font-weight: 800;
+            color: #52525b;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
-            transition: color 0.2s;
+            letter-spacing: 0.08em;
         }
 
-        .action-btn:hover {
-            color: var(--accent);
+        .tile-action:active {
+            color: #fff;
         }
 
-        /* ── Sticky Bottom Player ──────────────────────────────── */
+        .listened-check {
+            position: absolute;
+            top: 16px;
+            right: 20px;
+            color: #10b981;
+        }
+
+        /* ── Sticky Mini Player (Screenshot 3 style) ─────────── */
         #player-bar {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
             z-index: 100;
-            background: rgba(18, 18, 22, 0.98);
-            backdrop-filter: blur(20px);
+            background: #101014;
             border-top: 1px solid rgba(255, 255, 255, 0.08);
             padding-bottom: env(safe-area-inset-bottom, 12px);
         }
 
-        .progress-bar {
+        .p-progress {
             height: 2px;
             background: rgba(255, 255, 255, 0.1);
-            width: 100%;
             cursor: pointer;
         }
 
-        .progress-fill {
+        .p-fill {
             height: 100%;
             background: var(--accent);
             width: 0%;
             transition: width 0.1s linear;
         }
 
-        .player-content {
+        .p-mini-wrap {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
             padding: 12px 20px;
+            cursor: pointer;
         }
 
-        .mini-art {
-            width: 44px;
-            height: 44px;
+        .p-mini-art {
+            width: 48px;
+            height: 48px;
             border-radius: 10px;
             object-fit: cover;
         }
 
-        .mini-info {
+        .p-mini-body {
             flex: 1;
             min-width: 0;
         }
 
-        .mini-title {
+        .p-mini-sub {
+            font-size: 10px;
+            font-weight: 900;
+            color: var(--accent);
+            text-transform: uppercase;
+        }
+
+        .p-mini-title {
             font-size: 13px;
             font-weight: 700;
+            color: #fff;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            letter-spacing: -0.01em;
         }
 
-        .mini-sub {
-            font-size: 10px;
-            color: #71717a;
+        .p-mini-btns {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .play-circle {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #fff;
+            color: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
+        }
+
+        /* ── Full Player Modal (Screenshot 2 style) ──────────── */
+        #full-player {
+            position: fixed;
+            inset: 0;
+            z-index: 500;
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+            transform: translateY(100%);
+            transition: transform 0.5s cubic-bezier(0.32, 0.72, 0, 1);
+            padding-top: env(safe-area-inset-top, 0px);
+        }
+
+        #full-player.open {
+            transform: translateY(0);
+        }
+
+        .fp-header {
+            display: flex;
+            items-center;
+            justify-content: space-between;
+            padding: 16px 24px;
+        }
+
+        .fp-close {
+            color: var(--text-muted);
+            padding: 8px;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .fp-header-title {
+            text-align: center;
+        }
+
+        .fp-header-title p {
+            font-size: 9px;
+            font-weight: 900;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.3em;
+        }
+
+        .fp-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 0 32px;
+        }
+
+        .fp-art-container {
+            position: relative;
+            width: 100%;
+            max-width: 320px;
+            aspect-ratio: 1;
+            margin-bottom: 40px;
+        }
+
+        .fp-art {
+            width: 100%;
+            height: 100%;
+            border-radius: 28px;
+            object-fit: cover;
+            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.6);
+        }
+
+        .fp-badge {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            background: var(--accent);
+            color: #fff;
+            font-size: 9px;
+            font-weight: 900;
+            padding: 4px 12px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+        }
+
+        .fp-info {
+            text-align: center;
+            width: 100%;
+            margin-bottom: 32px;
+        }
+
+        .fp-title {
+            font-size: 20px;
+            font-weight: 900;
+            color: #fff;
+            line-height: 1.25;
+            margin-bottom: 6px;
+            font-family: 'Outfit';
+        }
+
+        .fp-date {
+            font-size: 13px;
             font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .fp-wave {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            height: 32px;
+            margin-bottom: 32px;
+        }
+
+        .wave-bar {
+            width: 3px;
+            background: var(--accent);
+            border-radius: 2px;
+            transition: height 0.2s;
+        }
+
+        .fp-progress-wrap {
+            width: 100%;
+            margin-bottom: 40px;
+        }
+
+        .fp-progress-track {
+            height: 3px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 2px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .fp-progress-fill {
+            height: 100%;
+            background: var(--accent);
+            border-radius: 2px;
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+
+        .fp-progress-knob {
+            position: absolute;
+            right: -6px;
+            top: -5px;
+            width: 12px;
+            height: 12px;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(255, 77, 0, 0.5);
+        }
+
+        .fp-times {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin-top: 10px;
+        }
+
+        .fp-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 32px;
+            margin-bottom: 48px;
+        }
+
+        .fp-btn-side {
+            color: #fff;
+            opacity: 0.6;
+        }
+
+        .fp-btn-main {
+            width: 78px;
+            height: 78px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 30px rgba(255, 77, 0, 0.4);
+        }
+
+        .fp-footer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+            width: 100%;
+        }
+
+        .fp-read-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            font-weight: 900;
+            color: #fff;
             text-transform: uppercase;
             letter-spacing: 0.1em;
         }
 
-        .player-btns {
+        .fp-share-btn {
             display: flex;
-            items-center;
+            align-items: center;
             gap: 8px;
+            padding: 12px 24px;
+            border-radius: 24px;
+            background: rgba(255, 255, 255, 0.06);
+            font-size: 10px;
+            font-weight: 900;
+            color: #d4d4d8;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
         }
 
-        .p-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            items-center;
-            justify-content: center;
-            color: #fff;
-        }
-
-        .p-btn-play {
-            background: #fff;
-            color: #000;
-            box-shadow: 0 4px 12px rgba(255, 255, 255, 0.15);
-        }
-
-        /* ── Filter Modal ─────────────────────────────────────── */
-        #filter-modal {
+        /* ── Filter Drawer (E-commerce style) ───────────────── */
+        #filter-drawer {
             position: fixed;
             inset: 0;
-            z-index: 200;
-            transform: translateY(100%);
-            transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+            z-index: 600;
+            visibility: hidden;
+            transition: visibility 0.4s;
         }
 
-        #filter-modal.open {
-            transform: translateY(0);
+        #filter-drawer.open {
+            visibility: visible;
         }
 
-        .modal-bg {
+        .drawer-overlay {
             position: absolute;
             inset: 0;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.7);
             backdrop-filter: blur(8px);
+            opacity: 0;
+            transition: opacity 0.4s;
         }
 
-        .modal-content {
+        #filter-drawer.open .drawer-overlay {
+            opacity: 1;
+        }
+
+        .drawer-sheet {
             position: absolute;
             bottom: 0;
             left: 0;
             right: 0;
-            top: 15%;
             background: #18181b;
-            border-radius: 32px 32px 0 0;
-            padding: 32px 24px;
-            display: flex;
-            flex-direction: column;
-            gap: 32px;
-            box-shadow: 0 -20px 40px rgba(0, 0, 0, 0.4);
+            border-radius: 24px 24px 0 0;
+            transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+            padding: 32px 24px 48px;
+            max-height: 85vh;
+            overflow-y: auto;
         }
 
-        .modal-handle {
-            width: 40px;
-            height: 4px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 2px;
-            margin: -16px auto 16px;
+        #filter-drawer.open .drawer-sheet {
+            transform: translateY(0);
         }
 
-        .filter-section-title {
+        .drawer-section {
+            margin-bottom: 32px;
+        }
+
+        .drawer-title {
             font-size: 11px;
             font-weight: 900;
-            color: #71717a;
+            color: var(--text-muted);
             text-transform: uppercase;
-            letter-spacing: 0.25em;
+            letter-spacing: 0.2em;
             margin-bottom: 16px;
         }
 
-        .chip-grid {
+        .chip-flex {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
         }
 
         .chip {
-            padding: 8px 16px;
+            padding: 10px 18px;
             border-radius: 20px;
-            background: rgba(255, 255, 255, 0.05);
-            font-size: 13px;
+            background: rgba(255, 255, 255, 0.04);
+            font-size: 14px;
             font-weight: 600;
-            color: #d4d4d8;
-            transition: all 0.2s;
+            color: #a1a1aa;
         }
 
         .chip.active {
             background: var(--accent);
             color: #fff;
-            box-shadow: 0 4px 12px rgba(255, 77, 0, 0.3);
         }
 
-        /* ── Misc ────────────────────────────────────────────── */
-        .badge-live {
-            background: var(--accent);
-            color: #fff;
-            font-size: 9px;
-            font-weight: 900;
-            padding: 2px 8px;
-            border-radius: 10px;
-            display: inline-flex;
-            items-center;
-            gap: 4px;
-        }
-
-        main {
-            padding-top: calc(70px);
-            padding-bottom: 120px;
-        }
-
-        .header-fixed {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 40;
-            height: 70px;
-            background: rgba(9, 9, 11, 0.9);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        /* Wave bar animation */
-        .wave-container {
-            display: flex;
-            align-items: center;
-            gap: 3px;
-            height: 18px;
-        }
-
-        .wave-bar {
-            width: 3px;
-            background: var(--accent);
-            border-radius: 1.5px;
+        /* Animation */
+        .wave-active .wave-bar {
             animation: wave-anim 1s ease-in-out infinite;
         }
 
@@ -399,88 +626,69 @@
             }
 
             50% {
-                height: 18px;
+                height: 32px;
             }
         }
     </style>
 </head>
 
 <body>
-    <div id="site-header-placeholder" class="relative z-10"></div>
+    <div id="site-header-placeholder"></div>
 
-    <!-- Persistent Header -->
-    <div class="header-fixed flex items-center justify-between px-6">
-        <div class="flex flex-col">
-            <h1 class="text-xl font-outfit font-black tracking-tight leading-none">INFINITE <span
-                    class="text-orange-600">RADIO</span></h1>
-            <div class="flex items-center gap-1.5 mt-1">
-                <span class="badge-live"><span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
-                    LIVE</span>
-                <span id="active-filter-label"
-                    class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Всі новини</span>
+    <!-- UI: Hero Filters -->
+    <div class="page-header flex flex-col gap-6">
+        <div class="flex items-center justify-between">
+            <div class="flex flex-col">
+                <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">ОБРАНИЙ
+                    КАНАЛ</p>
+                <h1 id="active-station-name" class="text-2xl font-outfit font-black tracking-tight">Усі новини</h1>
             </div>
+            <button onclick="openFilters()" class="filter-trigger">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path d="M4 6h16M4 12h16m-7 6h7" />
+                </svg>
+                ФІЛЬТРИ
+            </button>
         </div>
-        <button onclick="openFilters()"
-            class="w-11 h-11 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 active:scale-95 transition-transform">
-            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                <path d="M4 6h16M4 12h16m-7 6h7" />
-            </svg>
-        </button>
+
+        <div class="flex items-center justify-between bg-white/[0.03] p-4 rounded-2xl border border-white/[0.05]">
+            <div class="flex flex-col">
+                <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-0.5">АВТОМАТИЧНИЙ ЕФІР</p>
+                <p id="radio-mode-text" class="text-xs font-bold text-slate-400">ВИМКНЕНО</p>
+            </div>
+            <button onclick="toggleRadioMode()" id="radio-toggle"
+                class="w-11 h-6 bg-slate-800 rounded-full relative p-1 transition-colors">
+                <div id="radio-dot" class="w-4 h-4 bg-slate-400 rounded-full transition-all"></div>
+            </button>
+        </div>
     </div>
 
-    <main class="max-w-xl mx-auto">
-        <!-- Radio Toggle Row -->
-        <div class="px-6 py-4 flex items-center justify-between bg-white/[0.02] border-b border-white/[0.04]">
-            <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Автоматичний ефір</p>
-            <div class="flex items-center gap-3">
-                <span class="text-[10px] font-bold text-orange-600" id="radio-status">ВИМКНЕНO</span>
-                <button onclick="toggleRadioMode()" id="radio-btn"
-                    class="w-12 h-6 rounded-full bg-slate-800 p-1 transition-colors relative">
-                    <div id="radio-knob" class="w-4 h-4 bg-slate-400 rounded-full transition-transform"></div>
-                </button>
-            </div>
-        </div>
-
-        <!-- Timeline Container -->
-        <div id="timeline">
-            <!-- Loading Skeletons -->
-            <div class="p-6 space-y-8">
-                <div class="animate-pulse space-y-4">
-                    <div class="h-4 w-24 bg-white/5 rounded"></div>
-                    <div class="flex gap-4">
-                        <div class="w-16 h-16 bg-white/5 rounded-2xl"></div>
-                        <div class="flex-1 space-y-2">
-                            <div class="h-4 w-3/4 bg-white/5 rounded"></div>
-                            <div class="h-3 w-1/2 bg-white/5 rounded"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <main class="max-w-xl mx-auto" id="timeline-container">
+        <!-- Rendered by JS -->
     </main>
 
-    <!-- ──────────────── Sticky Player Bar ──────────────── -->
+    <!-- UI: Bottom Sticky Bar -->
     <div id="player-bar" class="hidden">
-        <div class="progress-bar" id="p-bar" onclick="seek(event)">
-            <div class="progress-fill" id="p-fill"></div>
+        <div class="p-progress" onclick="seek(event)">
+            <div class="p-fill" id="m-p-fill"></div>
         </div>
-        <div class="player-content" onclick="togglePlay()">
-            <img id="m-art" src="" alt="" class="mini-art">
-            <div class="mini-info">
-                <p id="m-sub" class="mini-sub">Політика</p>
-                <h3 id="m-title" class="mini-title">Завантаження...</h3>
+        <div class="p-mini-wrap" onclick="openFullPlayer()">
+            <img id="m-art" src="" class="p-mini-art">
+            <div class="p-mini-body">
+                <p id="m-sub" class="p-mini-sub">НОВИНИ</p>
+                <h3 id="m-title" class="p-mini-title">Завантаження...</h3>
             </div>
-            <div class="player-btns">
-                <button class="p-btn text-slate-400" onclick="event.stopPropagation();nextTrack()">
+            <div class="p-mini-btns">
+                <button onclick="event.stopPropagation();nextTrack()" class="text-slate-400">
                     <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M6 18l8.5-6L6 6v12zm2-8.14L11.03 12 8 14.14V9.86zM16 6h2v12h-2z" />
                     </svg>
                 </button>
-                <div id="p-wrap" class="p-btn p-btn-play">
-                    <svg id="p-play" width="22" height="22" fill="currentColor" viewBox="0 0 24 24">
+                <div class="play-circle" onclick="event.stopPropagation();togglePlay()">
+                    <svg id="m-play" width="22" height="22" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M8 5v14l11-7z" />
                     </svg>
-                    <svg id="p-pause" class="hidden" width="22" height="22" fill="currentColor" viewBox="0 0 24 24">
+                    <svg id="m-pause" class="hidden" width="22" height="22" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
                     </svg>
                 </div>
@@ -488,30 +696,114 @@
         </div>
     </div>
 
-    <!-- ──────────────── Filter Modal ──────────────── -->
-    <div id="filter-modal">
-        <div class="modal-bg" onclick="closeFilters()"></div>
-        <div class="modal-content">
-            <div class="modal-handle"></div>
-            <div class="flex items-center justify-between mb-4">
+    <!-- UI: Full Player Modal -->
+    <div id="full-player">
+        <div class="fp-header">
+            <button onclick="closeFullPlayer()" class="fp-close">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                    <path d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+            <div class="fp-header-title">
+                <p id="fp-station">ВСІ НОВИНИ</p>
+                <p class="text-[10px] text-zinc-500 tracking-normal normal-case">← Свайп вниз →</p>
+            </div>
+            <button onclick="copyLink()" class="fp-close">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path
+                        d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                </svg>
+            </button>
+        </div>
+
+        <div class="fp-body">
+            <div class="fp-art-container">
+                <img id="fp-art" src="" class="fp-art">
+                <div id="fp-badge" class="fp-badge">Погода</div>
+            </div>
+
+            <div class="fp-info">
+                <h2 id="fp-title" class="fp-title">Заголовок новини...</h2>
+                <p id="fp-date" class="fp-date">1 березня</p>
+            </div>
+
+            <div class="fp-wave" id="fp-wave-container">
+                <!-- Wave bars injected via JS -->
+            </div>
+
+            <div class="fp-progress-wrap">
+                <div class="fp-progress-track" onclick="seek(event)">
+                    <div class="fp-progress-fill" id="fp-p-fill">
+                        <div class="fp-progress-knob"></div>
+                    </div>
+                </div>
+                <div class="fp-times">
+                    <span id="fp-cur">0:00</span>
+                    <span id="fp-dur">0:00</span>
+                </div>
+            </div>
+
+            <div class="fp-controls">
+                <button onclick="prevTrack()" class="fp-btn-side">
+                    <svg width="32" height="32" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M6 6h2v12H6zm3.5 6 8.5 6V6z" />
+                    </svg>
+                </button>
+                <button onclick="togglePlay()" class="fp-btn-main">
+                    <svg id="fp-play" width="36" height="36" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M8 5v14l11-7z" />
+                    </svg>
+                    <svg id="fp-pause" class="hidden" width="36" height="36" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+                    </svg>
+                </button>
+                <button onclick="nextTrack()" class="fp-btn-side">
+                    <svg width="32" height="32" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M6 18l8.5-6L6 6v12zm2-8.14L11.03 12 8 14.14V9.86zM16 6h2v12h-2z" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="fp-footer">
+                <a id="fp-read" href="#" class="fp-read-btn">
+                    ЧИТАТИ СТАТТЮ
+                    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                        <path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                </a>
+                <button onclick="copyLink()" class="fp-share-btn">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"
+                        viewBox="0 0 24 24">
+                        <path
+                            d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                    </svg>
+                    ПОДІЛИТИСЯ
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- UI: Filter Drawer -->
+    <div id="filter-drawer">
+        <div class="drawer-overlay" onclick="closeFilters()"></div>
+        <div class="drawer-sheet">
+            <div class="flex items-center justify-between mb-8">
                 <h2 class="text-2xl font-outfit font-black">Фільтри</h2>
                 <button onclick="closeFilters()"
-                    class="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Готово</button>
+                    class="text-zinc-500 font-bold uppercase text-[10px] tracking-widest">Закрити</button>
             </div>
 
-            <div class="overflow-y-auto flex-1 space-y-8">
-                <div>
-                    <h3 class="filter-section-title">РУБРИКИ</h3>
-                    <div class="chip-grid" id="cat-grid"></div>
-                </div>
-                <div>
-                    <h3 class="filter-section-title">МІСТА</h3>
-                    <div class="chip-grid" id="city-grid"></div>
-                </div>
+            <div class="drawer-section">
+                <h3 class="drawer-title">РУБРИКИ</h3>
+                <div class="chip-flex" id="cat-chips"></div>
+            </div>
+            <div class="drawer-section">
+                <h3 class="drawer-title">МІСТА</h3>
+                <div class="chip-flex" id="city-chips"></div>
             </div>
 
-            <button onclick="resetFilters()"
-                class="w-11px py-4 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500 border border-white/5 rounded-2xl">Скинути
+            <button onclick="applyFilter('all', null, 'Усі новини')"
+                class="w-full py-4 bg-zinc-800 text-[11px] font-black uppercase tracking-widest rounded-2xl mb-4">Скинути
                 все</button>
         </div>
     </div>
@@ -524,80 +816,107 @@
         let allTracks = [], tracks = [], currentIndex = -1, isPlaying = false, radioMode = false;
         let activeFilter = { type: 'all', val: null };
         const audio = new Audio();
-        audio.volume = 0.9;
+        audio.volume = 0.95;
 
-        // ── Load & Group ───────────────────────────────────────
-        async function loadTracks() {
-            const { data, error } = await _supabase
-                .from('news')
-                .select('id, title, slug, image_url, category, city, created_at, tts_audio_url')
-                .eq('is_published', true)
-                .not('tts_audio_url', 'is', null)
-                .order('created_at', { ascending: false })
-                .limit(100);
-
-            if (data) { allTracks = data; filterAndRender(); }
+        // ── Listened tracking ──────────────────────────────────
+        function getListened() { return JSON.parse(localStorage.getItem('radio_listened') || '[]'); }
+        function saveListened(id) {
+            const list = getListened();
+            if (!list.includes(id)) { list.push(id); localStorage.setItem('radio_listened', JSON.stringify(list)); }
         }
 
-        function filterAndRender() {
-            tracks = activeFilter.type === 'all' ? allTracks
-                : activeFilter.type === 'cat' ? allTracks.filter(t => t.category === activeFilter.val)
-                    : allTracks.filter(t => t.city === activeFilter.val);
+        // ── Data Loading ───────────────────────────────────────
+        async function init() {
+            await window.initSiteHeader(_supabase);
+            const { data } = await _supabase.from('news')
+                .select('id, title, slug, image_url, category, city, created_at, tts_audio_url')
+                .eq('is_published', true).not('tts_audio_url', 'is', null)
+                .order('created_at', { ascending: false }).limit(100);
 
+            allTracks = data || [];
+            buildFilters();
             renderTimeline();
 
-            // Auto-load first track if none playing
-            if (currentIndex === -1 && tracks.length > 0) loadTrack(0, false);
+            // Initial wave building
+            const wc = document.getElementById('fp-wave-container');
+            wc.innerHTML = Array.from({ length: 40 }).map(() => `<div class="wave-bar" style="height:${Math.random() * 20 + 4}px"></div>`).join('');
         }
 
-        function renderTimeline() {
-            const timeline = document.getElementById('timeline');
-            if (tracks.length === 0) {
-                timeline.innerHTML = '<div class="p-20 text-center opacity-30 font-black uppercase tracking-widest text-xs">Порожньо</div>';
-                return;
-            }
+        function buildFilters() {
+            const cats = [...new Set(allTracks.map(t => t.category))].filter(Boolean);
+            const cities = [...new Set(allTracks.map(t => t.city))].filter(Boolean);
 
-            // Group by day
+            document.getElementById('cat-chips').innerHTML = cats.map(c => `
+                <div class="chip ${activeFilter.val === c ? 'active' : ''}" onclick="applyFilter('cat','${c}','${window.CATEGORIES_UK?.[c] || c}')">
+                    ${window.CATEGORIES_UK?.[c] || c}
+                </div>`).join('');
+
+            document.getElementById('city-chips').innerHTML = cities.map(c => `
+                <div class="chip ${activeFilter.val === c ? 'active' : ''}" onclick="applyFilter('city','${c}','${window.CITIES_UK?.[c] || c}')">
+                    ${window.CITIES_UK?.[c] || c}
+                </div>`).join('');
+        }
+
+        function applyFilter(type, val, label) {
+            activeFilter = { type, val };
+            document.getElementById('active-station-name').textContent = label;
+            document.getElementById('fp-station').textContent = label.toUpperCase();
+
+            tracks = type === 'all' ? allTracks
+                : type === 'cat' ? allTracks.filter(t => t.category === val)
+                    : allTracks.filter(t => t.city === val);
+
+            currentIndex = 0;
+            renderTimeline();
+            loadTrack(0, false);
+            closeFilters();
+            buildFilters();
+        }
+
+        // ── Timeline ───────────────────────────────────────────
+        function renderTimeline() {
+            const container = document.getElementById('timeline-container');
+            const listened = getListened();
+
             const groups = {};
             tracks.forEach(track => {
-                const date = new Date(track.created_at).toLocaleDateString('uk-UA', { day: 'numeric', month: 'long' });
+                const d = new Date(track.created_at);
+                const label = d.toLocaleDateString('uk-UA', { day: 'numeric', month: 'long' });
                 const today = new Date().toLocaleDateString('uk-UA', { day: 'numeric', month: 'long' });
-                const label = date === today ? 'Сьогодні' : date;
-                if (!groups[label]) groups[label] = [];
-                groups[label].push(track);
+                const key = label === today ? 'сьогодні' : label;
+                if (!groups[key]) groups[key] = [];
+                groups[key].push(track);
             });
 
-            timeline.innerHTML = Object.entries(groups).map(([date, items]) => `
+            container.innerHTML = Object.entries(groups).map(([date, items]) => `
                 <div class="date-group">
-                    <div class="date-header"><span>${date}</span><span>${items.length} НОВИН</span></div>
-                    ${items.map(track => {
-                const globalIdx = tracks.findIndex(t => t.id === track.id);
-                const isActive = globalIdx === currentIndex;
-                const catName = window.CATEGORIES_UK?.[track.category] || track.category || 'Новини';
+                    <div class="date-header">
+                        <span class="date-label">${date}</span>
+                        <span class="date-count">${items.length} НОВИН</span>
+                    </div>
+                    ${items.map(t => {
+                const idx = tracks.findIndex(x => x.id === t.id);
+                const isActive = idx === currentIndex;
+                const isDone = listened.includes(t.id);
                 return `
-                        <div class="track-tile ${isActive ? 'active' : ''}" onclick="handleTileClick(${globalIdx})">
-                            <div class="track-img-container">
-                                <img src="${track.image_url || ''}" class="track-img" onerror="this.src='/favicon.ico';">
-                                <div class="track-play-hint">
+                        <div class="track-tile ${isActive ? 'active' : ''} ${isDone ? 'listened' : ''}" onclick="handleTileClick(${idx})">
+                            <div class="thumb-box">
+                                <img src="${t.image_url}" class="thumb-img" onerror="this.src='/favicon.ico';">
+                                <div class="thumb-overlay">
                                     ${isActive && isPlaying
-                        ? `<div class="wave-container">${[0, 0.1, 0.2, 0.3, 0.15].map(d => `<div class="wave-bar" style="animation-delay:${d}s"></div>`).join('')}</div>`
+                        ? `<svg width="24" height="24" fill="white" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`
                         : `<svg width="24" height="24" fill="white" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`}
                                 </div>
                             </div>
-                            <div class="track-meta">
-                                <span class="track-tag">${catName}</span>
-                                <h3 class="track-title">${track.title}</h3>
-                                <div class="track-actions">
-                                    <button onclick="event.stopPropagation();share('${track.title}','${getLink(track)}')" class="action-btn">
-                                        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg> 
-                                        Share
-                                    </button>
-                                    <a href="${getLink(track)}" onclick="event.stopPropagation()" class="action-btn">
-                                        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-                                        Читати
-                                    </a>
+                            <div class="track-info">
+                                <span class="track-cat">${window.CATEGORIES_UK?.[t.category] || t.category || ''}</span>
+                                <h3 class="track-title">${t.title}</h3>
+                                <div class="track-row-actions">
+                                    <button class="tile-action" onclick="event.stopPropagation();share('${t.title}','${getLink(t)}')">SHARE</button>
+                                    <a href="${getLink(t)}" class="tile-action" onclick="event.stopPropagation()">ЧИТАТИ</a>
                                 </div>
                             </div>
+                            ${isDone ? `<div class="listened-check"><svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></div>` : ''}
                         </div>`;
             }).join('')}
                 </div>
@@ -616,16 +935,17 @@
             if (!t) return;
 
             document.getElementById('player-bar').classList.remove('hidden');
-            document.getElementById('m-art').src = t.image_url || '';
-            document.getElementById('m-title').textContent = t.title;
-            document.getElementById('m-sub').textContent = window.CATEGORIES_UK?.[t.category] || t.category || 'Новини';
+            document.querySelectorAll('[id$="-art"]').forEach(el => el.src = t.image_url);
+            document.querySelectorAll('[id$="-title"]').forEach(el => el.textContent = t.title);
+            const cat = window.CATEGORIES_UK?.[t.category] || t.category || 'НОВИНИ';
+            document.getElementById('m-sub').textContent = cat;
+            document.getElementById('fp-badge').textContent = cat;
+            document.getElementById('fp-date').textContent = new Date(t.created_at).toLocaleDateString('uk-UA', { day: 'numeric', month: 'long' });
+            document.getElementById('fp-read').href = getLink(t);
 
             audio.src = t.tts_audio_url;
-            if (play) {
-                audio.play().then(() => setPlayState(true)).catch(console.error);
-            } else {
-                setPlayState(false);
-            }
+            if (play) audio.play().then(() => setPlayState(true));
+            else setPlayState(false);
             renderTimeline();
         }
 
@@ -636,19 +956,37 @@
 
         function setPlayState(playing) {
             isPlaying = playing;
-            document.getElementById('p-play').classList.toggle('hidden', playing);
-            document.getElementById('p-pause').classList.toggle('hidden', !playing);
-            document.getElementById('p-wrap').classList.toggle('p-btn-play', !playing);
+            document.getElementById('m-play').classList.toggle('hidden', playing);
+            document.getElementById('m-pause').classList.toggle('hidden', !playing);
+            document.getElementById('fp-play').classList.toggle('hidden', playing);
+            document.getElementById('fp-pause').classList.toggle('hidden', !playing);
+            document.getElementById('fp-wave-container').classList.toggle('wave-active', playing);
             renderTimeline();
         }
 
         function nextTrack() {
             if (currentIndex < tracks.length - 1) loadTrack(currentIndex + 1, true);
         }
+        function prevTrack() {
+            if (currentIndex > 0) loadTrack(currentIndex - 1, true);
+        }
 
         audio.addEventListener('timeupdate', () => {
             if (!audio.duration) return;
-            document.getElementById('p-fill').style.width = (audio.currentTime / audio.duration * 100) + '%';
+            const pct = (audio.currentTime / audio.duration);
+            document.getElementById('m-p-fill').style.width = (pct * 100) + '%';
+            document.getElementById('fp-p-fill').style.width = (pct * 100) + '%';
+            document.getElementById('fp-cur').textContent = fmtTime(audio.currentTime);
+            document.getElementById('fp-dur').textContent = fmtTime(audio.duration);
+
+            if (pct > 0.95) saveListened(tracks[currentIndex].id);
+
+            // Animate wave random heights if active
+            if (isPlaying) {
+                document.querySelectorAll('.wave-bar').forEach(bar => {
+                    bar.style.height = (Math.random() * 28 + 4) + 'px';
+                });
+            }
         });
 
         audio.addEventListener('ended', () => {
@@ -662,59 +1000,34 @@
             if (audio.duration) audio.currentTime = pct * audio.duration;
         }
 
-        // ── Filters ────────────────────────────────────────────
-        function openFilters() { document.getElementById('filter-modal').classList.add('open'); }
-        function closeFilters() { document.getElementById('filter-modal').classList.remove('open'); }
-
-        function setFilter(type, val, label) {
-            activeFilter = { type, val };
-            document.getElementById('active-filter-label').textContent = label;
-            updateChips();
-            filterAndRender();
-            closeFilters();
-        }
-
-        function resetFilters() { setFilter('all', null, 'Всі новини'); }
-
-        function updateChips() {
-            document.querySelectorAll('.chip').forEach(c => {
-                const isActive = (c.dataset.type === activeFilter.type && c.dataset.val === activeFilter.val) || (activeFilter.type === 'all' && c.dataset.type === 'all');
-                c.classList.toggle('active', isActive);
-            });
-        }
-
-        // ── Init Systems ───────────────────────────────────────
-        async function buildFilterGrids() {
-            const [catRes, cityRes] = await Promise.all([
-                _supabase.from('categories').select('slug,name').order('order_index'),
-                _supabase.from('cities').select('slug,name').order('order_index')
-            ]);
-
-            const catGrid = document.getElementById('cat-grid');
-            catGrid.innerHTML = `<div class="chip active" data-type="all" onclick="resetFilters()">Всі рубрики</div>` +
-                catRes.data.map(c => `<div class="chip" data-type="cat" data-val="${c.slug}" onclick="setFilter('cat','${c.slug}','${c.name}')">${c.name}</div>`).join('');
-
-            const cityGrid = document.getElementById('city-grid');
-            cityGrid.innerHTML = cityRes.data.map(c => `<div class="chip" data-type="city" data-val="${c.slug}" onclick="setFilter('city','${c.slug}','${c.name}')">${c.name}</div>`).join('');
-            updateChips();
-        }
+        // ── Controls ───────────────────────────────────────────
+        function openFilters() { document.getElementById('filter-drawer').classList.add('open'); }
+        function closeFilters() { document.getElementById('filter-drawer').classList.remove('open'); }
+        function openFullPlayer() { document.getElementById('full-player').classList.add('open'); }
+        function closeFullPlayer() { document.getElementById('full-player').classList.remove('open'); }
 
         function toggleRadioMode() {
             radioMode = !radioMode;
-            document.getElementById('radio-knob').style.transform = radioMode ? 'translateX(24px)' : 'translateX(0)';
-            document.getElementById('radio-btn').classList.toggle('bg-orange-600', radioMode);
-            document.getElementById('radio-status').textContent = radioMode ? 'УВІМКНЕНО' : 'ВИМКНЕНО';
+            document.getElementById('radio-dot').style.transform = radioMode ? 'translateX(20px)' : 'translateX(0)';
+            document.getElementById('radio-dot').style.background = radioMode ? '#fff' : '#64748b';
+            document.getElementById('radio-toggle').classList.toggle('bg-orange-600', radioMode);
+            document.getElementById('radio-mode-text').textContent = radioMode ? 'УВІМКНЕНО' : 'ВИМКНЕНО';
             if (radioMode && audio.paused) nextTrack();
         }
 
         function getLink(t) { return t.city ? `/${t.city}/${t.slug}/` : t.category ? `/category/${t.category}/${t.slug}/` : `/${t.slug}/`; }
-        async function share(title, url) { if (navigator.share) navigator.share({ title, url }); else alert('URL copied'); }
+        function fmtTime(s) { const m = Math.floor(s / 60), r = Math.floor(s % 60); return `${m}:${r < 10 ? '0' : ''}${r}`; }
+        function share(title, url) { if (navigator.share) navigator.share({ title, url }); else { navigator.clipboard.writeText(url); alert('URL copied'); } }
+        function copyLink() { share(tracks[currentIndex]?.title, window.location.href); }
 
-        (async () => {
-            await window.initSiteHeader(_supabase);
-            await buildFilterGrids();
-            await loadTracks();
-        })();
+        // Swipe support
+        let startY = 0;
+        document.getElementById('full-player').addEventListener('touchstart', e => startY = e.touches[0].clientY, { passive: true });
+        document.getElementById('full-player').addEventListener('touchend', e => {
+            if (e.changedTouches[0].clientY - startY > 100) closeFullPlayer();
+        }, { passive: true });
+
+        init();
     </script>
 </body>
 
