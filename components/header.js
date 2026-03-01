@@ -452,5 +452,7 @@ class SiteHeader {
 
 // Global initialization — returns a Promise that resolves after dynamic data is loaded
 window.initSiteHeader = async (supabaseClient) => {
-    return siteHeader;
+    const header = new SiteHeader(supabaseClient);
+    await header.init();
+    return header;
 };
