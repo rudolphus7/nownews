@@ -4,9 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LIVE • Ефір — Прикарпаття News</title>
+    <title>LIVE • Аудіо-Новини — Прикарпаття News</title>
     <meta name="description"
-        content="Слухайте останні новини Прикарпаття у форматі аудіо-подкасту. Оцифровані новини голосом диктора — зручно, швидко, в дорозі.">
+        content="Слухайте останні новини Прикарпаття у форматі аудіо. Оберіть місто або рубрику і слухайте зручно — в дорозі, без рук.">
     <link rel="canonical" href="https://ifnews-omega.vercel.app/live/">
 
     <link
@@ -29,14 +29,15 @@
             letter-spacing: -0.015em;
         }
 
-        /* Animated background gradient */
         .bg-pulse {
             position: fixed;
             inset: 0;
             z-index: 0;
-            background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(234, 88, 12, 0.18) 0%, transparent 70%),
+            background:
+                radial-gradient(ellipse 80% 60% at 50% -10%, rgba(234, 88, 12, 0.18) 0%, transparent 70%),
                 radial-gradient(ellipse 60% 40% at 80% 100%, rgba(99, 102, 241, 0.12) 0%, transparent 70%);
             pointer-events: none;
+            transition: background 1s ease;
         }
 
         .bg-pulse.playing {
@@ -47,15 +48,64 @@
 
             0%,
             100% {
-                opacity: 1;
+                opacity: 1
             }
 
             50% {
-                opacity: 0.5;
+                opacity: 0.5
             }
         }
 
-        /* Cover art */
+        /* Filter chips */
+        .filter-scroll {
+            overflow-x: auto;
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .filter-scroll::-webkit-scrollbar {
+            display: none;
+        }
+
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 16px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            white-space: nowrap;
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.04);
+            color: rgba(255, 255, 255, 0.55);
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .chip:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .chip.active {
+            background: rgba(234, 88, 12, 0.2);
+            border-color: rgba(234, 88, 12, 0.5);
+            color: #f97316;
+            box-shadow: 0 0 16px rgba(234, 88, 12, 0.2);
+        }
+
+        .chip.active.city-chip {
+            background: rgba(99, 102, 241, 0.2);
+            border-color: rgba(99, 102, 241, 0.4);
+            color: #818cf8;
+            box-shadow: 0 0 16px rgba(99, 102, 241, 0.2);
+        }
+
+        /* Cover */
         .cover-art {
             width: 100%;
             aspect-ratio: 1;
@@ -75,15 +125,14 @@
 
             0%,
             100% {
-                transform: scale(1.03) translateY(0);
+                transform: scale(1.03) translateY(0)
             }
 
             50% {
-                transform: scale(1.03) translateY(-8px);
+                transform: scale(1.03) translateY(-8px)
             }
         }
 
-        /* Spinning vinyl overlay */
         .vinyl-ring {
             position: absolute;
             inset: -12px;
@@ -101,11 +150,11 @@
 
         @keyframes spin {
             to {
-                transform: rotate(360deg);
+                transform: rotate(360deg)
             }
         }
 
-        /* Progress bar */
+        /* Progress */
         .progress-bar {
             height: 4px;
             background: rgba(255, 255, 255, 0.1);
@@ -142,7 +191,7 @@
             opacity: 1;
         }
 
-        /* Waveform visualizer */
+        /* Waveform */
         .wave-bars {
             display: flex;
             align-items: center;
@@ -166,15 +215,15 @@
 
             0%,
             100% {
-                transform: scaleY(0.3);
+                transform: scaleY(0.3)
             }
 
             50% {
-                transform: scaleY(1);
+                transform: scaleY(1)
             }
         }
 
-        /* Playlist item */
+        /* Playlist */
         .playlist-item {
             display: flex;
             align-items: center;
@@ -204,7 +253,7 @@
             flex-shrink: 0;
         }
 
-        /* Control buttons */
+        /* Controls */
         .ctrl-btn {
             display: flex;
             align-items: center;
@@ -239,7 +288,32 @@
             color: white;
         }
 
-        /* Volume slider */
+        /* Radio mode button */
+        .radio-btn {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.2s ease;
+        }
+
+        .radio-btn.on {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.5);
+            color: #ef4444;
+            box-shadow: 0 0 12px rgba(239, 68, 68, 0.2);
+        }
+
+        .radio-btn.off {
+            background: rgba(255, 255, 255, 0.04);
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        /* Volume */
         input[type="range"] {
             -webkit-appearance: none;
             appearance: none;
@@ -274,7 +348,7 @@
             border-radius: 4px;
         }
 
-        /* Loading skeleton */
+        /* Skeleton */
         .skeleton {
             background: linear-gradient(90deg, rgba(255, 255, 255, 0.05) 25%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0.05) 75%);
             background-size: 200% 100%;
@@ -283,12 +357,25 @@
 
         @keyframes shimmer {
             0% {
-                background-position: -200% 0;
+                background-position: -200% 0
             }
 
             100% {
-                background-position: 200% 0;
+                background-position: 200% 0
             }
+        }
+
+        /* Channel badge */
+        .channel-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
         }
     </style>
 </head>
@@ -299,10 +386,10 @@
     <!-- Header -->
     <div id="site-header-placeholder" class="relative z-10"></div>
 
-    <main class="relative z-10 container mx-auto px-4 py-8 md:py-16 max-w-7xl">
+    <main class="relative z-10 container mx-auto px-4 py-8 md:py-12 max-w-7xl">
 
         <!-- Page title -->
-        <div class="mb-10 md:mb-16 flex items-center gap-4">
+        <div class="mb-6 flex items-center gap-4">
             <div class="flex items-center gap-3">
                 <span class="flex h-3 w-3 relative">
                     <span
@@ -314,13 +401,58 @@
             <div class="h-px flex-1 bg-white/5"></div>
         </div>
 
-        <h1 class="text-4xl md:text-6xl font-black uppercase tracking-tighter text-white mb-3 italic">
-            Подкаст<span class="text-orange-500">-центр</span>
-        </h1>
-        <p class="text-slate-400 font-medium mb-10 md:mb-16 max-w-lg">Новини Прикарпаття, озвучені голосом диктора.
-            Слухайте по дорозі — без рук, без зупинок.</p>
+        <div class="flex items-end justify-between mb-3 flex-wrap gap-4">
+            <div>
+                <h1 class="text-4xl md:text-6xl font-black uppercase tracking-tighter text-white italic">
+                    Аудіо<span class="text-orange-500">-Новини</span>
+                </h1>
+                <p class="text-slate-400 font-medium mt-2 max-w-lg">Новини Прикарпаття голосом диктора. Слухайте по
+                    дорозі — без рук, без зупинок.</p>
+            </div>
+            <!-- Radio mode toggle -->
+            <div class="flex items-center gap-3">
+                <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Авторадіо</span>
+                <button id="radio-mode-btn" class="radio-btn off" onclick="toggleRadioMode()">
+                    <span id="radio-label">ВИМК</span>
+                </button>
+            </div>
+        </div>
 
-        <!-- Loading state -->
+        <!-- ─── Filter Bar ─────────────────────────────────────────────── -->
+        <div class="mb-8 p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06] backdrop-blur-sm">
+            <div class="flex items-center gap-3 mb-4">
+                <svg class="w-4 h-4 text-orange-500 flex-shrink-0" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                        d="M3 4a1 1 0 011-1h16a1 1 0 010 2H4a1 1 0 01-1-1zm3 5a1 1 0 011-1h10a1 1 0 010 2H7a1 1 0 01-1-1zm3 5a1 1 0 011-1h4a1 1 0 010 2h-4a1 1 0 01-1-1z" />
+                </svg>
+                <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.25em]">Оберіть канал</span>
+            </div>
+
+            <!-- Category chips -->
+            <div class="mb-3">
+                <p class="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-2 px-1">Рубрики</p>
+                <div class="filter-scroll flex gap-2 pb-1" id="category-chips">
+                    <div class="chip active" id="chip-all" onclick="setFilter('all',null)">
+                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M3 18h6v-2H3v2zm0-5h12v-2H3v2zm0-7v2h18V6H3z" />
+                        </svg>
+                        Всі новини
+                    </div>
+                    <!-- Category chips injected here -->
+                </div>
+            </div>
+
+            <!-- City chips -->
+            <div>
+                <p class="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-2 px-1">Міста</p>
+                <div class="filter-scroll flex gap-2 pb-1" id="city-chips">
+                    <!-- City chips injected here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading -->
         <div id="loading-state" class="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-16">
             <div class="lg:col-span-2 skeleton rounded-[2rem] aspect-square"></div>
             <div class="lg:col-span-3 space-y-4">
@@ -335,11 +467,15 @@
             </div>
         </div>
 
-        <!-- Empty state -->
+        <!-- Empty -->
         <div id="empty-state" class="hidden text-center py-24">
             <div class="text-6xl mb-6">🎙️</div>
             <h2 class="text-2xl font-black text-white mb-3">Поки що тихо</h2>
-            <p class="text-slate-400">Ще жодна новина не була озвучена. Спробуйте пізніше.</p>
+            <p class="text-slate-400">У цьому каналі ще немає аудіо-новин. Спробуйте іншу рубрику або місто.</p>
+            <button onclick="setFilter('all',null)"
+                class="mt-6 px-6 py-3 bg-orange-600 hover:bg-orange-500 text-white font-black uppercase tracking-wider rounded-xl transition">
+                Показати всі
+            </button>
         </div>
 
         <!-- Player UI -->
@@ -348,14 +484,26 @@
             <!-- Left: Cover + Controls -->
             <div class="lg:col-span-2 flex flex-col items-center">
 
-                <!-- Cover art with vinyl ring -->
+                <!-- Current channel badge -->
+                <div id="channel-badge-wrap" class="mb-4 self-start">
+                    <span id="channel-badge"
+                        class="channel-badge bg-orange-500/10 border border-orange-500/20 text-orange-400">
+                        <span class="flex h-1.5 w-1.5 relative">
+                            <span
+                                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"></span>
+                        </span>
+                        Всі новини
+                    </span>
+                </div>
+
+                <!-- Cover art -->
                 <div class="relative w-full max-w-xs mx-auto mb-8" id="cover-wrapper">
                     <div class="vinyl-ring" id="vinyl-ring"></div>
                     <img id="cover-img" src="" alt="Обкладинка" class="cover-art">
                     <div
                         class="absolute inset-0 rounded-[2rem] bg-gradient-to-t from-black/60 via-transparent to-transparent">
                     </div>
-                    <!-- Category badge -->
                     <div class="absolute top-4 left-4">
                         <span id="cover-category"
                             class="px-3 py-1 bg-orange-600/90 backdrop-blur-sm text-white text-[10px] font-black uppercase tracking-widest rounded-full"></span>
@@ -370,14 +518,12 @@
                 </div>
 
                 <!-- Waveform -->
-                <div class="wave-bars mb-6" id="wave-container">
-                    <!-- bars injected by JS -->
-                </div>
+                <div class="wave-bars mb-6" id="wave-container"></div>
 
-                <!-- Progress bar -->
+                <!-- Progress -->
                 <div class="w-full px-2 mb-4">
                     <div class="progress-bar" id="progress-bar">
-                        <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+                        <div class="progress-fill" id="progress-fill" style="width:0%"></div>
                     </div>
                     <div class="flex justify-between mt-2 text-xs font-bold text-slate-500">
                         <span id="time-current">0:00</span>
@@ -392,7 +538,6 @@
                             <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" />
                         </svg>
                     </button>
-
                     <button class="ctrl-btn ctrl-btn-main" id="play-btn" onclick="togglePlay()">
                         <svg id="play-icon" class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M8 5v14l11-7z" />
@@ -401,7 +546,6 @@
                             <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
                         </svg>
                     </button>
-
                     <button class="ctrl-btn p-3 text-slate-300" onclick="nextTrack()" title="Наступна">
                         <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M6 18l8.5-6L6 6v12zm2-8.14L11.03 12 8 14.14V9.86zM16 6h2v12h-2z" />
@@ -423,7 +567,7 @@
                     </svg>
                 </div>
 
-                <!-- Link to article -->
+                <!-- Article link + share -->
                 <div class="mt-6 flex flex-col items-center gap-4">
                     <a id="track-link" href="#" target="_blank"
                         class="flex items-center gap-2 text-xs font-black text-slate-400 hover:text-orange-400 transition-colors uppercase tracking-wider">
@@ -433,7 +577,6 @@
                                 d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                         </svg>
                     </a>
-
                     <button onclick="copyShareLink()" id="share-btn"
                         class="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-[10px] font-black text-slate-400 hover:bg-white/10 hover:text-white transition-all uppercase tracking-widest">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -448,13 +591,10 @@
             <!-- Right: Playlist -->
             <div class="lg:col-span-3">
                 <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em]">Плейлист</h3>
+                    <h3 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em]">Черга</h3>
                     <span id="playlist-count" class="text-xs font-bold text-slate-500"></span>
                 </div>
-
-                <div id="playlist" class="space-y-1 custom-scroll overflow-y-auto max-h-[70vh] pr-2">
-                    <!-- Items injected by JS -->
-                </div>
+                <div id="playlist" class="space-y-1 custom-scroll overflow-y-auto max-h-[70vh] pr-2"></div>
             </div>
         </div>
     </main>
@@ -464,24 +604,106 @@
         const SUPABASE_KEY = 'sb_publishable_L4_HhLhbj_m6wbEc3ZqhcQ_QNGOLWXU';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let tracks = [];
+        let allTracks = [];     // Full unfiltered set
+        let tracks = [];        // Currently filtered set
         let currentIndex = 0;
         let audio = new Audio();
         let isPlaying = false;
+        let radioMode = false;
+
+        // Filter state
+        let activeFilterType = 'all'; // 'all' | 'category' | 'city'
+        let activeFilterValue = null;  // slug or null
 
         audio.volume = 0.85;
 
-        // Build waveform bars
+        // Waveform
         const waveContainer = document.getElementById('wave-container');
+        const heights = [20, 40, 60, 80, 100, 80, 60, 40, 30, 50, 70, 90, 70, 50, 30, 45, 65, 85, 65, 45, 35, 55, 75, 55, 35, 25, 45, 25];
         for (let i = 0; i < 28; i++) {
             const bar = document.createElement('div');
             bar.className = 'wave-bar';
-            const heights = [20, 40, 60, 80, 100, 80, 60, 40, 30, 50, 70, 90, 70, 50, 30, 45, 65, 85, 65, 45, 35, 55, 75, 55, 35, 25, 45, 25];
             bar.style.height = `${heights[i] || 40}%`;
             bar.style.animationDelay = `${i * 0.06}s`;
             waveContainer.appendChild(bar);
         }
 
+        // ─── Filter Logic ───────────────────────────────────────────────
+        function setFilter(type, value) {
+            activeFilterType = type;
+            activeFilterValue = value;
+
+            // Update chip UI
+            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+            const id = type === 'all' ? 'chip-all' : `chip-${type}-${value}`;
+            const el = document.getElementById(id);
+            if (el) el.classList.add('active');
+
+            // Update channel badge
+            const badge = document.getElementById('channel-badge');
+            if (type === 'all') {
+                badge.textContent = '';
+                badge.innerHTML = `<span class="flex h-1.5 w-1.5 relative"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"></span></span> Всі новини`;
+                badge.className = 'channel-badge bg-orange-500/10 border border-orange-500/20 text-orange-400';
+            } else if (type === 'category') {
+                const name = (window.CATEGORIES_UK && window.CATEGORIES_UK[value]) || value;
+                badge.innerHTML = `<span class="flex h-1.5 w-1.5 relative"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"></span></span> Рубрика: ${name}`;
+                badge.className = 'channel-badge bg-orange-500/10 border border-orange-500/20 text-orange-400';
+            } else if (type === 'city') {
+                const name = (window.CITIES_UK && window.CITIES_UK[value]) || value;
+                badge.innerHTML = `<span class="flex h-1.5 w-1.5 relative"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"></span></span> ${name}`;
+                badge.className = 'channel-badge bg-indigo-500/10 border border-indigo-500/20 text-indigo-400';
+            }
+
+            // Filter tracks
+            if (type === 'all') {
+                tracks = allTracks;
+            } else if (type === 'category') {
+                tracks = allTracks.filter(t => t.category === value);
+            } else if (type === 'city') {
+                tracks = allTracks.filter(t => t.city === value);
+            }
+
+            currentIndex = 0;
+
+            if (tracks.length === 0) {
+                document.getElementById('player-ui').classList.add('hidden');
+                document.getElementById('empty-state').classList.remove('hidden');
+            } else {
+                document.getElementById('empty-state').classList.add('hidden');
+                document.getElementById('player-ui').classList.remove('hidden');
+                document.getElementById('playlist-count').textContent = `${tracks.length} аудіо`;
+                loadTrack(0, false);
+                renderPlaylist();
+            }
+        }
+
+        function renderFilterChips(categories, cities) {
+            const catContainer = document.getElementById('category-chips');
+            const cityContainer = document.getElementById('city-chips');
+
+            // Category chips (append after "Всі")
+            categories.forEach(c => {
+                const chip = document.createElement('div');
+                chip.className = 'chip';
+                chip.id = `chip-category-${c.slug}`;
+                chip.innerHTML = c.name;
+                chip.onclick = () => setFilter('category', c.slug);
+                catContainer.appendChild(chip);
+            });
+
+            // City chips
+            cities.forEach(c => {
+                const chip = document.createElement('div');
+                chip.className = 'chip city-chip';
+                chip.id = `chip-city-${c.slug}`;
+                chip.innerHTML = `<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>${c.name}`;
+                chip.onclick = () => setFilter('city', c.slug);
+                cityContainer.appendChild(chip);
+            });
+        }
+
+        // ─── Load all tracks ─────────────────────────────────────────────
         async function loadTracks() {
             const { data, error } = await _supabase
                 .from('news')
@@ -489,7 +711,7 @@
                 .eq('is_published', true)
                 .not('tts_audio_url', 'is', null)
                 .order('created_at', { ascending: false })
-                .limit(50);
+                .limit(100);
 
             document.getElementById('loading-state').classList.add('hidden');
 
@@ -498,87 +720,83 @@
                 return;
             }
 
+            allTracks = data;
             tracks = data;
+
             document.getElementById('player-ui').classList.remove('hidden');
             document.getElementById('playlist-count').textContent = `${tracks.length} аудіо`;
 
             renderPlaylist();
 
-            // Handle deep linking
+            // Deep linking
             const urlParams = new URLSearchParams(window.location.search);
             const initialId = window.__PRELOADED_TRACK_ID__ || urlParams.get('id');
             let initialIndex = 0;
-
             if (initialId) {
-                const foundIndex = tracks.findIndex(t => t.id === initialId);
-                if (foundIndex !== -1) {
-                    initialIndex = foundIndex;
-                }
+                const idx = tracks.findIndex(t => t.id === initialId);
+                if (idx !== -1) initialIndex = idx;
             }
-
             loadTrack(initialIndex, !!initialId);
         }
 
+        // ─── Helpers ─────────────────────────────────────────────────────
         function getCategoryName(cat) {
             return (window.CATEGORIES_UK && window.CATEGORIES_UK[cat]) || cat || 'Новини';
         }
-
-        function formatDate(isoStr) {
-            return new Date(isoStr).toLocaleDateString('uk-UA', { day: 'numeric', month: 'long', year: 'numeric' });
+        function formatDate(iso) {
+            return new Date(iso).toLocaleDateString('uk-UA', { day: 'numeric', month: 'long', year: 'numeric' });
+        }
+        function formatTime(s) {
+            if (!s || isNaN(s)) return '0:00';
+            return `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+        }
+        function getArticleLink(t) {
+            if (t.city && window.CITIES_UK && window.CITIES_UK[t.city]) return `/${t.city}/${t.slug}/`;
+            if (t.category) return `/category/${t.category}/${t.slug}/`;
+            return `/${t.slug}/`;
+        }
+        function getListenedTracks() {
+            try { return JSON.parse(localStorage.getItem('news_listened_tracks') || '[]'); }
+            catch (e) { return []; }
+        }
+        function markTrackAsListened(id) {
+            const listened = getListenedTracks();
+            if (!listened.includes(id)) {
+                listened.unshift(id);
+                localStorage.setItem('news_listened_tracks', JSON.stringify(listened.slice(0, 100)));
+            }
         }
 
-        function formatTime(seconds) {
-            if (!seconds || isNaN(seconds)) return '0:00';
-            const m = Math.floor(seconds / 60);
-            const s = Math.floor(seconds % 60);
-            return `${m}:${s.toString().padStart(2, '0')}`;
-        }
-
-        function getArticleLink(track) {
-            if (track.city && window.CITIES_UK && window.CITIES_UK[track.city]) return `/${track.city}/${track.slug}/`;
-            if (track.category) return `/category/${track.category}/${track.slug}/`;
-            return `/news/${track.slug}/`;
-        }
-
+        // ─── Render Playlist ─────────────────────────────────────────────
         function renderPlaylist() {
             const container = document.getElementById('playlist');
             const listened = getListenedTracks();
 
-            // Group tracks by date
             const groups = {};
             tracks.forEach((t, i) => {
                 const date = new Date(t.created_at);
                 const today = new Date();
-                const yesterday = new Date();
-                yesterday.setDate(today.getDate() - 1);
-
-                let groupKey = '';
-                if (date.toDateString() === today.toDateString()) groupKey = 'Сьогодні';
-                else if (date.toDateString() === yesterday.toDateString()) groupKey = 'Вчора';
-                else groupKey = date.toLocaleDateString('uk-UA', { day: 'numeric', month: 'long' });
-
-                if (!groups[groupKey]) groups[groupKey] = [];
-                groups[groupKey].push({ track: t, index: i });
+                const yesterday = new Date(); yesterday.setDate(today.getDate() - 1);
+                let g = date.toDateString() === today.toDateString() ? 'Сьогодні'
+                    : date.toDateString() === yesterday.toDateString() ? 'Вчора'
+                        : date.toLocaleDateString('uk-UA', { day: 'numeric', month: 'long' });
+                if (!groups[g]) groups[g] = [];
+                groups[g].push({ track: t, index: i });
             });
 
             container.innerHTML = Object.entries(groups).map(([label, items]) => `
                 <div class="py-4 px-4 sticky top-0 bg-[#0a0e1a]/95 backdrop-blur-sm z-20">
                     <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] flex items-center gap-3">
-                        ${label}
-                        <span class="h-px flex-1 bg-white/5"></span>
+                        ${label}<span class="h-px flex-1 bg-white/5"></span>
                     </h3>
                 </div>
                 ${items.map(({ track: t, index: i }) => {
                 const isListened = listened.includes(t.id);
                 return `
-                    <div class="playlist-item ${i === currentIndex ? 'active' : ''} ${isListened ? 'opacity-60' : ''}" onclick="loadTrack(${i}, true)" id="pi-${i}">
+                    <div class="playlist-item ${i === currentIndex ? 'active' : ''} ${isListened ? 'opacity-60' : ''}" onclick="loadTrack(${i},true)" id="pi-${i}">
                         <div class="relative flex-shrink-0">
                             <img src="${t.image_url || ''}" alt="" class="playlist-thumb" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2252%22 height=%2252%22><rect fill=%22%231e293b%22 width=%2252%22 height=%2252%22 rx=%2212%22/><text fill=%22%23ea580c%22 font-size=%2222%22 x=%2213%22 y=%2234%22>🎙</text></svg>'">
-                            ${isListened ? `
-                                <div class="absolute -top-1 -right-1 bg-green-500 text-white p-0.5 rounded-full shadow-lg border-2 border-[#0a0e1a]">
-                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M5 13l4 4L19 7"></path></svg>
-                                </div>
-                            ` : ''}
+                            ${isListened ? `<div class="absolute -top-1 -right-1 bg-green-500 text-white p-0.5 rounded-full shadow-lg border-2 border-[#0a0e1a]"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M5 13l4 4L19 7"></path></svg></div>` : ''}
                         </div>
                         <div class="flex-1 min-w-0">
                             <p class="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-1">${getCategoryName(t.category)}</p>
@@ -591,34 +809,21 @@
                                     <span class="w-1 bg-orange-500 rounded-full animate-bounce" style="height:60%;animation-delay:0s"></span>
                                     <span class="w-1 bg-orange-500 rounded-full animate-bounce" style="height:100%;animation-delay:0.15s"></span>
                                     <span class="w-1 bg-orange-500 rounded-full animate-bounce" style="height:40%;animation-delay:0.3s"></span>
-                                   </div>`
+                                </div>`
                         : `<svg class="w-4 h-4 text-slate-600" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`
                     }
                         </div>
-                    </div>
-                `}).join('')}
-                    `).join('');
+                    </div>`;
+            }).join('')}
+            `).join('');
         }
 
-        function getListenedTracks() {
-            try {
-                return JSON.parse(localStorage.getItem('news_listened_tracks') || '[]');
-            } catch (e) { return []; }
-        }
-
-        function markTrackAsListened(id) {
-            const listened = getListenedTracks();
-            if (!listened.includes(id)) {
-                listened.push(id);
-                localStorage.setItem('news_listened_tracks', JSON.stringify(listened.slice(-100))); // Keep last 100
-            }
-        }
-
+        // ─── Track Loading ────────────────────────────────────────────────
         function loadTrack(index, andPlay = true) {
+            if (index < 0 || index >= tracks.length) return;
             currentIndex = index;
             const track = tracks[index];
 
-            // Update cover
             const coverImg = document.getElementById('cover-img');
             coverImg.src = track.image_url || '';
             coverImg.onerror = () => { coverImg.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400"><rect fill="%230f172a" width="400" height="400" rx="32"/><text fill="%23ea580c" font-size="120" x="120" y="250">🎙</text></svg>'; };
@@ -631,7 +836,6 @@
             document.getElementById('time-current').textContent = '0:00';
             document.getElementById('time-total').textContent = '0:00';
 
-            // Load audio
             audio.pause();
             audio.src = track.tts_audio_url;
             audio.load();
@@ -645,45 +849,27 @@
                 setPlayState(false);
             }
 
-            // Update URL for sharing
+            // Update URL
             const url = new URL(window.location);
             url.searchParams.set('id', track.id);
             window.history.replaceState({}, '', url);
 
             renderPlaylist();
-            // Scroll to active in playlist
             setTimeout(() => {
                 const el = document.getElementById(`pi-${index}`);
                 if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             }, 100);
         }
 
+        // ─── Playback State ───────────────────────────────────────────────
         function setPlayState(playing) {
             isPlaying = playing;
-
-            const playIcon = document.getElementById('play-icon');
-            const pauseIcon = document.getElementById('pause-icon');
-            const coverImg = document.getElementById('cover-img');
-            const vinylRing = document.getElementById('vinyl-ring');
-            const waveContainer = document.getElementById('wave-container');
-            const bgGradient = document.getElementById('bg-gradient');
-
-            if (playing) {
-                playIcon.classList.add('hidden');
-                pauseIcon.classList.remove('hidden');
-                coverImg.classList.add('playing');
-                vinylRing.classList.add('playing');
-                waveContainer.classList.add('playing');
-                bgGradient.classList.add('playing');
-            } else {
-                playIcon.classList.remove('hidden');
-                pauseIcon.classList.add('hidden');
-                coverImg.classList.remove('playing');
-                vinylRing.classList.remove('playing');
-                waveContainer.classList.remove('playing');
-                bgGradient.classList.remove('playing');
-            }
-
+            document.getElementById('play-icon').classList.toggle('hidden', playing);
+            document.getElementById('pause-icon').classList.toggle('hidden', !playing);
+            document.getElementById('cover-img').classList.toggle('playing', playing);
+            document.getElementById('vinyl-ring').classList.toggle('playing', playing);
+            document.getElementById('wave-container').classList.toggle('playing', playing);
+            document.getElementById('bg-gradient').classList.toggle('playing', playing);
             renderPlaylist();
         }
 
@@ -696,47 +882,36 @@
             }
         }
 
-        function prevTrack() {
-            const prev = (currentIndex - 1 + tracks.length) % tracks.length;
-            loadTrack(prev, true);
-        }
+        function prevTrack() { loadTrack((currentIndex - 1 + tracks.length) % tracks.length, true); }
+        function nextTrack() { loadTrack((currentIndex + 1) % tracks.length, true); }
+        function setVolume(val) { audio.volume = parseFloat(val); }
 
-        function nextTrack() {
-            const next = (currentIndex + 1) % tracks.length;
-            loadTrack(next, true);
-        }
-
-        function setVolume(val) {
-            audio.volume = parseFloat(val);
-        }
-
-        async function copyShareLink() {
-            const btn = document.getElementById('share-btn');
-            const originalText = btn.innerHTML;
-
-            try {
-                await navigator.clipboard.writeText(window.location.href);
-                btn.innerHTML = `
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                    Скопійовано!
-                `;
-                btn.classList.add('text-green-500');
-            } catch (err) {
-                console.error('Failed to copy link:', err);
-                alert('Не вдалося скопіювати посилання');
+        // ─── Radio Mode ───────────────────────────────────────────────────
+        function toggleRadioMode() {
+            radioMode = !radioMode;
+            const btn = document.getElementById('radio-mode-btn');
+            const label = document.getElementById('radio-label');
+            if (radioMode) {
+                btn.className = 'radio-btn on';
+                label.textContent = 'УВІМК';
+                // Start playing if not already
+                if (audio.paused && tracks.length > 0) {
+                    loadTrack(currentIndex, true);
+                }
+            } else {
+                btn.className = 'radio-btn off';
+                label.textContent = 'ВИМК';
             }
-
-            setTimeout(() => {
-                btn.innerHTML = originalText;
-                btn.classList.remove('text-green-500');
-            }, 2000);
         }
 
         // Auto-next on track end
         audio.addEventListener('ended', () => {
-            nextTrack();
+            const next = (currentIndex + 1) % tracks.length;
+            if (radioMode || next !== 0) {
+                loadTrack(next, true);
+            } else {
+                setPlayState(false);
+            }
         });
 
         // Progress update
@@ -748,27 +923,52 @@
             document.getElementById('time-total').textContent = formatTime(audio.duration);
         });
 
-        // Click on progress bar to seek
+        // Seek on click
         document.getElementById('progress-bar').addEventListener('click', (e) => {
             if (!audio.duration) return;
             const rect = e.currentTarget.getBoundingClientRect();
-            const pct = (e.clientX - rect.left) / rect.width;
-            audio.currentTime = pct * audio.duration;
+            audio.currentTime = ((e.clientX - rect.left) / rect.width) * audio.duration;
         });
 
         // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
             if (e.target.tagName === 'INPUT') return;
             if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
-            if (e.code === 'ArrowRight') { audio.currentTime = Math.min(audio.duration, audio.currentTime + 10); }
-            if (e.code === 'ArrowLeft') { audio.currentTime = Math.max(0, audio.currentTime - 10); }
+            if (e.code === 'ArrowRight') audio.currentTime = Math.min(audio.duration, audio.currentTime + 10);
+            if (e.code === 'ArrowLeft') audio.currentTime = Math.max(0, audio.currentTime - 10);
             if (e.code === 'ArrowUp') { audio.volume = Math.min(1, audio.volume + 0.1); document.getElementById('volume-slider').value = audio.volume; }
             if (e.code === 'ArrowDown') { audio.volume = Math.max(0, audio.volume - 0.1); document.getElementById('volume-slider').value = audio.volume; }
+            if (e.code === 'KeyN') nextTrack();
+            if (e.code === 'KeyP') prevTrack();
         });
 
-        // Init — await header so CATEGORIES_UK is populated before rendering playlist
+        // Share
+        async function copyShareLink() {
+            const btn = document.getElementById('share-btn');
+            const orig = btn.innerHTML;
+            try {
+                await navigator.clipboard.writeText(window.location.href);
+                btn.innerHTML = `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg> Скопійовано!`;
+                btn.classList.add('text-green-500');
+            } catch (err) { alert('Не вдалося скопіювати'); }
+            setTimeout(() => { btn.innerHTML = orig; btn.classList.remove('text-green-500'); }, 2000);
+        }
+
+        // ─── Init ─────────────────────────────────────────────────────────
         (async () => {
-            await window.initSiteHeader(_supabase);
+            const header = await window.initSiteHeader(_supabase);
+
+            // Build filter chips from same data
+            try {
+                const [catRes, cityRes] = await Promise.all([
+                    _supabase.from('categories').select('slug,name').order('order_index', { ascending: true }),
+                    _supabase.from('cities').select('slug,name').order('order_index', { ascending: true })
+                ]);
+                if (catRes.data && cityRes.data) {
+                    renderFilterChips(catRes.data, cityRes.data);
+                }
+            } catch (e) { console.warn('Filter chips load failed:', e); }
+
             await loadTracks();
         })();
     </script>

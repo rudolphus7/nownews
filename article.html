@@ -530,16 +530,11 @@
 
         // ── Navigation ──────────────────────────────────────────────────
         async function init() {
-            // Guard: if this template is served for a category page, redirect to category URL
-            if (window.__SSR_CATEGORY_SLUG__) {
-                console.log('Article template loaded on category page, redirecting...');
-                window.location.replace(`/category/${window.__SSR_CATEGORY_SLUG__}/`);
-                return;
-            }
-            // Guard: if this is a city page, redirect to city URL
-            if (window.__SSR_CITY__) {
-                console.log('Article template loaded on city page, redirecting...');
-                window.location.replace(`/${window.__SSR_CITY__}/`);
+            // Guard: do NOT load article if this is a category or city listing page.
+            // api/news.js may forward to api/category.js internally, which injects __SSR_CATEGORY_SLUG__.
+            if (window.__SSR_CATEGORY_SLUG__ || window.__SSR_CITY__) {
+                await window.initSiteHeader(_supabase);
+                await loadCategoryOrCityNews();
                 return;
             }
 
@@ -562,6 +557,58 @@
 
             // 2. Load the article content
             await loadFullNews();
+        }
+
+        /**
+         * Fallback: render a news listing when article.html is served
+         * for a category or city page (should not normally happen, but safety net).
+         */
+        async function loadCategoryOrCityNews() {
+            const loader = document.getElementById('loader');
+            const contentEl = document.getElementById('news-content');
+            const catSlug = window.__SSR_CATEGORY_SLUG__;
+            const citySlug = window.__SSR_CITY__;
+
+            // Build a simple listing container in place of article content
+            const container = contentEl || document.body;
+            container.innerHTML = `
+                <div class="container mx-auto px-4 py-12">
+                    <div id="cat-news-grid" class="flex flex-col gap-6 max-w-3xl mx-auto">
+                        <div class="animate-pulse bg-slate-100 rounded-2xl h-24"></div>
+                        <div class="animate-pulse bg-slate-100 rounded-2xl h-24"></div>
+                        <div class="animate-pulse bg-slate-100 rounded-2xl h-24"></div>
+                    </div>
+                </div>`;
+            if (loader) loader.classList.add('hidden');
+            container.classList.remove('hidden');
+
+            // Fetch news
+            let query = _supabase.from('news').select('id,title,slug,image_url,created_at,category,city,meta_description').eq('is_published', true).order('created_at', { ascending: false }).limit(20);
+            if (catSlug) query = query.eq('category', catSlug);
+            if (citySlug) query = query.eq('city', citySlug);
+
+            const { data, error } = await query;
+            const grid = document.getElementById('cat-news-grid');
+            if (!grid) return;
+
+            if (error || !data || data.length === 0) {
+                grid.innerHTML = '<div class="text-center py-20 text-slate-400 font-bold uppercase tracking-widest">Новин не знайдено</div>';
+                return;
+            }
+
+            grid.innerHTML = data.map(post => {
+                const link = post.city ? `/${post.city}/${post.slug}/` : (post.category ? `/category/${post.category}/${post.slug}/` : `/${post.slug}/`);
+                return `
+                    <a href="${link}" class="group flex items-center gap-4 border-b border-slate-100 pb-6 last:border-0 hover:bg-white/50 -mx-4 px-4 rounded-2xl transition-all">
+                        ${post.image_url ? `<div class="w-24 h-24 flex-shrink-0 rounded-xl overflow-hidden"><img src="${post.image_url}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"></div>` : ''}
+                        <div class="flex-1">
+                            <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">${new Date(post.created_at).toLocaleDateString('uk-UA')}</div>
+                            <h3 class="text-lg font-extrabold text-slate-900 group-hover:text-orange-600 transition-colors leading-snug tracking-tight">${post.title}</h3>
+                            ${post.meta_description ? `<p class="text-sm text-slate-500 mt-1 line-clamp-2">${post.meta_description}</p>` : ''}
+                        </div>
+                        <div class="text-slate-300 group-hover:text-orange-600 transition-colors font-bold text-xl">→</div>
+                    </a>`;
+            }).join('');
         }
 
         // ── Content ─────────────────────────────────────────────────────
