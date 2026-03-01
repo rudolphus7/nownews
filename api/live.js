@@ -14,9 +14,9 @@ module.exports = async (req, res) => {
     let htmlContent = '';
     try {
         const possiblePaths = [
-            path.join(process.cwd(), 'live.html'),
-            path.join(__dirname, '..', 'live.html'),
-            path.join(__dirname, 'live.html')
+            path.join(process.cwd(), 'live.template.html'),
+            path.join(__dirname, '..', 'live.template.html'),
+            path.join(__dirname, 'live.template.html')
         ];
 
         for (const p of possiblePaths) {
@@ -96,10 +96,10 @@ module.exports = async (req, res) => {
 `;
 
         // Inject meta tags into <head>
-        // We replace the existing title and description if they exist, or just append to head
-        htmlContent = htmlContent.replace(/<title>.*?<\/title>/s, '');
-        htmlContent = htmlContent.replace(/<meta name="description" content=".*?">/s, '');
-        htmlContent = htmlContent.replace(/<link rel="canonical" href=".*?">/s, '');
+        // More robust replacement to handle multiline tags
+        htmlContent = htmlContent.replace(/<title>[\s\S]*?<\/title>/i, '');
+        htmlContent = htmlContent.replace(/<meta\s+name="description"\s+content="[\s\S]*?">/i, '');
+        htmlContent = htmlContent.replace(/<link\s+rel="canonical"\s+href="[\s\S]*?">/i, '');
 
         htmlContent = htmlContent.replace('</head>', `${metaTags}\n</head>`);
 
