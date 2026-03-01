@@ -304,6 +304,15 @@ module.exports = async (req, res) => {
             tickerHtml = tickerNews.map(tn => `<a href="/news/${tn.slug}/" class="mx-4 hover:text-orange-500 transition-colors">${tn.title}</a>`).join(' <span class="text-orange-600 font-bold mx-2">/</span> ');
         }
 
+        // Build SSR nav from DB data
+        const navLinksHtml = categories.map(c =>
+            `<a href="/category/${c.slug}/" class="nav-link hover:text-orange-600 transition-colors py-2 border-b-2 border-transparent font-black tracking-tight text-sm" data-category="${c.slug}">${escapeHtml(c.name)}</a>`
+        ).join('');
+
+        const cityLinksHtml = cities.map(c =>
+            `<a href="/${c.slug}/" class="city-link hover:text-orange-600 transition-colors py-1${c.slug === news.city ? ' text-orange-600 font-black text-slate-900' : ''}" data-city="${c.slug}">${escapeHtml(c.name)}</a>`
+        ).join('');
+
         const headerHtml = `
             <!-- Ticker -->
             <div class="bg-slate-900 py-2 overflow-hidden border-b border-white/5 h-[40px]">
@@ -316,8 +325,86 @@ module.exports = async (req, res) => {
                     </div>
                 </div>
             </div>
-            <!-- Header placeholder -->
-            <div class="h-[80px]"></div> 
+
+            <header class="bg-white/95 backdrop-blur-xl sticky top-0 z-[100] border-b border-slate-100">
+                <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+                    <a href="/" class="flex items-center space-x-4 group">
+                        <div class="relative">
+                            <span class="bg-orange-600 text-white w-12 h-12 flex items-center justify-center rounded-2xl font-black text-2xl italic tracking-tighter shadow-2xl shadow-orange-200">IF</span>
+                            <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-slate-900 border-2 border-white rounded-full"></div>
+                        </div>
+                        <div class="leading-none text-left">
+                            <span class="text-2xl font-black uppercase tracking-tighter text-slate-900 block mt-1">Прикарпаття <span class="text-orange-600">News</span></span>
+                            <span class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 opacity-80">Незалежна Журналістика</span>
+                        </div>
+                    </a>
+
+                    <nav id="desktop-nav" class="hidden md:flex items-center gap-6 text-[12px] font-black uppercase tracking-wider text-slate-600">
+                        ${navLinksHtml}
+                        <div class="flex items-center ml-4">
+                            <a href="/live/" class="bg-indigo-950 text-white px-5 py-2.5 rounded-xl transition hover:bg-slate-900 shadow-xl shadow-indigo-100 flex items-center gap-3 group border border-white/10">
+                                <span class="flex h-2.5 w-2.5 relative">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-600"></span>
+                                </span>
+                                <span class="font-black tracking-tighter text-[11px]">LIVE • ЕФІР</span>
+                            </a>
+                        </div>
+                    </nav>
+
+                    <button id="mobile-menu-toggle" class="md:hidden flex flex-col gap-1.5 p-2">
+                        <span class="w-6 h-0.5 bg-slate-900 rounded-full transition-all duration-300"></span>
+                        <span class="w-6 h-0.5 bg-slate-900 rounded-full transition-all duration-300"></span>
+                        <span class="w-6 h-0.5 bg-slate-900 rounded-full transition-all duration-300"></span>
+                    </button>
+                </div>
+
+                <!-- City Filter Row -->
+                <div class="bg-white border-t border-slate-100 overflow-x-auto no-scrollbar shadow-sm">
+                    <div class="container mx-auto px-4 py-4 flex items-center space-x-8 text-[11px] font-black uppercase tracking-[0.1em] text-slate-500 whitespace-nowrap">
+                        <span class="text-slate-900 border-r border-slate-200 pr-6 mr-2 flex items-center">
+                            <span class="w-1.5 h-4 bg-orange-600 mr-3 rounded-full"></span>
+                            ВАШЕ МІСТО
+                        </span>
+                        <div class="flex items-center gap-6" id="city-nav-list">
+                            ${cityLinksHtml}
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Mobile Menu Overlay -->
+            <div id="mobile-menu-overlay" class="fixed inset-0 z-[200] bg-white/95 backdrop-blur-xl translate-x-full transition-transform duration-500 md:hidden overflow-y-auto">
+                <div class="p-8">
+                    <div class="flex justify-between items-center mb-12">
+                        <a href="/" class="flex items-center space-x-4 group">
+                            <div class="relative">
+                                <span class="bg-orange-600 text-white w-10 h-10 flex items-center justify-center rounded-xl font-black text-xl italic tracking-tighter">IF</span>
+                                <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-slate-900 border border-white rounded-full"></div>
+                            </div>
+                            <div class="leading-none text-left">
+                                <span class="text-xl font-black uppercase tracking-tighter text-slate-900 block">Прикарпаття <span class="text-orange-600">News</span></span>
+                            </div>
+                        </a>
+                        <button id="close-mobile-menu" class="p-4 -mr-4 text-slate-400 hover:text-orange-600 font-black text-4xl transition-colors">&times;</button>
+                    </div>
+                    <div class="space-y-8">
+                        <div>
+                            <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6 border-b border-slate-100 pb-2">РУБРИКИ</h3>
+                            <div id="mobile-nav-list" class="flex flex-col gap-5 text-lg font-black uppercase text-slate-800 tracking-tight">
+                                ${categories.map(c => `<a href="/category/${c.slug}/" data-category="${c.slug}" class="py-2 active:text-orange-600 font-bold">${escapeHtml(c.name)}</a>`).join('')}
+                                <div class="pt-4 text-orange-600 font-black">LIVE • РЕПОРТАЖІ</div>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6 border-b border-slate-100 pb-2">МІСТА</h3>
+                            <div id="mobile-city-list" class="grid grid-cols-2 gap-3 text-sm font-bold text-slate-600">
+                                ${cities.map(c => `<a href="/${c.slug}/" data-city="${c.slug}" class="bg-slate-50 p-4 rounded-2xl flex items-center justify-center text-center hover:bg-orange-50 hover:text-orange-600 transition h-full font-black text-xs uppercase leading-tight">${escapeHtml(c.name)}</a>`).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         `;
 
         htmlContent = htmlContent.replace(/<div id="site-header-placeholder"><\/div>/, `<div id="site-header-placeholder">${headerHtml}</div>`);
