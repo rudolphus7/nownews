@@ -703,10 +703,22 @@
                 if (slug) query = query.eq('slug', slug);
                 else query = query.eq('id', id);
 
-                const { data, error } = await Promise.race([
+                let { data, error } = await Promise.race([
                     query.single(),
                     timeoutPromise
                 ]);
+
+                // Fallback: If slug search failed but slug looks like an ID, try searching by ID
+                if (error && slug && /^\d+$/.test(slug)) {
+                    console.log(`Slug-based fetch failed for "${slug}", trying as ID...`);
+                    const fallbackQuery = _supabase.from('news').select('*').eq('id', slug).single();
+                    const fallbackResult = await Promise.race([
+                        fallbackQuery,
+                        timeoutPromise
+                    ]);
+                    data = fallbackResult.data;
+                    error = fallbackResult.error;
+                }
 
                 if (error) {
                     console.error("Supabase error:", error);

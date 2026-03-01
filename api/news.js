@@ -78,16 +78,30 @@ module.exports = async (req, res) => {
     }
 
     try {
-        const filter = slug ? `slug=eq.${encodeURIComponent(slug)}` : `id=eq.${id}`;
-        const apiUrl = `${SUPABASE_URL}/rest/v1/news?${filter}&select=*`;
+        const isNumeric = (val) => /^\d+$/.test(val);
+        let filter = slug ? `slug=eq.${encodeURIComponent(slug)}` : `id=eq.${id}`;
+        let apiUrl = `${SUPABASE_URL}/rest/v1/news?${filter}&select=*`;
 
-        const response = await fetch(apiUrl, {
+        let response = await fetch(apiUrl, {
             headers: {
                 'apikey': SUPABASE_KEY,
                 'Authorization': `Bearer ${SUPABASE_KEY}`,
                 'Accept': 'application/vnd.pgrst.object+json'
             }
         });
+
+        // Fallback: If slug search failed but slug looks like an ID, try searching by ID
+        if (!response.ok && slug && isNumeric(slug)) {
+            console.log(`Slug "${slug}" failed (status ${response.status}), trying as ID fallback...`);
+            apiUrl = `${SUPABASE_URL}/rest/v1/news?id=eq.${slug}&select=*`;
+            response = await fetch(apiUrl, {
+                headers: {
+                    'apikey': SUPABASE_KEY,
+                    'Authorization': `Bearer ${SUPABASE_KEY}`,
+                    'Accept': 'application/vnd.pgrst.object+json'
+                }
+            });
+        }
 
         if (!response.ok) {
             console.warn('Supabase fetch failed:', response.statusText);
