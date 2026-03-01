@@ -578,12 +578,18 @@
 
             let pathSlug = null;
             if (parts.length > 0) {
-                pathSlug = parts[parts.length - 1];
+                // Якщо ми в підкупелі /category/ та маємо лише 1 сегмент — це швидше за все лістинг категорії
+                if (path.includes('/category/') && parts.length < 2) {
+                    console.log("On category listing page, skipping path slug detection");
+                    pathSlug = null;
+                } else {
+                    pathSlug = parts[parts.length - 1];
 
-                const CITIES_LIST = ['kalush', 'if', 'kolomyya', 'dolyna', 'bolekhiv', 'nadvirna', 'burshtyn', 'kosiv', 'yaremche'];
-                if (CITIES_LIST.includes(pathSlug)) pathSlug = null;
+                    const CITIES_LIST = ['kalush', 'if', 'kolomyya', 'dolyna', 'bolekhiv', 'nadvirna', 'burshtyn', 'kosiv', 'yaremche'];
+                    if (CITIES_LIST.includes(pathSlug)) pathSlug = null;
 
-                if (pathSlug && (pathSlug.endsWith('.html') || pathSlug.endsWith('.php'))) pathSlug = null;
+                    if (pathSlug && (pathSlug.endsWith('.html') || pathSlug.endsWith('.php'))) pathSlug = null;
+                }
             }
 
             if (pathSlug) {
@@ -704,14 +710,14 @@
                 else query = query.eq('id', id);
 
                 let { data, error } = await Promise.race([
-                    query.single(),
+                    query.maybeSingle(),
                     timeoutPromise
                 ]);
 
                 // Fallback: If slug search failed but slug looks like an ID, try searching by ID
-                if (error && slug && /^\d+$/.test(slug)) {
-                    console.log(`Slug-based fetch failed for "${slug}", trying as ID...`);
-                    const fallbackQuery = _supabase.from('news').select('*').eq('id', slug).single();
+                if ((error || !data) && slug && /^\d+$/.test(slug)) {
+                    console.log(`Slug-based fetch failed or empty for "${slug}", trying as ID...`);
+                    const fallbackQuery = _supabase.from('news').select('*').eq('id', slug).maybeSingle();
                     const fallbackResult = await Promise.race([
                         fallbackQuery,
                         timeoutPromise

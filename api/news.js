@@ -78,41 +78,59 @@ module.exports = async (req, res) => {
     }
 
     try {
-        const isNumeric = (val) => /^\d+$/.test(val);
+        let isNumeric = (val) => /^\d+$/.test(val);
         let filter = slug ? `slug=eq.${encodeURIComponent(slug)}` : `id=eq.${id}`;
-        let apiUrl = `${SUPABASE_URL}/rest/v1/news?${filter}&select=*`;
+        // Fetch as array instead of object+json to avoid 406 error on empty results
+        let apiUrl = `${SUPABASE_URL}/rest/v1/news?${filter}&select=*&limit=1`;
 
         let response = await fetch(apiUrl, {
             headers: {
                 'apikey': SUPABASE_KEY,
-                'Authorization': `Bearer ${SUPABASE_KEY}`,
-                'Accept': 'application/vnd.pgrst.object+json'
+                'Authorization': `Bearer ${SUPABASE_KEY}`
             }
         });
 
         // Fallback: If slug search failed but slug looks like an ID, try searching by ID
-        if (!response.ok && slug && isNumeric(slug)) {
-            console.log(`Slug "${slug}" failed (status ${response.status}), trying as ID fallback...`);
-            apiUrl = `${SUPABASE_URL}/rest/v1/news?id=eq.${slug}&select=*`;
-            response = await fetch(apiUrl, {
-                headers: {
-                    'apikey': SUPABASE_KEY,
-                    'Authorization': `Bearer ${SUPABASE_KEY}`,
-                    'Accept': 'application/vnd.pgrst.object+json'
-                }
-            });
+        if (response.ok) {
+            const dataArr = await response.json();
+            if (dataArr.length === 0 && slug && isNumeric(slug)) {
+                console.log(`Slug "${slug}" returned no results, trying as ID fallback...`);
+                apiUrl = `${SUPABASE_URL}/rest/v1/news?id=eq.${slug}&select=*&limit=1`;
+                response = await fetch(apiUrl, {
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`
+                    }
+                });
+            } else {
+                // Restore news object if found
+                var newsData = dataArr[0];
+            }
         }
 
         if (!response.ok) {
-            console.warn('Supabase fetch failed:', response.statusText);
+            console.warn('Supabase fetch failed:', response.status, response.statusText);
             res.setHeader('Content-Type', 'text/html; charset=utf-8');
             return res.status(200).send(htmlContent);
         }
 
-        // Fetch everything in parallel
-        const now = Date.now();
-        const promises = [response.json()];
+        let articleData = newsData;
+        if (!articleData && response.ok) {
+            const dataArr = await response.json();
+            articleData = dataArr[0];
+        }
 
+        if (!articleData) {
+            console.warn('No news article found for slug/id');
+            res.setHeader('Content-Type', 'text/html; charset=utf-8');
+            return res.status(200).send(htmlContent);
+        }
+
+        // Fetch remaining data in parallel
+        const now = Date.now();
+        const promises = [];
+
+        // Categories
         if (!globalCache.categories || (now - globalCache.lastUpdate > STATIC_TTL)) {
             promises.push(fetch(`${SUPABASE_URL}/rest/v1/categories?select=*&order=order_index.asc`, {
                 headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
@@ -121,6 +139,7 @@ module.exports = async (req, res) => {
             promises.push(Promise.resolve(globalCache.categories));
         }
 
+        // Cities
         if (!globalCache.cities || (now - globalCache.lastUpdate > STATIC_TTL)) {
             promises.push(fetch(`${SUPABASE_URL}/rest/v1/cities?select=*&order=order_index.asc`, {
                 headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
@@ -138,7 +157,8 @@ module.exports = async (req, res) => {
             promises.push(Promise.resolve(globalCache.ticker));
         }
 
-        const [news, categories, cities, tickerNews] = await Promise.all(promises);
+        const [categories, cities, tickerNews] = await Promise.all(promises);
+        const news = articleData;
 
         // Update cache
         globalCache.categories = categories;
