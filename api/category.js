@@ -99,9 +99,9 @@ module.exports = async (req, res) => {
     const metaTags = `
     <!-- Category Page SEO -->
     <meta name="description" content="${escapeAttr(description)}">
-    <meta name="robots" content="index, follow, max-image-preview:large">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
     <link rel="canonical" href="${escapeAttr(canonicalUrl)}">
-    <link rel="alternate" hreflang="uk-UA" href="${escapeAttr(canonicalUrl)}">
+    <link rel="alternate" hreflang="uk" href="${escapeAttr(canonicalUrl)}">
     <link rel="alternate" hreflang="x-default" href="${escapeAttr(canonicalUrl)}">
 
     <!-- Open Graph -->

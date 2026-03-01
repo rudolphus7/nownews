@@ -174,6 +174,7 @@ module.exports = async (req, res) => {
         const image = news.image_url || `${SITE_URL}/og-default.jpg`;
         const author = news.author || 'Редакція IF News';
         const siteName = 'Прикарпаття News | IF News';
+        const publishedDate = news.created_at ? new Date(news.created_at).toISOString() : '';
 
         // Inject SEO meta tags before </head>
         const metaTags = `
@@ -182,7 +183,7 @@ module.exports = async (req, res) => {
     <meta name="author" content="${escapeAttr(author)}">
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
     <link rel="canonical" href="${escapeAttr(canonicalUrl)}">
-    <link rel="alternate" hreflang="uk-UA" href="${escapeAttr(canonicalUrl)}">
+    <link rel="alternate" hreflang="uk" href="${escapeAttr(canonicalUrl)}">
     <link rel="alternate" hreflang="x-default" href="${escapeAttr(canonicalUrl)}">
 
     <!-- Open Graph (Facebook, Telegram, Viber) -->
