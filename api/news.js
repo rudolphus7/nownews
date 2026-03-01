@@ -150,10 +150,13 @@ module.exports = async (req, res) => {
 
         // Inject SEO meta tags before </head>
         const metaTags = `
-    <!-- SEO & Open Graph Meta Tags -->
+    <!-- General SEO -->
     <meta name="description" content="${escapeAttr(description)}">
     <meta name="author" content="${escapeAttr(author)}">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
     <link rel="canonical" href="${escapeAttr(canonicalUrl)}">
+    <link rel="alternate" hreflang="uk-UA" href="${escapeAttr(canonicalUrl)}">
+    <link rel="alternate" hreflang="x-default" href="${escapeAttr(canonicalUrl)}">
 
     <!-- Open Graph (Facebook, Telegram, Viber) -->
     <meta property="og:type" content="article">
@@ -170,6 +173,8 @@ module.exports = async (req, res) => {
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@ifnews_pro">
+    <meta name="twitter:creator" content="@ifnews_pro">
     <meta name="twitter:title" content="${escapeAttr(title)}">
     <meta name="twitter:description" content="${escapeAttr(description)}">
     <meta name="twitter:image" content="${escapeAttr(image)}">
@@ -400,8 +405,8 @@ module.exports = async (req, res) => {
     window.__SSR_ID__ = '${escapeJson(String(news.id || ''))}'; 
 <\/script>`;
 
-        // Inject before </head>
-        htmlContent = htmlContent.replace('</head>', `${ssrScript}\n${metaTags}\n</head>`);
+        // Inject meta tags after title
+        htmlContent = htmlContent.replace(/<title>.*?<\/title>/s, `<title>${escapeHtml(title)}</title>\n${metaTags}\n${ssrScript}`);
 
         // Ensure content is visible and loader is hidden
         htmlContent = htmlContent.replace('id="loader"', 'id="loader" class="hidden"');

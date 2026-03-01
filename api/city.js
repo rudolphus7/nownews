@@ -76,7 +76,10 @@ module.exports = async (req, res) => {
     const metaTags = `
     <!-- City Page SEO -->
     <meta name="description" content="${escapeAttr(description)}">
+    <meta name="robots" content="index, follow, max-image-preview:large">
     <link rel="canonical" href="${escapeAttr(canonicalUrl)}">
+    <link rel="alternate" hreflang="uk-UA" href="${escapeAttr(canonicalUrl)}">
+    <link rel="alternate" hreflang="x-default" href="${escapeAttr(canonicalUrl)}">
 
     <!-- Open Graph -->
     <meta property="og:type" content="website">
@@ -87,7 +90,9 @@ module.exports = async (req, res) => {
     <meta property="og:locale" content="uk_UA">
 
     <!-- Twitter -->
-    <meta name="twitter:card" content="summary">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@ifnews_pro">
+    <meta name="twitter:creator" content="@ifnews_pro">
     <meta name="twitter:title" content="${escapeAttr(title)}">
     <meta name="twitter:description" content="${escapeAttr(description)}">
 
@@ -248,7 +253,7 @@ module.exports = async (req, res) => {
     htmlContent = htmlContent.replace(/<meta name="description"[^>]*>/gi, '');
     htmlContent = htmlContent.replace(/<link rel="canonical"[^>]*>/gi, '');
     htmlContent = inject(htmlContent, 'site-header-placeholder', headerHtml);
-    htmlContent = htmlContent.replace('</head>', `${ssrScript}\n${metaTags}\n</head>`);
+    htmlContent = htmlContent.replace(/<title>.*?<\/title>/s, `<title>${escapeHtml(title)}</title>\n${metaTags}\n${ssrScript}`);
 
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=30');

@@ -76,7 +76,10 @@ module.exports = async (req, res) => {
     <!-- Dynamic SEO & Open Graph Meta Tags -->
     <title>${escapeHtml(title)}</title>
     <meta name="description" content="${escapeAttr(description)}">
+    <meta name="robots" content="index, follow, max-image-preview:large">
     <link rel="canonical" href="${escapeAttr(canonicalUrl)}">
+    <link rel="alternate" hreflang="uk-UA" href="${escapeAttr(canonicalUrl)}">
+    <link rel="alternate" hreflang="x-default" href="${escapeAttr(canonicalUrl)}">
 
     <!-- Open Graph (Facebook, Telegram, Viber) -->
     <meta property="og:type" content="article">
@@ -88,6 +91,8 @@ module.exports = async (req, res) => {
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@ifnews_pro">
+    <meta name="twitter:creator" content="@ifnews_pro">
     <meta name="twitter:title" content="${escapeAttr(title)}">
     <meta name="twitter:description" content="${escapeAttr(description)}">
     <meta name="twitter:image" content="${escapeAttr(image)}">
@@ -101,6 +106,7 @@ module.exports = async (req, res) => {
         htmlContent = htmlContent.replace(/<meta\s+name="description"\s+content="[\s\S]*?">/i, '');
         htmlContent = htmlContent.replace(/<link\s+rel="canonical"\s+href="[\s\S]*?">/i, '');
 
+        // Inject meta tags and script
         htmlContent = htmlContent.replace('</head>', `${metaTags}\n</head>`);
 
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
