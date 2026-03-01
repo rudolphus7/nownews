@@ -506,7 +506,7 @@
 
             // Handle deep linking
             const urlParams = new URLSearchParams(window.location.search);
-            const initialId = urlParams.get('id');
+            const initialId = window.__PRELOADED_TRACK_ID__ || urlParams.get('id');
             let initialIndex = 0;
 
             if (initialId) {

@@ -181,7 +181,7 @@
         },
         {
             "source": "/live/",
-            "destination": "/live.html"
+            "destination": "/api/live"
         },
         {
             "source": "/news/",
