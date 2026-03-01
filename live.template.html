@@ -3,12 +3,11 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>LIVE • Аудіо-Новини — Прикарпаття News</title>
     <meta name="description"
-        content="Слухайте останні новини Прикарпаття у форматі аудіо. Оберіть місто або рубрику і слухайте зручно — в дорозі, без рук.">
+        content="Слухайте новини Прикарпаття голосом диктора. Оберіть місто або рубрику і слухайте по дорозі.">
     <link rel="canonical" href="https://ifnews-omega.vercel.app/live/">
-
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
         rel="stylesheet">
@@ -16,35 +15,115 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="/components/header.css">
     <script src="/components/header.js"></script>
-
     <style>
         * {
             font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
         }
 
+        html,
         body {
-            background: #0a0e1a;
+            background: #0d0d14;
             color: #fff;
-            min-height: 100vh;
-            letter-spacing: -0.015em;
+            margin: 0;
+            padding: 0;
+            min-height: 100dvh;
+            overscroll-behavior-y: contain;
         }
 
-        .bg-pulse {
-            position: fixed;
+        /* ── Scrollbar invisible ───────────────────────────────── */
+        ::-webkit-scrollbar {
+            display: none;
+        }
+
+        * {
+            scrollbar-width: none;
+        }
+
+        /* ── Channel cards ────────────────────────────────────── */
+        .channel-cards {
+            display: flex;
+            gap: 10px;
+            padding: 0 16px 4px;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+        }
+
+        .channel-card {
+            flex: 0 0 auto;
+            width: 100px;
+            height: 90px;
+            border-radius: 18px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            cursor: pointer;
+            scroll-snap-align: start;
+            border: 2px solid transparent;
+            transition: all 0.2s ease;
+            font-size: 10px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            text-align: center;
+            line-height: 1.2;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.04);
+            color: rgba(255, 255, 255, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .channel-card .icon {
+            font-size: 22px;
+            line-height: 1;
+        }
+
+        .channel-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .channel-card.active {
+            color: #fff;
+            border-color: var(--card-accent, rgba(234, 88, 12, 0.7));
+            background: var(--card-bg, rgba(234, 88, 12, 0.15));
+            box-shadow: 0 0 20px var(--card-glow, rgba(234, 88, 12, 0.2));
+        }
+
+        .channel-card::before {
+            content: '';
+            position: absolute;
             inset: 0;
-            z-index: 0;
-            background:
-                radial-gradient(ellipse 80% 60% at 50% -10%, rgba(234, 88, 12, 0.18) 0%, transparent 70%),
-                radial-gradient(ellipse 60% 40% at 80% 100%, rgba(99, 102, 241, 0.12) 0%, transparent 70%);
-            pointer-events: none;
-            transition: background 1s ease;
+            opacity: 0;
+            background: linear-gradient(135deg, var(--card-accent2, rgba(234, 88, 12, 0.3)), transparent);
+            transition: opacity 0.3s;
         }
 
-        .bg-pulse.playing {
-            animation: bg-breathe 3s ease-in-out infinite;
+        .channel-card.active::before {
+            opacity: 1;
         }
 
-        @keyframes bg-breathe {
+        .channel-card .dot {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--card-accent, #ea580c);
+            opacity: 0;
+            box-shadow: 0 0 6px var(--card-accent, #ea580c);
+        }
+
+        .channel-card.active .dot {
+            opacity: 1;
+            animation: blink 2s ease-in-out infinite;
+        }
+
+        @keyframes blink {
 
             0%,
             100% {
@@ -52,72 +131,204 @@
             }
 
             50% {
-                opacity: 0.5
+                opacity: 0.3
             }
         }
 
-        /* Filter chips */
-        .filter-scroll {
-            overflow-x: auto;
-            scrollbar-width: none;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .filter-scroll::-webkit-scrollbar {
-            display: none;
-        }
-
-        .chip {
-            display: inline-flex;
+        /* ── Track list ────────────────────────────────────────── */
+        .track-row {
+            display: flex;
             align-items: center;
-            gap: 6px;
-            padding: 7px 16px;
-            border-radius: 20px;
-            font-size: 11px;
+            gap: 12px;
+            padding: 12px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            transition: background 0.15s;
+            position: relative;
+        }
+
+        .track-row:active {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .track-row.active {
+            background: rgba(234, 88, 12, 0.08);
+        }
+
+        .track-row.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: #ea580c;
+            border-radius: 0 2px 2px 0;
+        }
+
+        .track-thumb {
+            width: 52px;
+            height: 52px;
+            border-radius: 12px;
+            object-fit: cover;
+            flex-shrink: 0;
+            background: #1e293b;
+        }
+
+        .track-thumb-placeholder {
+            width: 52px;
+            height: 52px;
+            border-radius: 12px;
+            flex-shrink: 0;
+            background: #1a1f2e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        /* ── Sticky bottom player ──────────────────────────────── */
+        #player-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 500;
+            background: rgba(13, 13, 20, 0.97);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border-top: 1px solid rgba(255, 255, 255, 0.07);
+            padding-bottom: env(safe-area-inset-bottom, 0);
+        }
+
+        .player-progress {
+            height: 2px;
+            background: rgba(255, 255, 255, 0.08);
+            cursor: pointer;
+        }
+
+        .player-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ea580c, #f97316);
+            width: 0%;
+            transition: width 0.3s linear;
+        }
+
+        .player-main {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+        }
+
+        .player-art {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .player-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .player-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #fff;
+            line-height: 1.3;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .player-cat {
+            font-size: 10px;
             font-weight: 900;
+            color: #f97316;
             text-transform: uppercase;
             letter-spacing: 0.08em;
-            white-space: nowrap;
-            cursor: pointer;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            background: rgba(255, 255, 255, 0.04);
-            color: rgba(255, 255, 255, 0.55);
-            transition: all 0.2s ease;
-            user-select: none;
         }
 
-        .chip:hover {
-            background: rgba(255, 255, 255, 0.1);
+        .player-controls {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+
+        .ctrl {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: transparent;
+            color: rgba(255, 255, 255, 0.6);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+        }
+
+        .ctrl:active {
+            transform: scale(0.9);
+        }
+
+        .ctrl-play {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #ea580c, #dc2626);
+            color: #fff;
+            box-shadow: 0 4px 16px rgba(234, 88, 12, 0.4);
+        }
+
+        .ctrl-play:active {
+            box-shadow: 0 2px 8px rgba(234, 88, 12, 0.3);
+        }
+
+        .ctrl:hover {
             color: #fff;
         }
 
-        .chip.active {
-            background: rgba(234, 88, 12, 0.2);
-            border-color: rgba(234, 88, 12, 0.5);
-            color: #f97316;
-            box-shadow: 0 0 16px rgba(234, 88, 12, 0.2);
+        /* ── Expanded player overlay ──────────────────────────── */
+        #player-full {
+            position: fixed;
+            inset: 0;
+            z-index: 600;
+            background: rgba(10, 10, 18, 0.98);
+            backdrop-filter: blur(40px);
+            display: flex;
+            flex-direction: column;
+            transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(.32, .72, 0, 1);
+            padding-top: env(safe-area-inset-top, 0);
         }
 
-        .chip.active.city-chip {
-            background: rgba(99, 102, 241, 0.2);
-            border-color: rgba(99, 102, 241, 0.4);
-            color: #818cf8;
-            box-shadow: 0 0 16px rgba(99, 102, 241, 0.2);
+        #player-full.open {
+            transform: translateY(0);
         }
 
-        /* Cover */
-        .cover-art {
-            width: 100%;
+        .full-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+        }
+
+        .full-cover {
+            width: min(280px, 80vw);
             aspect-ratio: 1;
-            border-radius: 2rem;
+            border-radius: 24px;
             object-fit: cover;
-            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05);
-            transition: transform 0.6s cubic-bezier(.4, 0, .2, 1), box-shadow 0.6s ease;
+            margin: 0 auto 20px;
+            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.6);
+            transition: transform 0.4s ease;
         }
 
-        .cover-art.playing {
-            transform: scale(1.03);
-            box-shadow: 0 60px 120px rgba(234, 88, 12, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.08);
+        .full-cover.spin {
             animation: cover-float 6s ease-in-out infinite;
         }
 
@@ -125,232 +336,126 @@
 
             0%,
             100% {
-                transform: scale(1.03) translateY(0)
+                transform: scale(1.02) translateY(0)
             }
 
             50% {
-                transform: scale(1.03) translateY(-8px)
+                transform: scale(1.02) translateY(-6px)
             }
         }
 
-        .vinyl-ring {
-            position: absolute;
-            inset: -12px;
-            border-radius: 50%;
-            border: 3px solid rgba(234, 88, 12, 0.4);
-            border-top-color: rgba(234, 88, 12, 0.9);
-            opacity: 0;
-            transition: opacity 0.4s;
-        }
-
-        .playing .vinyl-ring {
-            opacity: 1;
-            animation: spin 4s linear infinite;
-        }
-
-        @keyframes spin {
-            to {
-                transform: rotate(360deg)
-            }
-        }
-
-        /* Progress */
-        .progress-bar {
+        .full-progress {
             height: 4px;
             background: rgba(255, 255, 255, 0.1);
             border-radius: 4px;
             cursor: pointer;
-            position: relative;
-            overflow: hidden;
+            margin: 0 20px;
         }
 
-        .progress-fill {
+        .full-progress-fill {
             height: 100%;
             background: linear-gradient(90deg, #ea580c, #f97316);
             border-radius: 4px;
+            width: 0%;
             transition: width 0.3s linear;
-            position: relative;
         }
 
-        .progress-fill::after {
-            content: '';
-            position: absolute;
-            right: -3px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 10px;
-            height: 10px;
-            background: #fff;
-            border-radius: 50%;
-            box-shadow: 0 0 8px rgba(234, 88, 12, 0.8);
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-
-        .progress-bar:hover .progress-fill::after {
-            opacity: 1;
-        }
-
-        /* Waveform */
-        .wave-bars {
-            display: flex;
-            align-items: center;
-            gap: 3px;
-            height: 32px;
-        }
-
-        .wave-bar {
-            width: 3px;
-            border-radius: 2px;
-            background: rgba(234, 88, 12, 0.5);
-            transform-origin: bottom;
-        }
-
-        .playing .wave-bar {
-            animation: wave 1.2s ease-in-out infinite;
-            background: #ea580c;
-        }
-
-        @keyframes wave {
-
-            0%,
-            100% {
-                transform: scaleY(0.3)
-            }
-
-            50% {
-                transform: scaleY(1)
-            }
-        }
-
-        /* Playlist */
-        .playlist-item {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            padding: 12px 16px;
-            border-radius: 16px;
-            cursor: pointer;
-            transition: all 0.25s ease;
-            border: 1px solid transparent;
-        }
-
-        .playlist-item:hover {
-            background: rgba(255, 255, 255, 0.05);
-            border-color: rgba(255, 255, 255, 0.08);
-        }
-
-        .playlist-item.active {
-            background: rgba(234, 88, 12, 0.12);
-            border-color: rgba(234, 88, 12, 0.25);
-        }
-
-        .playlist-thumb {
-            width: 52px;
-            height: 52px;
-            border-radius: 12px;
-            object-fit: cover;
-            flex-shrink: 0;
-        }
-
-        /* Controls */
-        .ctrl-btn {
+        .full-controls {
             display: flex;
             align-items: center;
             justify-content: center;
+            gap: 20px;
+            padding: 24px 20px 16px;
+        }
+
+        .full-ctrl {
+            width: 52px;
+            height: 52px;
             border-radius: 50%;
-            cursor: pointer;
-            transition: all 0.2s ease;
             border: none;
-            background: transparent;
-            color: white;
-        }
-
-        .ctrl-btn:hover {
-            transform: scale(1.1);
-            color: #f97316;
-        }
-
-        .ctrl-btn:active {
-            transform: scale(0.95);
-        }
-
-        .ctrl-btn-main {
-            width: 64px;
-            height: 64px;
-            background: linear-gradient(135deg, #ea580c, #dc2626);
-            box-shadow: 0 8px 32px rgba(234, 88, 12, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
-        }
-
-        .ctrl-btn-main:hover {
-            transform: scale(1.08);
-            box-shadow: 0 12px 40px rgba(234, 88, 12, 0.6);
-            color: white;
-        }
-
-        /* Radio mode button */
-        .radio-btn {
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 10px;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
+            background: rgba(255, 255, 255, 0.06);
+            color: rgba(255, 255, 255, 0.7);
             cursor: pointer;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
         }
 
-        .radio-btn.on {
-            background: rgba(239, 68, 68, 0.2);
-            border-color: rgba(239, 68, 68, 0.5);
-            color: #ef4444;
-            box-shadow: 0 0 12px rgba(239, 68, 68, 0.2);
+        .full-ctrl:active {
+            transform: scale(0.9);
+            background: rgba(255, 255, 255, 0.12);
         }
 
-        .radio-btn.off {
-            background: rgba(255, 255, 255, 0.04);
-            color: rgba(255, 255, 255, 0.4);
+        .full-ctrl-play {
+            width: 68px;
+            height: 68px;
+            background: linear-gradient(135deg, #ea580c, #dc2626);
+            color: #fff;
+            box-shadow: 0 8px 32px rgba(234, 88, 12, 0.5);
         }
 
-        /* Volume */
-        input[type="range"] {
+        .full-ctrl-play:active {
+            box-shadow: 0 4px 16px rgba(234, 88, 12, 0.3);
+        }
+
+        .vol-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 20px 8px;
+        }
+
+        input[type=range] {
             -webkit-appearance: none;
             appearance: none;
-            height: 4px;
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 4px;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 3px;
             outline: none;
-            width: 100%;
+            flex: 1;
         }
 
-        input[type="range"]::-webkit-slider-thumb {
+        input[type=range]::-webkit-slider-thumb {
             -webkit-appearance: none;
             width: 14px;
             height: 14px;
-            background: #ea580c;
             border-radius: 50%;
+            background: #ea580c;
             cursor: pointer;
-            box-shadow: 0 0 8px rgba(234, 88, 12, 0.6);
+            box-shadow: 0 0 8px rgba(234, 88, 12, 0.5);
         }
 
-        /* Scrollbar */
-        .custom-scroll::-webkit-scrollbar {
-            width: 4px;
+        /* ── Wave animation ────────────────────────────────────── */
+        .wave {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            height: 20px;
         }
 
-        .custom-scroll::-webkit-scrollbar-track {
-            background: transparent;
+        .wave-b {
+            width: 3px;
+            background: #ea580c;
+            border-radius: 2px;
+            animation: wav 1s ease-in-out infinite;
         }
 
-        .custom-scroll::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
+        @keyframes wav {
+
+            0%,
+            100% {
+                height: 4px
+            }
+
+            50% {
+                height: 16px
+            }
         }
 
-        /* Skeleton */
+        /* ── Skeleton ──────────────────────────────────────────── */
         .skeleton {
-            background: linear-gradient(90deg, rgba(255, 255, 255, 0.05) 25%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0.05) 75%);
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0.04) 25%, rgba(255, 255, 255, 0.08) 50%, rgba(255, 255, 255, 0.04) 75%);
             background-size: 200% 100%;
             animation: shimmer 1.5s infinite;
         }
@@ -365,345 +470,325 @@
             }
         }
 
-        /* Channel badge */
-        .channel-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 10px;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
+        /* ── Content spacing for player bar ───────────────────── */
+        main {
+            padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px) + 8px);
         }
     </style>
 </head>
 
-<body class="bg-[#0a0e1a]">
-    <div class="bg-pulse" id="bg-gradient"></div>
-
+<body>
     <!-- Header -->
     <div id="site-header-placeholder" class="relative z-10"></div>
 
-    <main class="relative z-10 container mx-auto px-4 py-8 md:py-12 max-w-7xl">
+    <main class="max-w-2xl mx-auto">
 
-        <!-- Page title -->
-        <div class="mb-6 flex items-center gap-4">
-            <div class="flex items-center gap-3">
-                <span class="flex h-3 w-3 relative">
+        <!-- Page head -->
+        <div class="px-4 pt-6 pb-2">
+            <div class="flex items-center gap-2 mb-2">
+                <span class="flex h-2.5 w-2.5 relative">
                     <span
                         class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-3 w-3 bg-red-600"></span>
+                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-600"></span>
                 </span>
-                <span class="text-xs font-black text-red-500 uppercase tracking-[0.3em]">Live • Ефір</span>
+                <span class="text-[10px] font-black text-red-500 uppercase tracking-[0.3em]">Live • Ефір</span>
             </div>
-            <div class="h-px flex-1 bg-white/5"></div>
-        </div>
-
-        <div class="flex items-end justify-between mb-3 flex-wrap gap-4">
-            <div>
-                <h1 class="text-4xl md:text-6xl font-black uppercase tracking-tighter text-white italic">
-                    Аудіо<span class="text-orange-500">-Новини</span>
-                </h1>
-                <p class="text-slate-400 font-medium mt-2 max-w-lg">Новини Прикарпаття голосом диктора. Слухайте по
-                    дорозі — без рук, без зупинок.</p>
-            </div>
-            <!-- Radio mode toggle -->
-            <div class="flex items-center gap-3">
-                <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Авторадіо</span>
-                <button id="radio-mode-btn" class="radio-btn off" onclick="toggleRadioMode()">
-                    <span id="radio-label">ВИМК</span>
+            <div class="flex items-end justify-between">
+                <div>
+                    <h1 class="text-3xl font-black tracking-tighter text-white italic">Аудіо<span
+                            class="text-orange-500">-новини</span></h1>
+                    <p class="text-[12px] text-slate-400 mt-0.5">Слухай по дорозі — без рук</p>
+                </div>
+                <!-- Radio toggle -->
+                <button id="radio-toggle" onclick="toggleRadioMode()"
+                    class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.05] border border-white/[0.08] transition-all">
+                    <span class="text-[9px] font-black uppercase tracking-widest text-slate-400"
+                        id="radio-label">Авторадіо</span>
+                    <div id="radio-dot" class="w-2 h-2 rounded-full bg-slate-600 transition-colors"></div>
                 </button>
             </div>
         </div>
 
-        <!-- ─── Filter Bar ─────────────────────────────────────────────── -->
-        <div class="mb-8 p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06] backdrop-blur-sm">
-            <div class="flex items-center gap-3 mb-4">
-                <svg class="w-4 h-4 text-orange-500 flex-shrink-0" fill="none" stroke="currentColor"
-                    viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                        d="M3 4a1 1 0 011-1h16a1 1 0 010 2H4a1 1 0 01-1-1zm3 5a1 1 0 011-1h10a1 1 0 010 2H7a1 1 0 01-1-1zm3 5a1 1 0 011-1h4a1 1 0 010 2h-4a1 1 0 01-1-1z" />
+        <!-- Channel selector label -->
+        <p class="px-4 pt-5 pb-2 text-[9px] font-black text-slate-600 uppercase tracking-[0.25em]">Канал</p>
+
+        <!-- Channel cards row -->
+        <div class="channel-cards pb-2" id="channel-cards">
+            <!-- Injected by JS -->
+        </div>
+
+        <!-- Section label -->
+        <div class="flex items-center justify-between px-4 pt-5 pb-3">
+            <p class="text-[9px] font-black text-slate-600 uppercase tracking-[0.25em]">Черга</p>
+            <span id="queue-count" class="text-[9px] font-bold text-slate-600"></span>
+        </div>
+
+        <!-- Loading skeletons -->
+        <div id="loading-state" class="px-4 space-y-3">
+            <div class="skeleton h-16 rounded-2xl"></div>
+            <div class="skeleton h-16 rounded-2xl"></div>
+            <div class="skeleton h-16 rounded-2xl"></div>
+            <div class="skeleton h-16 rounded-2xl"></div>
+        </div>
+
+        <!-- Empty state -->
+        <div id="empty-state" class="hidden text-center py-16 px-4">
+            <div class="text-5xl mb-4">🎙️</div>
+            <p class="text-slate-300 font-bold">Немає аудіо-новин у цьому каналі</p>
+            <p class="text-slate-500 text-sm mt-2">Спробуйте іншу рубрику або місто</p>
+        </div>
+
+        <!-- Track list -->
+        <div id="track-list"></div>
+
+    </main>
+
+    <!-- ──────────────── Sticky Bottom Player ──────────────── -->
+    <div id="player-bar" class="hidden">
+        <div class="player-progress" id="min-progress" onclick="seekFromMini(event)">
+            <div class="player-progress-fill" id="min-progress-fill"></div>
+        </div>
+        <div class="player-main" onclick="openFullPlayer()">
+            <img id="min-art" src="" alt="" class="player-art" onerror="this.style.display='none'">
+            <div class="player-info">
+                <div class="player-cat" id="min-cat">Новини</div>
+                <div class="player-title" id="min-title">Завантаження...</div>
+            </div>
+            <div class="player-controls" onclick.stop="">
+                <button class="ctrl" onclick="event.stopPropagation();prevTrack()" title="Назад">
+                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M6 6h2v12H6zm3.5 6 8.5 6V6z" />
+                    </svg>
+                </button>
+                <button class="ctrl ctrl-play" id="min-play-btn" onclick="event.stopPropagation();togglePlay()">
+                    <svg id="min-play-icon" width="22" height="22" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M8 5v14l11-7z" />
+                    </svg>
+                    <svg id="min-pause-icon" class="hidden" width="22" height="22" fill="currentColor"
+                        viewBox="0 0 24 24">
+                        <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+                    </svg>
+                </button>
+                <button class="ctrl" onclick="event.stopPropagation();nextTrack()" title="Далі">
+                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M6 18l8.5-6L6 6v12zm2-8.14L11.03 12 8 14.14V9.86zM16 6h2v12h-2z" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ──────────────── Full Player Overlay ──────────────── -->
+    <div id="player-full">
+        <div class="full-header">
+            <button onclick="closeFullPlayer()" class="p-2 -ml-2 text-slate-400 hover:text-white transition-colors">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path d="M19 9l-7 7-7-7" />
                 </svg>
-                <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.25em]">Оберіть канал</span>
+            </button>
+            <div class="text-center">
+                <p class="text-[9px] font-black text-slate-500 uppercase tracking-[0.25em]" id="full-channel-label">Всі
+                    новини</p>
+                <p class="text-xs font-bold text-slate-300">← Свайп вниз →</p>
             </div>
-
-            <!-- Category chips -->
-            <div class="mb-3">
-                <p class="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-2 px-1">Рубрики</p>
-                <div class="filter-scroll flex gap-2 pb-1" id="category-chips">
-                    <div class="chip active" id="chip-all" onclick="setFilter('all',null)">
-                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M3 18h6v-2H3v2zm0-5h12v-2H3v2zm0-7v2h18V6H3z" />
-                        </svg>
-                        Всі новини
-                    </div>
-                    <!-- Category chips injected here -->
-                </div>
-            </div>
-
-            <!-- City chips -->
-            <div>
-                <p class="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-2 px-1">Міста</p>
-                <div class="filter-scroll flex gap-2 pb-1" id="city-chips">
-                    <!-- City chips injected here -->
-                </div>
-            </div>
-        </div>
-
-        <!-- Loading -->
-        <div id="loading-state" class="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-16">
-            <div class="lg:col-span-2 skeleton rounded-[2rem] aspect-square"></div>
-            <div class="lg:col-span-3 space-y-4">
-                <div class="skeleton h-8 rounded-xl w-3/4"></div>
-                <div class="skeleton h-5 rounded-xl w-1/2"></div>
-                <div class="skeleton h-16 rounded-2xl mt-8"></div>
-                <div class="space-y-3 mt-8">
-                    <div class="skeleton h-16 rounded-2xl"></div>
-                    <div class="skeleton h-16 rounded-2xl"></div>
-                    <div class="skeleton h-16 rounded-2xl"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Empty -->
-        <div id="empty-state" class="hidden text-center py-24">
-            <div class="text-6xl mb-6">🎙️</div>
-            <h2 class="text-2xl font-black text-white mb-3">Поки що тихо</h2>
-            <p class="text-slate-400">У цьому каналі ще немає аудіо-новин. Спробуйте іншу рубрику або місто.</p>
-            <button onclick="setFilter('all',null)"
-                class="mt-6 px-6 py-3 bg-orange-600 hover:bg-orange-500 text-white font-black uppercase tracking-wider rounded-xl transition">
-                Показати всі
+            <button onclick="copyShareLink()" class="p-2 -mr-2 text-slate-400 hover:text-orange-400 transition-colors">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                </svg>
             </button>
         </div>
 
-        <!-- Player UI -->
-        <div id="player-ui" class="hidden grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-16">
-
-            <!-- Left: Cover + Controls -->
-            <div class="lg:col-span-2 flex flex-col items-center">
-
-                <!-- Current channel badge -->
-                <div id="channel-badge-wrap" class="mb-4 self-start">
-                    <span id="channel-badge"
-                        class="channel-badge bg-orange-500/10 border border-orange-500/20 text-orange-400">
-                        <span class="flex h-1.5 w-1.5 relative">
-                            <span
-                                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                            <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"></span>
-                        </span>
-                        Всі новини
-                    </span>
-                </div>
-
-                <!-- Cover art -->
-                <div class="relative w-full max-w-xs mx-auto mb-8" id="cover-wrapper">
-                    <div class="vinyl-ring" id="vinyl-ring"></div>
-                    <img id="cover-img" src="" alt="Обкладинка" class="cover-art">
-                    <div
-                        class="absolute inset-0 rounded-[2rem] bg-gradient-to-t from-black/60 via-transparent to-transparent">
-                    </div>
-                    <div class="absolute top-4 left-4">
-                        <span id="cover-category"
-                            class="px-3 py-1 bg-orange-600/90 backdrop-blur-sm text-white text-[10px] font-black uppercase tracking-widest rounded-full"></span>
-                    </div>
-                </div>
-
-                <!-- Track info -->
-                <div class="text-center w-full mb-6 px-4">
-                    <h2 id="track-title"
-                        class="text-xl md:text-2xl font-black text-white leading-tight mb-2 line-clamp-2"></h2>
-                    <p id="track-date" class="text-sm text-slate-400 font-medium"></p>
-                </div>
-
-                <!-- Waveform -->
-                <div class="wave-bars mb-6" id="wave-container"></div>
-
-                <!-- Progress -->
-                <div class="w-full px-2 mb-4">
-                    <div class="progress-bar" id="progress-bar">
-                        <div class="progress-fill" id="progress-fill" style="width:0%"></div>
-                    </div>
-                    <div class="flex justify-between mt-2 text-xs font-bold text-slate-500">
-                        <span id="time-current">0:00</span>
-                        <span id="time-total">0:00</span>
-                    </div>
-                </div>
-
-                <!-- Controls -->
-                <div class="flex items-center gap-4 mb-8">
-                    <button class="ctrl-btn p-3 text-slate-300" onclick="prevTrack()" title="Попередня">
-                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" />
-                        </svg>
-                    </button>
-                    <button class="ctrl-btn ctrl-btn-main" id="play-btn" onclick="togglePlay()">
-                        <svg id="play-icon" class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M8 5v14l11-7z" />
-                        </svg>
-                        <svg id="pause-icon" class="w-7 h-7 hidden" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
-                        </svg>
-                    </button>
-                    <button class="ctrl-btn p-3 text-slate-300" onclick="nextTrack()" title="Наступна">
-                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M6 18l8.5-6L6 6v12zm2-8.14L11.03 12 8 14.14V9.86zM16 6h2v12h-2z" />
-                        </svg>
-                    </button>
-                </div>
-
-                <!-- Volume -->
-                <div class="flex items-center gap-3 w-full px-4">
-                    <svg class="w-4 h-4 text-slate-500 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
-                        <path
-                            d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z" />
-                    </svg>
-                    <input type="range" id="volume-slider" min="0" max="1" step="0.02" value="0.85"
-                        oninput="setVolume(this.value)">
-                    <svg class="w-5 h-5 text-slate-400 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
-                        <path
-                            d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
-                    </svg>
-                </div>
-
-                <!-- Article link + share -->
-                <div class="mt-6 flex flex-col items-center gap-4">
-                    <a id="track-link" href="#" target="_blank"
-                        class="flex items-center gap-2 text-xs font-black text-slate-400 hover:text-orange-400 transition-colors uppercase tracking-wider">
-                        Читати статтю
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                        </svg>
-                    </a>
-                    <button onclick="copyShareLink()" id="share-btn"
-                        class="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-[10px] font-black text-slate-400 hover:bg-white/10 hover:text-white transition-all uppercase tracking-widest">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                        </svg>
-                        Поділитися
-                    </button>
+        <!-- Cover art -->
+        <div class="flex-1 flex flex-col overflow-hidden px-6">
+            <div class="flex-1 flex items-center justify-center">
+                <div class="relative">
+                    <img id="full-art" class="full-cover" src="" alt="">
+                    <div class="absolute top-3 left-3 px-2.5 py-1 bg-orange-600/90 backdrop-blur-sm rounded-full text-[9px] font-black text-white uppercase tracking-widest"
+                        id="full-cat"></div>
                 </div>
             </div>
 
-            <!-- Right: Playlist -->
-            <div class="lg:col-span-3">
-                <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em]">Черга</h3>
-                    <span id="playlist-count" class="text-xs font-bold text-slate-500"></span>
+            <!-- Track info -->
+            <div class="mb-4 px-2">
+                <h2 id="full-title" class="text-xl font-black text-white leading-tight mb-1"></h2>
+                <p id="full-date" class="text-sm text-slate-400 font-medium"></p>
+                <a id="full-link" href="#"
+                    class="inline-flex items-center gap-1 text-[10px] font-black text-slate-500 hover:text-orange-400 mt-1 transition-colors uppercase tracking-wider">
+                    Читати статтю
+                    <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5"
+                        viewBox="0 0 24 24">
+                        <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6m4-3h6m0 0v6m0-6L10 14" />
+                    </svg>
+                </a>
+            </div>
+
+            <!-- Progress -->
+            <div class="mb-2 px-2">
+                <div class="full-progress" id="full-progress" onclick="seekFromFull(event)">
+                    <div class="full-progress-fill" id="full-progress-fill"></div>
                 </div>
-                <div id="playlist" class="space-y-1 custom-scroll overflow-y-auto max-h-[70vh] pr-2"></div>
+                <div class="flex justify-between mt-1.5 text-[10px] font-bold text-slate-500">
+                    <span id="full-cur">0:00</span>
+                    <span id="full-dur">0:00</span>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="full-controls">
+                <button class="full-ctrl" onclick="prevTrack()">
+                    <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M6 6h2v12H6zm3.5 6 8.5 6V6z" />
+                    </svg>
+                </button>
+                <button class="full-ctrl full-ctrl-play" id="full-play-btn" onclick="togglePlay()">
+                    <svg id="full-play-icon" width="28" height="28" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M8 5v14l11-7z" />
+                    </svg>
+                    <svg id="full-pause-icon" class="hidden" width="28" height="28" fill="currentColor"
+                        viewBox="0 0 24 24">
+                        <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+                    </svg>
+                </button>
+                <button class="full-ctrl" onclick="nextTrack()">
+                    <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M6 18l8.5-6L6 6v12zm2-8.14L11.03 12 8 14.14V9.86zM16 6h2v12h-2z" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Volume -->
+            <div class="vol-row pb-4">
+                <svg width="14" height="14" fill="currentColor" class="text-slate-500 flex-shrink-0"
+                    viewBox="0 0 24 24">
+                    <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z" />
+                </svg>
+                <input type="range" id="vol-slider" min="0" max="1" step="0.02" value="0.85"
+                    oninput="setVolume(this.value)">
+                <svg width="16" height="16" fill="currentColor" class="text-slate-400 flex-shrink-0"
+                    viewBox="0 0 24 24">
+                    <path
+                        d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
+                </svg>
             </div>
         </div>
-    </main>
+    </div>
 
     <script>
         const SUPABASE_URL = 'https://kgrxlznhimwuvwhjfzhv.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_L4_HhLhbj_m6wbEc3ZqhcQ_QNGOLWXU';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let allTracks = [];     // Full unfiltered set
-        let tracks = [];        // Currently filtered set
+        let allTracks = [], tracks = [];
         let currentIndex = 0;
         let audio = new Audio();
         let isPlaying = false;
         let radioMode = false;
-
-        // Filter state
-        let activeFilterType = 'all'; // 'all' | 'category' | 'city'
-        let activeFilterValue = null;  // slug or null
-
+        let filterType = 'all', filterValue = null;
         audio.volume = 0.85;
 
-        // Waveform
-        const waveContainer = document.getElementById('wave-container');
-        const heights = [20, 40, 60, 80, 100, 80, 60, 40, 30, 50, 70, 90, 70, 50, 30, 45, 65, 85, 65, 45, 35, 55, 75, 55, 35, 25, 45, 25];
-        for (let i = 0; i < 28; i++) {
-            const bar = document.createElement('div');
-            bar.className = 'wave-bar';
-            bar.style.height = `${heights[i] || 40}%`;
-            bar.style.animationDelay = `${i * 0.06}s`;
-            waveContainer.appendChild(bar);
+        // ── Channel config ─────────────────────────────────────
+        // Dynamic entries get generated once categories/cities load
+        const CHANNEL_COLORS = {
+            // categories (slug → colors)
+            polityka: { bg: 'rgba(99,102,241,0.15)', border: 'rgba(99,102,241,0.6)', glow: 'rgba(99,102,241,0.2)', icon: '🏛️' },
+            novyny: { bg: 'rgba(234,88,12,0.15)', border: 'rgba(234,88,12,0.6)', glow: 'rgba(234,88,12,0.2)', icon: '📰' },
+            ekonomika: { bg: 'rgba(16,185,129,0.15)', border: 'rgba(16,185,129,0.6)', glow: 'rgba(16,185,129,0.2)', icon: '💹' },
+            sport: { bg: 'rgba(59,130,246,0.15)', border: 'rgba(59,130,246,0.6)', glow: 'rgba(59,130,246,0.2)', icon: '⚽' },
+            kultura: { bg: 'rgba(168,85,247,0.15)', border: 'rgba(168,85,247,0.6)', glow: 'rgba(168,85,247,0.2)', icon: '🎭' },
+            tekhnolohii: { bg: 'rgba(14,165,233,0.15)', border: 'rgba(14,165,233,0.6)', glow: 'rgba(14,165,233,0.2)', icon: '💻' },
+            frankivsk: { bg: 'rgba(234,88,12,0.15)', border: 'rgba(234,88,12,0.6)', glow: 'rgba(234,88,12,0.2)', icon: '🏙️' },
+            oblast: { bg: 'rgba(250,204,21,0.15)', border: 'rgba(250,204,21,0.5)', glow: 'rgba(250,204,21,0.15)', icon: '🌲' },
+            viyna: { bg: 'rgba(239,68,68,0.15)', border: 'rgba(239,68,68,0.6)', glow: 'rgba(239,68,68,0.2)', icon: '🛡️' },
+            pogoda: { bg: 'rgba(14,165,233,0.15)', border: 'rgba(14,165,233,0.6)', glow: 'rgba(14,165,233,0.2)', icon: '⛅' },
+        };
+        const CITY_COLORS = {
+            if: { bg: 'rgba(234,88,12,0.15)', border: 'rgba(234,88,12,0.6)', glow: 'rgba(234,88,12,0.2)', icon: '🏛️' },
+            kalush: { bg: 'rgba(99,102,241,0.15)', border: 'rgba(99,102,241,0.6)', glow: 'rgba(99,102,241,0.2)', icon: '⚗️' },
+            kolomyya: { bg: 'rgba(16,185,129,0.15)', border: 'rgba(16,185,129,0.6)', glow: 'rgba(16,185,129,0.2)', icon: '🌿' },
+            dolyna: { bg: 'rgba(250,204,21,0.15)', border: 'rgba(250,204,21,0.5)', glow: 'rgba(250,204,21,0.15)', icon: '⛰️' },
+            bolekhiv: { bg: 'rgba(168,85,247,0.15)', border: 'rgba(168,85,247,0.6)', glow: 'rgba(168,85,247,0.2)', icon: '🏰' },
+            nadvirna: { bg: 'rgba(59,130,246,0.15)', border: 'rgba(59,130,246,0.6)', glow: 'rgba(59,130,246,0.2)', icon: '🌊' },
+            burshtyn: { bg: 'rgba(251,146,60,0.15)', border: 'rgba(251,146,60,0.6)', glow: 'rgba(251,146,60,0.2)', icon: '⚡' },
+            kosiv: { bg: 'rgba(34,197,94,0.15)', border: 'rgba(34,197,94,0.6)', glow: 'rgba(34,197,94,0.2)', icon: '🌺' },
+            yaremche: { bg: 'rgba(14,165,233,0.15)', border: 'rgba(14,165,233,0.6)', glow: 'rgba(14,165,233,0.2)', icon: '🏔️' },
+        };
+        const DEFAULT_COLORS = { bg: 'rgba(234,88,12,0.15)', border: 'rgba(234,88,12,0.5)', glow: 'rgba(234,88,12,0.15)', icon: '📡' };
+
+        // ── Build channel cards ──────────────────────────────────
+        function buildChannelCards(categories, cities) {
+            const container = document.getElementById('channel-cards');
+            container.innerHTML = '';
+
+            // "All" card
+            const allCard = makeCard('all', null, { bg: DEFAULT_COLORS.bg, border: 'rgba(234,88,12,0.6)', glow: 'rgba(234,88,12,0.2)', icon: '📻' }, 'Всі новини');
+            allCard.classList.add('active');
+            container.appendChild(allCard);
+
+            // Category cards
+            categories.forEach(c => {
+                const colors = CHANNEL_COLORS[c.slug] || DEFAULT_COLORS;
+                container.appendChild(makeCard('category', c.slug, colors, c.name));
+            });
+
+            // City cards
+            cities.forEach(c => {
+                const colors = CITY_COLORS[c.slug] || DEFAULT_COLORS;
+                container.appendChild(makeCard('city', c.slug, colors, c.name));
+            });
         }
 
-        // ─── Filter Logic ───────────────────────────────────────────────
-        function setFilter(type, value) {
-            activeFilterType = type;
-            activeFilterValue = value;
+        function makeCard(type, slug, colors, label) {
+            const div = document.createElement('div');
+            div.className = 'channel-card';
+            div.id = `card-${type}-${slug || 'all'}`;
+            div.style.setProperty('--card-bg', colors.bg);
+            div.style.setProperty('--card-accent', colors.border);
+            div.style.setProperty('--card-accent2', colors.glow);
+            div.style.setProperty('--card-glow', colors.glow);
+            div.innerHTML = `<div class="dot"></div><div class="icon">${colors.icon}</div><div>${label}</div>`;
+            div.onclick = () => setFilter(type, slug);
+            return div;
+        }
 
-            // Update chip UI
-            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-            const id = type === 'all' ? 'chip-all' : `chip-${type}-${value}`;
+        // ── Filter ─────────────────────────────────────────────
+        function setFilter(type, slug) {
+            filterType = type; filterValue = slug;
+
+            document.querySelectorAll('.channel-card').forEach(c => c.classList.remove('active'));
+            const id = `card-${type}-${slug || 'all'}`;
+            document.getElementById(id)?.classList.add('active');
+
+            // Scroll active card into view
             const el = document.getElementById(id);
-            if (el) el.classList.add('active');
-
-            // Update channel badge
-            const badge = document.getElementById('channel-badge');
-            if (type === 'all') {
-                badge.textContent = '';
-                badge.innerHTML = `<span class="flex h-1.5 w-1.5 relative"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"></span></span> Всі новини`;
-                badge.className = 'channel-badge bg-orange-500/10 border border-orange-500/20 text-orange-400';
-            } else if (type === 'category') {
-                const name = (window.CATEGORIES_UK && window.CATEGORIES_UK[value]) || value;
-                badge.innerHTML = `<span class="flex h-1.5 w-1.5 relative"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"></span></span> Рубрика: ${name}`;
-                badge.className = 'channel-badge bg-orange-500/10 border border-orange-500/20 text-orange-400';
-            } else if (type === 'city') {
-                const name = (window.CITIES_UK && window.CITIES_UK[value]) || value;
-                badge.innerHTML = `<span class="flex h-1.5 w-1.5 relative"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"></span></span> ${name}`;
-                badge.className = 'channel-badge bg-indigo-500/10 border border-indigo-500/20 text-indigo-400';
-            }
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
 
             // Filter tracks
-            if (type === 'all') {
-                tracks = allTracks;
-            } else if (type === 'category') {
-                tracks = allTracks.filter(t => t.category === value);
-            } else if (type === 'city') {
-                tracks = allTracks.filter(t => t.city === value);
-            }
+            tracks = type === 'all' ? allTracks
+                : type === 'category' ? allTracks.filter(t => t.category === slug)
+                    : allTracks.filter(t => t.city === slug);
 
             currentIndex = 0;
 
+            // Update channel label in full player
+            const catName = type === 'all' ? 'Всі новини'
+                : type === 'category' ? (window.CATEGORIES_UK?.[slug] || slug)
+                    : (window.CITIES_UK?.[slug] || slug);
+            document.getElementById('full-channel-label').textContent = catName;
+
             if (tracks.length === 0) {
-                document.getElementById('player-ui').classList.add('hidden');
+                document.getElementById('track-list').innerHTML = '';
                 document.getElementById('empty-state').classList.remove('hidden');
+                document.getElementById('queue-count').textContent = '';
             } else {
                 document.getElementById('empty-state').classList.add('hidden');
-                document.getElementById('player-ui').classList.remove('hidden');
-                document.getElementById('playlist-count').textContent = `${tracks.length} аудіо`;
+                document.getElementById('queue-count').textContent = `${tracks.length} аудіо`;
+                renderList();
                 loadTrack(0, false);
-                renderPlaylist();
             }
         }
 
-        function renderFilterChips(categories, cities) {
-            const catContainer = document.getElementById('category-chips');
-            const cityContainer = document.getElementById('city-chips');
-
-            // Category chips (append after "Всі")
-            categories.forEach(c => {
-                const chip = document.createElement('div');
-                chip.className = 'chip';
-                chip.id = `chip-category-${c.slug}`;
-                chip.innerHTML = c.name;
-                chip.onclick = () => setFilter('category', c.slug);
-                catContainer.appendChild(chip);
-            });
-
-            // City chips
-            cities.forEach(c => {
-                const chip = document.createElement('div');
-                chip.className = 'chip city-chip';
-                chip.id = `chip-city-${c.slug}`;
-                chip.innerHTML = `<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>${c.name}`;
-                chip.onclick = () => setFilter('city', c.slug);
-                cityContainer.appendChild(chip);
-            });
-        }
-
-        // ─── Load all tracks ─────────────────────────────────────────────
+        // ── Load all tracks ──────────────────────────────────────
         async function loadTracks() {
             const { data, error } = await _supabase
                 .from('news')
@@ -715,260 +800,212 @@
 
             document.getElementById('loading-state').classList.add('hidden');
 
-            if (error || !data || data.length === 0) {
+            if (error || !data || !data.length) {
                 document.getElementById('empty-state').classList.remove('hidden');
                 return;
             }
 
-            allTracks = data;
-            tracks = data;
+            allTracks = data; tracks = data;
+            document.getElementById('queue-count').textContent = `${tracks.length} аудіо`;
+            renderList();
 
-            document.getElementById('player-ui').classList.remove('hidden');
-            document.getElementById('playlist-count').textContent = `${tracks.length} аудіо`;
-
-            renderPlaylist();
-
-            // Deep linking
+            // Deep-link
             const urlParams = new URLSearchParams(window.location.search);
             const initialId = window.__PRELOADED_TRACK_ID__ || urlParams.get('id');
-            let initialIndex = 0;
-            if (initialId) {
-                const idx = tracks.findIndex(t => t.id === initialId);
-                if (idx !== -1) initialIndex = idx;
-            }
-            loadTrack(initialIndex, !!initialId);
+            let idx = 0;
+            if (initialId) { const f = tracks.findIndex(t => t.id === initialId); if (f !== -1) idx = f; }
+            loadTrack(idx, !!initialId);
         }
 
-        // ─── Helpers ─────────────────────────────────────────────────────
-        function getCategoryName(cat) {
-            return (window.CATEGORIES_UK && window.CATEGORIES_UK[cat]) || cat || 'Новини';
-        }
-        function formatDate(iso) {
-            return new Date(iso).toLocaleDateString('uk-UA', { day: 'numeric', month: 'long', year: 'numeric' });
-        }
-        function formatTime(s) {
-            if (!s || isNaN(s)) return '0:00';
-            return `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
-        }
-        function getArticleLink(t) {
-            if (t.city && window.CITIES_UK && window.CITIES_UK[t.city]) return `/${t.city}/${t.slug}/`;
-            if (t.category) return `/category/${t.category}/${t.slug}/`;
-            return `/${t.slug}/`;
-        }
-        function getListenedTracks() {
-            try { return JSON.parse(localStorage.getItem('news_listened_tracks') || '[]'); }
-            catch (e) { return []; }
-        }
-        function markTrackAsListened(id) {
-            const listened = getListenedTracks();
-            if (!listened.includes(id)) {
-                listened.unshift(id);
-                localStorage.setItem('news_listened_tracks', JSON.stringify(listened.slice(0, 100)));
-            }
-        }
-
-        // ─── Render Playlist ─────────────────────────────────────────────
-        function renderPlaylist() {
-            const container = document.getElementById('playlist');
-            const listened = getListenedTracks();
-
-            const groups = {};
-            tracks.forEach((t, i) => {
-                const date = new Date(t.created_at);
-                const today = new Date();
-                const yesterday = new Date(); yesterday.setDate(today.getDate() - 1);
-                let g = date.toDateString() === today.toDateString() ? 'Сьогодні'
-                    : date.toDateString() === yesterday.toDateString() ? 'Вчора'
-                        : date.toLocaleDateString('uk-UA', { day: 'numeric', month: 'long' });
-                if (!groups[g]) groups[g] = [];
-                groups[g].push({ track: t, index: i });
-            });
-
-            container.innerHTML = Object.entries(groups).map(([label, items]) => `
-                <div class="py-4 px-4 sticky top-0 bg-[#0a0e1a]/95 backdrop-blur-sm z-20">
-                    <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] flex items-center gap-3">
-                        ${label}<span class="h-px flex-1 bg-white/5"></span>
-                    </h3>
-                </div>
-                ${items.map(({ track: t, index: i }) => {
-                const isListened = listened.includes(t.id);
+        // ── Render list ──────────────────────────────────────────
+        function renderList() {
+            const container = document.getElementById('track-list');
+            const listened = getListened();
+            container.innerHTML = tracks.map((t, i) => {
+                const listened_class = listened.includes(t.id) ? 'opacity-50' : '';
+                const active_class = i === currentIndex ? 'active' : '';
+                const catName = window.CATEGORIES_UK?.[t.category] || t.category || '';
                 return `
-                    <div class="playlist-item ${i === currentIndex ? 'active' : ''} ${isListened ? 'opacity-60' : ''}" onclick="loadTrack(${i},true)" id="pi-${i}">
-                        <div class="relative flex-shrink-0">
-                            <img src="${t.image_url || ''}" alt="" class="playlist-thumb" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2252%22 height=%2252%22><rect fill=%22%231e293b%22 width=%2252%22 height=%2252%22 rx=%2212%22/><text fill=%22%23ea580c%22 font-size=%2222%22 x=%2213%22 y=%2234%22>🎙</text></svg>'">
-                            ${isListened ? `<div class="absolute -top-1 -right-1 bg-green-500 text-white p-0.5 rounded-full shadow-lg border-2 border-[#0a0e1a]"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M5 13l4 4L19 7"></path></svg></div>` : ''}
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <p class="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-1">${getCategoryName(t.category)}</p>
-                            <h4 class="text-sm font-bold text-white leading-snug line-clamp-2">${t.title}</h4>
-                            <p class="text-xs text-slate-500 mt-1 font-medium">${formatDate(t.created_at)}</p>
-                        </div>
-                        <div class="flex-shrink-0">
-                            ${i === currentIndex && isPlaying
-                        ? `<div class="flex items-end gap-0.5 h-5">
-                                    <span class="w-1 bg-orange-500 rounded-full animate-bounce" style="height:60%;animation-delay:0s"></span>
-                                    <span class="w-1 bg-orange-500 rounded-full animate-bounce" style="height:100%;animation-delay:0.15s"></span>
-                                    <span class="w-1 bg-orange-500 rounded-full animate-bounce" style="height:40%;animation-delay:0.3s"></span>
-                                </div>`
-                        : `<svg class="w-4 h-4 text-slate-600" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`
+                <div class="track-row ${active_class} ${listened_class}" id="tr-${i}" onclick="loadTrack(${i},true)">
+                    ${t.image_url
+                        ? `<img src="${t.image_url}" class="track-thumb" onerror="this.parentNode.innerHTML='<div class=track-thumb-placeholder>🎙️</div>'+this.parentNode.innerHTML.replace(this.outerHTML,'');">`
+                        : `<div class="track-thumb-placeholder">🎙️</div>`
                     }
-                        </div>
-                    </div>`;
-            }).join('')}
-            `).join('');
+                    <div class="flex-1 min-w-0">
+                        <p class="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-0.5">${catName}</p>
+                        <h3 class="text-[13px] font-bold text-white leading-snug line-clamp-2">${t.title}</h3>
+                        <p class="text-[10px] text-slate-500 mt-0.5">${formatDate(t.created_at)}</p>
+                    </div>
+                    <div class="flex-shrink-0 ml-2">
+                        ${i === currentIndex && isPlaying
+                        ? `<div class="wave">${[0, 0.15, 0.3, 0.1, 0.25].map(d => `<div class="wave-b" style="animation-delay:${d}s"></div>`).join('')}</div>`
+                        : `<svg width="14" height="14" fill="currentColor" class="text-slate-700" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`}
+                    </div>
+                </div>`;
+            }).join('');
         }
 
-        // ─── Track Loading ────────────────────────────────────────────────
+        // ── Track load ───────────────────────────────────────────
         function loadTrack(index, andPlay = true) {
             if (index < 0 || index >= tracks.length) return;
             currentIndex = index;
-            const track = tracks[index];
+            const t = tracks[index];
 
-            const coverImg = document.getElementById('cover-img');
-            coverImg.src = track.image_url || '';
-            coverImg.onerror = () => { coverImg.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400"><rect fill="%230f172a" width="400" height="400" rx="32"/><text fill="%23ea580c" font-size="120" x="120" y="250">🎙</text></svg>'; };
+            // Mini player
+            const art = document.getElementById('min-art');
+            art.src = t.image_url || '';
+            art.style.display = t.image_url ? '' : 'none';
+            document.getElementById('min-title').textContent = t.title;
+            document.getElementById('min-cat').textContent = window.CATEGORIES_UK?.[t.category] || t.category || 'Новини';
+            document.getElementById('player-bar').classList.remove('hidden');
 
-            document.getElementById('cover-category').textContent = getCategoryName(track.category);
-            document.getElementById('track-title').textContent = track.title;
-            document.getElementById('track-date').textContent = formatDate(track.created_at);
-            document.getElementById('track-link').href = getArticleLink(track);
-            document.getElementById('progress-fill').style.width = '0%';
-            document.getElementById('time-current').textContent = '0:00';
-            document.getElementById('time-total').textContent = '0:00';
+            // Full player
+            const fullArt = document.getElementById('full-art');
+            fullArt.src = t.image_url || '';
+            fullArt.onerror = () => { fullArt.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300"><rect fill="%230f172a" width="300" height="300" rx="24"/><text fill="%23ea580c" font-size="80" x="95" y="175">🎙</text></svg>'; };
+            document.getElementById('full-cat').textContent = window.CATEGORIES_UK?.[t.category] || t.category || 'Новини';
+            document.getElementById('full-title').textContent = t.title;
+            document.getElementById('full-date').textContent = formatDate(t.created_at);
+            document.getElementById('full-link').href = getArticleLink(t);
+
+            // Reset progress
+            ['min-progress-fill', 'full-progress-fill'].forEach(id => document.getElementById(id).style.width = '0%');
+            document.getElementById('full-cur').textContent = '0:00';
+            document.getElementById('full-dur').textContent = '0:00';
 
             audio.pause();
-            audio.src = track.tts_audio_url;
+            audio.src = t.tts_audio_url;
             audio.load();
 
             if (andPlay) {
-                audio.play().then(() => {
-                    setPlayState(true);
-                    markTrackAsListened(track.id);
-                }).catch(console.error);
+                audio.play().then(() => { setPlayState(true); markListened(t.id); }).catch(console.error);
             } else {
                 setPlayState(false);
             }
 
-            // Update URL
             const url = new URL(window.location);
-            url.searchParams.set('id', track.id);
+            url.searchParams.set('id', t.id);
             window.history.replaceState({}, '', url);
 
-            renderPlaylist();
+            renderList();
             setTimeout(() => {
-                const el = document.getElementById(`pi-${index}`);
+                const el = document.getElementById(`tr-${index}`);
                 if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             }, 100);
         }
 
-        // ─── Playback State ───────────────────────────────────────────────
+        // ── Play state ───────────────────────────────────────────
         function setPlayState(playing) {
             isPlaying = playing;
-            document.getElementById('play-icon').classList.toggle('hidden', playing);
-            document.getElementById('pause-icon').classList.toggle('hidden', !playing);
-            document.getElementById('cover-img').classList.toggle('playing', playing);
-            document.getElementById('vinyl-ring').classList.toggle('playing', playing);
-            document.getElementById('wave-container').classList.toggle('playing', playing);
-            document.getElementById('bg-gradient').classList.toggle('playing', playing);
-            renderPlaylist();
+            // Mini player
+            document.getElementById('min-play-icon').classList.toggle('hidden', playing);
+            document.getElementById('min-pause-icon').classList.toggle('hidden', !playing);
+            // Full player
+            document.getElementById('full-play-icon').classList.toggle('hidden', playing);
+            document.getElementById('full-pause-icon').classList.toggle('hidden', !playing);
+            document.getElementById('full-art').classList.toggle('spin', playing);
+            renderList();
         }
 
         function togglePlay() {
-            if (audio.paused) {
-                audio.play().then(() => setPlayState(true)).catch(console.error);
-            } else {
-                audio.pause();
-                setPlayState(false);
-            }
+            if (audio.paused) { audio.play().then(() => setPlayState(true)).catch(console.error); }
+            else { audio.pause(); setPlayState(false); }
         }
-
-        function prevTrack() { loadTrack((currentIndex - 1 + tracks.length) % tracks.length, true); }
+        function prevTrack() { loadTrack((currentIndex - 1 + tracks.length) % tracks.length, isPlaying); }
         function nextTrack() { loadTrack((currentIndex + 1) % tracks.length, true); }
-        function setVolume(val) { audio.volume = parseFloat(val); }
+        function setVolume(v) { audio.volume = parseFloat(v); }
 
-        // ─── Radio Mode ───────────────────────────────────────────────────
-        function toggleRadioMode() {
-            radioMode = !radioMode;
-            const btn = document.getElementById('radio-mode-btn');
-            const label = document.getElementById('radio-label');
-            if (radioMode) {
-                btn.className = 'radio-btn on';
-                label.textContent = 'УВІМК';
-                // Start playing if not already
-                if (audio.paused && tracks.length > 0) {
-                    loadTrack(currentIndex, true);
-                }
-            } else {
-                btn.className = 'radio-btn off';
-                label.textContent = 'ВИМК';
-            }
+        // ── Full player ──────────────────────────────────────────
+        function openFullPlayer() { document.getElementById('player-full').classList.add('open'); }
+        function closeFullPlayer() { document.getElementById('player-full').classList.remove('open'); }
+
+        // Swipe down to close full player
+        let touchStartY = 0;
+        document.getElementById('player-full').addEventListener('touchstart', e => { touchStartY = e.touches[0].clientY; }, { passive: true });
+        document.getElementById('player-full').addEventListener('touchend', e => {
+            if (e.changedTouches[0].clientY - touchStartY > 80) closeFullPlayer();
+        }, { passive: true });
+
+        // ── Progress ─────────────────────────────────────────────
+        function seek(pct) { if (audio.duration) audio.currentTime = pct * audio.duration; }
+        function seekFromMini(e) {
+            e.stopPropagation();
+            const r = e.currentTarget.getBoundingClientRect();
+            seek((e.clientX - r.left) / r.width);
         }
-
-        // Auto-next on track end
-        audio.addEventListener('ended', () => {
-            const next = (currentIndex + 1) % tracks.length;
-            if (radioMode || next !== 0) {
-                loadTrack(next, true);
-            } else {
-                setPlayState(false);
-            }
-        });
-
-        // Progress update
+        function seekFromFull(e) {
+            const r = e.currentTarget.getBoundingClientRect();
+            seek((e.clientX - r.left) / r.width);
+        }
         audio.addEventListener('timeupdate', () => {
             if (!audio.duration) return;
             const pct = (audio.currentTime / audio.duration) * 100;
-            document.getElementById('progress-fill').style.width = `${pct}%`;
-            document.getElementById('time-current').textContent = formatTime(audio.currentTime);
-            document.getElementById('time-total').textContent = formatTime(audio.duration);
+            document.getElementById('min-progress-fill').style.width = `${pct}%`;
+            document.getElementById('full-progress-fill').style.width = `${pct}%`;
+            document.getElementById('full-cur').textContent = fmtTime(audio.currentTime);
+            document.getElementById('full-dur').textContent = fmtTime(audio.duration);
+        });
+        audio.addEventListener('ended', () => {
+            const next = (currentIndex + 1) % tracks.length;
+            if (radioMode || next !== 0 || currentIndex !== tracks.length - 1) loadTrack(next, true);
+            else setPlayState(false);
         });
 
-        // Seek on click
-        document.getElementById('progress-bar').addEventListener('click', (e) => {
-            if (!audio.duration) return;
-            const rect = e.currentTarget.getBoundingClientRect();
-            audio.currentTime = ((e.clientX - rect.left) / rect.width) * audio.duration;
-        });
-
-        // Keyboard shortcuts
-        document.addEventListener('keydown', (e) => {
-            if (e.target.tagName === 'INPUT') return;
-            if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
-            if (e.code === 'ArrowRight') audio.currentTime = Math.min(audio.duration, audio.currentTime + 10);
-            if (e.code === 'ArrowLeft') audio.currentTime = Math.max(0, audio.currentTime - 10);
-            if (e.code === 'ArrowUp') { audio.volume = Math.min(1, audio.volume + 0.1); document.getElementById('volume-slider').value = audio.volume; }
-            if (e.code === 'ArrowDown') { audio.volume = Math.max(0, audio.volume - 0.1); document.getElementById('volume-slider').value = audio.volume; }
-            if (e.code === 'KeyN') nextTrack();
-            if (e.code === 'KeyP') prevTrack();
-        });
-
-        // Share
-        async function copyShareLink() {
-            const btn = document.getElementById('share-btn');
-            const orig = btn.innerHTML;
-            try {
-                await navigator.clipboard.writeText(window.location.href);
-                btn.innerHTML = `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg> Скопійовано!`;
-                btn.classList.add('text-green-500');
-            } catch (err) { alert('Не вдалося скопіювати'); }
-            setTimeout(() => { btn.innerHTML = orig; btn.classList.remove('text-green-500'); }, 2000);
+        // ── Radio mode ───────────────────────────────────────────
+        function toggleRadioMode() {
+            radioMode = !radioMode;
+            const dot = document.getElementById('radio-dot');
+            const label = document.getElementById('radio-label');
+            dot.style.background = radioMode ? '#ef4444' : '#4b5563';
+            dot.style.boxShadow = radioMode ? '0 0 8px rgba(239,68,68,0.6)' : 'none';
+            label.style.color = radioMode ? '#fca5a5' : '';
+            if (radioMode && audio.paused && tracks.length) loadTrack(currentIndex, true);
         }
 
-        // ─── Init ─────────────────────────────────────────────────────────
-        (async () => {
-            const header = await window.initSiteHeader(_supabase);
+        // ── Utils ────────────────────────────────────────────────
+        function getListened() { try { return JSON.parse(localStorage.getItem('news_listened_tracks') || '[]'); } catch (e) { return []; } }
+        function markListened(id) {
+            const l = getListened(); if (!l.includes(id)) { l.unshift(id); localStorage.setItem('news_listened_tracks', JSON.stringify(l.slice(0, 100))); }
+        }
+        function formatDate(iso) { return new Date(iso).toLocaleDateString('uk-UA', { day: 'numeric', month: 'long' }); }
+        function fmtTime(s) { if (!s || isNaN(s)) return '0:00'; return `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`; }
+        function getArticleLink(t) {
+            if (t.city && window.CITIES_UK?.[t.city]) return `/${t.city}/${t.slug}/`;
+            if (t.category) return `/category/${t.category}/${t.slug}/`;
+            return `/${t.slug}/`;
+        }
 
-            // Build filter chips from same data
+        // ── Share ────────────────────────────────────────────────
+        async function copyShareLink() {
             try {
-                const [catRes, cityRes] = await Promise.all([
-                    _supabase.from('categories').select('slug,name').order('order_index', { ascending: true }),
-                    _supabase.from('cities').select('slug,name').order('order_index', { ascending: true })
-                ]);
-                if (catRes.data && cityRes.data) {
-                    renderFilterChips(catRes.data, cityRes.data);
+                if (navigator.share) {
+                    await navigator.share({ title: document.getElementById('full-title').textContent, url: window.location.href });
+                } else {
+                    await navigator.clipboard.writeText(window.location.href);
+                    alert('Посилання скопійовано!');
                 }
-            } catch (e) { console.warn('Filter chips load failed:', e); }
+            } catch (e) { console.log('Share cancelled'); }
+        }
 
+        // ── Keyboard ─────────────────────────────────────────────
+        document.addEventListener('keydown', e => {
+            if (e.target.tagName === 'INPUT') return;
+            if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
+            if (e.code === 'ArrowRight') audio.currentTime = Math.min(audio.duration || 0, audio.currentTime + 10);
+            if (e.code === 'ArrowLeft') audio.currentTime = Math.max(0, audio.currentTime - 10);
+            if (e.code === 'KeyN') nextTrack();
+            if (e.code === 'KeyP') prevTrack();
+            if (e.code === 'Escape') closeFullPlayer();
+        });
+
+        // ── Init ─────────────────────────────────────────────────
+        (async () => {
+            await window.initSiteHeader(_supabase);
+            const [catRes, cityRes] = await Promise.all([
+                _supabase.from('categories').select('slug,name').order('order_index', { ascending: true }),
+                _supabase.from('cities').select('slug,name').order('order_index', { ascending: true })
+            ]);
+            if (catRes.data && cityRes.data) buildChannelCards(catRes.data, cityRes.data);
             await loadTracks();
         })();
     </script>
