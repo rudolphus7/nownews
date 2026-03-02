@@ -165,7 +165,7 @@ class SiteHeader {
                             <div class="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-orange-500 border-2 border-white rounded-full"></div>
                         </div>
                         <div class="leading-none text-left">
-                            <span class="text-2xl font-black uppercase tracking-tighter text-slate-900 block mt-1">BUKVA <span class="text-orange-600">NEWS</span></span>
+                            <span class="text-3xl font-black uppercase tracking-tighter text-slate-900 block mt-1">BUKVA <span class="text-orange-600">NEWS</span></span>
                             <span class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 opacity-80">Незалежна Журналістика</span>
                         </div>
                     </a>
