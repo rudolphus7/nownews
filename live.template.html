@@ -773,10 +773,9 @@
                     </svg>
                 </a>
                 <button onclick="copyLink()" class="share-pill">
-                    <svg class="inline-block mr-2" width="14" height="14" fill="none" stroke="currentColor"
-                        stroke-width="3" viewBox="0 0 24 24">
+                    <svg class="inline-block mr-2" width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
                         <path
-                            d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316zm0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                            d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z" />
                     </svg>
                     ПОДІЛИТИСЯ
                 </button>
@@ -938,7 +937,7 @@
                             <h3 class="item-title">${t.title}</h3>
                             <div class="item-acts">
                                 <button class="item-act" onclick="event.stopPropagation();share('${t.title}','${getLink(t)}')">
-                                    <svg class="mr-1" width="10" height="10" fill="none" stroke="currentColor" stroke-width="3.5" viewBox="0 0 24 24"><path d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316zm0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+                                    <svg class="mr-1" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316zm0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
                                     SHARE
                                 </button>
                                 <a href="${getLink(t)}" class="item-act" onclick="event.stopPropagation()">
@@ -998,10 +997,12 @@
         function prevTrack() { if (currentIndex > 0) loadTrack(currentIndex - 1, true); }
 
         audio.addEventListener('timeupdate', () => {
-            if (!audio.duration) return;
+            if (!audio.duration || isNaN(audio.duration)) return;
             const pct = (audio.currentTime / audio.duration);
             document.getElementById('p-fill').style.width = (pct * 100) + '%';
             document.getElementById('m-fill').style.width = (pct * 100) + '%';
+
+            // Fixed time display: "0:00 / 0:00" style for better alignment
             document.getElementById('p-cur').textContent = fmt(audio.currentTime);
             document.getElementById('p-dur').textContent = fmt(audio.duration);
 
@@ -1022,7 +1023,7 @@
         function seek(e) {
             const r = e.currentTarget.getBoundingClientRect();
             const pct = (e.clientX - r.left) / r.width;
-            if (audio.duration) audio.currentTime = pct * audio.duration;
+            if (audio.duration && !isNaN(audio.duration)) audio.currentTime = pct * audio.duration;
         }
 
         function toggleRadio() {
@@ -1036,7 +1037,11 @@
         function openFilters() { document.getElementById('filter-drawer').classList.add('open'); }
         function closeFilters() { document.getElementById('filter-drawer').classList.remove('open'); }
         function getLink(t) { return t.city ? `/${t.city}/${t.slug}/` : t.category ? `/category/${t.category}/${t.slug}/` : `/${t.slug}/`; }
-        function fmt(s) { const m = Math.floor(s / 60), r = Math.floor(s % 60); return `${m}:${r < 10 ? '0' : ''}${r}`; }
+        function fmt(s) {
+            if (isNaN(s)) return "0:00";
+            const m = Math.floor(s / 60), r = Math.floor(s % 60);
+            return `${m}:${r < 10 ? '0' : ''}${r}`;
+        }
         function share(t, u) { if (navigator.share) navigator.share({ title: t, url: u }); else { navigator.clipboard.writeText(u); alert('Посилання скопійовано'); } }
         function copyLink() { share(tracks[currentIndex]?.title, getLink(tracks[currentIndex])); }
 
