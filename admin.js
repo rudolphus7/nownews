@@ -675,7 +675,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        if (!confirm("🧙 ШІ перепише статтю у фірмовому стилі IF News. Зміст залишиться незмінним. Продовжити?")) return;
+        if (!confirm("🧙 ШІ перепише статтю у фірмовому стилі BUKVA NEWS. Зміст залишиться незмінним. Продовжити?")) return;
 
         btn.disabled = true;
         const originalBtnText = btn.innerHTML;
@@ -687,7 +687,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Покращений промпт (синхронізовано з api/ai.js)
-        const prompt = `Ти професійний український журналіст видання "IF News". 
+        const prompt = `Ти професійний український журналіст видання "BUKVA NEWS". 
 Перепиши статтю, зберігаючи факти, але додаючи динаміки.
 
 Вимоги:
@@ -784,7 +784,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 resultData = {
                     title: rewrittenTitle,
                     content: (formattedBody.startsWith('<p') ? formattedBody : '<p>' + formattedBody + '</p>') +
-                        `<p><br></p><hr><p><strong>Матеріал відредаговано за допомогою ШІ для "IF News".</strong></p>`
+                        `<p><br></p><hr><p><strong>Матеріал відредаговано за допомогою ШІ для "BUKVA NEWS".</strong></p>`
                 };
                 console.log("AI result from Direct Client call");
             }

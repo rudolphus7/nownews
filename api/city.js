@@ -73,9 +73,9 @@ module.exports = async (req, res) => {
 
     const cityName = city.name;
     const canonicalUrl = `${SITE_URL}/${citySlug}/`;
-    const title = `Новини ${cityName} сьогодні — останні події | Прикарпаття News`;
-    const description = `Актуальні новини ${cityName}: місцеві події, факти, оперативна інформація. Слідкуйте за головними новинами першими на IF News.`;
-    const siteName = 'Прикарпаття News | IF News';
+    const title = `Новини ${cityName} — останні події | BUKVA NEWS`;
+    const description = `Актуальні новини ${cityName}: місцеві події, факти, оперативна інформація. Слідкуйте за головними новинами першими на BUKVA NEWS.`;
+    const siteName = 'BUKVA NEWS';
 
     // Read index.html template
     let htmlContent = '';
@@ -115,8 +115,8 @@ module.exports = async (req, res) => {
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:site" content="@ifnews_pro">
-    <meta name="twitter:creator" content="@ifnews_pro">
+    <meta name="twitter:site" content="@bukvanews">
+    <meta name="twitter:creator" content="@bukvanews">
     <meta name="twitter:title" content="${escapeAttr(title)}">
     <meta name="twitter:description" content="${escapeAttr(description)}">
 
@@ -183,7 +183,7 @@ module.exports = async (req, res) => {
                 <span class="bg-orange-600 text-[10px] font-black uppercase text-white px-2 py-0.5 rounded mr-4 z-10 shadow-lg">Терміново</span>
                 <div class="flex-1 overflow-hidden relative ticker-mask h-full flex items-center">
                     <div id="news-ticker" class="ticker-animate text-[11px] font-bold text-slate-300 uppercase tracking-widest py-1">
-                        ОСТАННІ НОВИНИ ПРИКАРПАТТЯ • ПЕРЕВІРЕНІ ФАКТИ • АКТУАЛЬНІ ПОДІЇ • ОПЕРАТИВНО ТА ЧЕСНО •
+                        BUKVA NEWS • ПЕРЕВІРЕНІ ФАКТИ • АКТУАЛЬНІ ПОДІЇ • ОПЕРАТИВНО ТА ЧЕСНО •
                     </div>
                 </div>
             </div>
@@ -193,11 +193,11 @@ module.exports = async (req, res) => {
             <div class="container mx-auto px-4 py-4 flex justify-between items-center">
                 <a href="/" class="flex items-center space-x-4 group">
                     <div class="relative">
-                        <span class="bg-orange-600 text-white w-12 h-12 flex items-center justify-center rounded-2xl font-black text-2xl italic tracking-tighter shadow-2xl shadow-orange-200">IF</span>
+                        <span class="bg-orange-600 text-white w-12 h-12 flex items-center justify-center rounded-2xl font-black text-2xl italic tracking-tighter shadow-2xl shadow-orange-200">B</span>
                         <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-slate-900 border-2 border-white rounded-full"></div>
                     </div>
                     <div class="leading-none text-left">
-                        <span class="text-2xl font-black uppercase tracking-tighter text-slate-900 block mt-1">Прикарпаття <span class="text-orange-600">News</span></span>
+                        <span class="text-2xl font-black uppercase tracking-tighter text-slate-900 block mt-1">BUKVA <span class="text-orange-600">NEWS</span></span>
                         <span class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 opacity-80">Незалежна Журналістика</span>
                     </div>
                 </a>
@@ -242,11 +242,11 @@ module.exports = async (req, res) => {
                 <div class="flex justify-between items-center mb-12">
                     <a href="/" class="flex items-center space-x-4 group">
                         <div class="relative">
-                            <span class="bg-orange-600 text-white w-10 h-10 flex items-center justify-center rounded-xl font-black text-xl italic tracking-tighter">IF</span>
+                            <span class="bg-orange-600 text-white w-10 h-10 flex items-center justify-center rounded-xl font-black text-xl italic tracking-tighter">B</span>
                             <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-slate-900 border border-white rounded-full"></div>
                         </div>
                         <div class="leading-none text-left">
-                            <span class="text-xl font-black uppercase tracking-tighter text-slate-900 block">Прикарпаття <span class="text-orange-600">News</span></span>
+                            <span class="text-xl font-black uppercase tracking-tighter text-slate-900 block">BUKVA <span class="text-orange-600">NEWS</span></span>
                         </div>
                     </a>
                     <button id="close-mobile-menu" class="p-4 -mr-4 text-slate-400 hover:text-orange-600 font-black text-4xl transition-colors">&times;</button>

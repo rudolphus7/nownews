@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Завантаження... | IF News</title>
+    <title>Завантаження... | BUKVA NEWS</title>
 
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
@@ -204,14 +204,14 @@
                 <a href="/" class="flex items-center space-x-4 group">
                     <div class="relative">
                         <span
-                            class="bg-orange-600 text-white w-10 h-10 flex items-center justify-center rounded-xl font-black text-xl italic tracking-tighter shadow-sm group-hover:rotate-3 transition-transform">IF</span>
+                            class="bg-orange-600 text-white w-10 h-10 flex items-center justify-center rounded-xl font-black text-xl italic tracking-tighter shadow-sm group-hover:rotate-3 transition-transform">B</span>
                         <div
                             class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-slate-900 border border-white rounded-full">
                         </div>
                     </div>
                     <div class="leading-none text-left">
-                        <span class="text-xl font-black uppercase tracking-tighter text-slate-900 block">Прикарпаття
-                            <span class="text-orange-600">News</span></span>
+                        <span class="text-xl font-black uppercase tracking-tighter text-slate-900 block">BUKVA
+                            <span class="text-orange-600">NEWS</span></span>
                     </div>
                 </a>
                 <button id="close-mobile-menu"
@@ -463,14 +463,14 @@
 
     <footer class="bg-slate-900 text-white py-20 mt-20">
         <div class="container mx-auto px-4 text-center">
-            <h2 class="text-4xl font-black mb-4 italic">IF <span
-                    class="text-orange-600 uppercase tracking-tighter">News</span></h2>
+            <h2 class="text-4xl font-black mb-4 italic">BUKVA <span
+                    class="text-orange-600 uppercase tracking-tighter">NEWS</span></h2>
             <p class="text-slate-500 text-sm max-w-lg mx-auto mb-8 font-medium">Ваш провідник у світі актуальних подій
                 Івано-Франківщини. Тільки перевірені факти та свіжі новини щодня.</p>
             <div class="flex justify-center space-x-6 text-2xl mb-12 opacity-50">
                 <span>📱</span> <span>✉️</span> <span>📸</span>
             </div>
-            <p class="text-[10px] text-slate-600 font-bold uppercase tracking-[0.3em]">© 2026 Prykarpattya News Network.
+            <p class="text-[10px] text-slate-600 font-bold uppercase tracking-[0.3em]">© 2026 BUKVA NEWS.
                 All rights reserved.</p>
         </div>
     </footer>
@@ -738,7 +738,7 @@
 
                 console.log("Article data received:", data.title);
                 currentPost = data;
-                document.title = `${data.title} | IF News`;
+                document.title = `${data.title} | BUKVA NEWS`;
 
                 if (data.slug && !window.location.pathname.includes(data.slug)) {
                     window.history.replaceState(null, '', `/news/${data.slug}`);

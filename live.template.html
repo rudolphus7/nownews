@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>LIVE • Infinite Radio — Прикарпаття News</title>
-    <meta name="description" content="Слухайте новини Прикарпаття. Хронологія дня голосом диктора.">
+    <title>LIVE • Infinite Radio — BUKVA NEWS</title>
+    <meta name="description" content="Слухайте новини з BUKVA NEWS. Хронологія дня голосом диктора.">
     <link rel="canonical" href="https://ifnews-omega.vercel.app/live/">
     <link
         href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
@@ -694,7 +694,7 @@
                 LIVE • ЕФІР
             </div>
             <h1 class="hero-title">АУДІО-<span>НОВИНИ</span></h1>
-            <p class="hero-desc">Новини Прикарпаття голосом диктора. Слухайте по дорозі — без рук, без зупинок.</p>
+            <p class="hero-desc">BUKVA NEWS — голосом диктора. Слухайте по дорозі — без рук, без зупинок.</p>
 
             <div class="hero-row">
                 <div class="btn-pill" id="radio-pill" onclick="toggleRadio()">
@@ -1003,8 +1003,8 @@
             document.getElementById('p-fill').style.width = (pct * 100) + '%';
             document.getElementById('m-fill').style.width = (pct * 100) + '%';
 
-            // YouTube Music style time display
-            document.getElementById('p-time').textContent = `${fmt(audio.currentTime)} / ${fmt(audio.duration)}`;
+            // YouTube Music style time display with explicit spacer
+            document.getElementById('p-time').textContent = fmt(audio.currentTime) + ' / ' + fmt(audio.duration);
 
             if (pct > 0.95) {
                 const list = JSON.parse(localStorage.getItem('radio_done') || '[]');

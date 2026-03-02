@@ -238,15 +238,15 @@ module.exports = async (req, res) => {
             return res.end();
         }
 
-        const title = `${news.title} | IF News`;
+        const title = `${news.title} | BUKVA NEWS`;
         const description = (news.meta_description || news.content || '')
             .replace(/<[^>]*>/g, '')
             .replace(/\s+/g, ' ')
             .trim()
             .substring(0, 160);
         const image = news.image_url || `${SITE_URL}/og-default.jpg`;
-        const author = news.author || 'Редакція IF News';
-        const siteName = 'Прикарпаття News | IF News';
+        const author = news.author || 'Редакція BUKVA NEWS';
+        const siteName = 'BUKVA NEWS';
         const publishedDate = news.created_at ? new Date(news.created_at).toISOString() : '';
 
         // Inject SEO meta tags before </head>
@@ -274,8 +274,8 @@ module.exports = async (req, res) => {
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:site" content="@ifnews_pro">
-    <meta name="twitter:creator" content="@ifnews_pro">
+    <meta name="twitter:site" content="@bukvanews">
+    <meta name="twitter:creator" content="@bukvanews">
     <meta name="twitter:title" content="${escapeAttr(title)}">
     <meta name="twitter:description" content="${escapeAttr(description)}">
     <meta name="twitter:image" content="${escapeAttr(image)}">
@@ -372,7 +372,7 @@ module.exports = async (req, res) => {
         };
 
         // SSR Header Injection
-        let tickerHtml = 'ОСТАННІ НОВИНИ ПРИКАРПАТТЯ • ПЕРЕВІРЕНІ ФАКТИ • АКТУАЛЬНІ ПОДІЇ • ОПЕРАТИВНО ТА ЧЕСНО •';
+        let tickerHtml = 'BUKVA NEWS • ПЕРЕВІРЕНІ ФАКТИ • АКТУАЛЬНІ ПОДІЇ • ОПЕРАТИВНО ТА ЧЕСНО •';
         if (tickerNews && tickerNews.length > 0) {
             tickerHtml = tickerNews.map(tn => `<a href="/news/${tn.slug}/" class="mx-4 hover:text-orange-500 transition-colors">${tn.title}</a>`).join(' <span class="text-orange-600 font-bold mx-2">/</span> ');
         }
@@ -403,11 +403,11 @@ module.exports = async (req, res) => {
                 <div class="container mx-auto px-4 py-4 flex justify-between items-center">
                     <a href="/" class="flex items-center space-x-4 group">
                         <div class="relative">
-                            <span class="bg-orange-600 text-white w-12 h-12 flex items-center justify-center rounded-2xl font-black text-2xl italic tracking-tighter shadow-2xl shadow-orange-200">IF</span>
+                            <span class="bg-orange-600 text-white w-12 h-12 flex items-center justify-center rounded-2xl font-black text-2xl italic tracking-tighter shadow-2xl shadow-orange-200">B</span>
                             <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-slate-900 border-2 border-white rounded-full"></div>
                         </div>
                         <div class="leading-none text-left">
-                            <span class="text-2xl font-black uppercase tracking-tighter text-slate-900 block mt-1">Прикарпаття <span class="text-orange-600">News</span></span>
+                            <span class="text-2xl font-black uppercase tracking-tighter text-slate-900 block mt-1">BUKVA <span class="text-orange-600">NEWS</span></span>
                             <span class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 opacity-80">Незалежна Журналістика</span>
                         </div>
                     </a>
@@ -452,11 +452,11 @@ module.exports = async (req, res) => {
                     <div class="flex justify-between items-center mb-12">
                         <a href="/" class="flex items-center space-x-4 group">
                             <div class="relative">
-                                <span class="bg-orange-600 text-white w-10 h-10 flex items-center justify-center rounded-xl font-black text-xl italic tracking-tighter">IF</span>
+                                <span class="bg-orange-600 text-white w-10 h-10 flex items-center justify-center rounded-xl font-black text-xl italic tracking-tighter">B</span>
                                 <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-slate-900 border border-white rounded-full"></div>
                             </div>
                             <div class="leading-none text-left">
-                                <span class="text-xl font-black uppercase tracking-tighter text-slate-900 block">Прикарпаття <span class="text-orange-600">News</span></span>
+                                <span class="text-xl font-black uppercase tracking-tighter text-slate-900 block">BUKVA <span class="text-orange-600">NEWS</span></span>
                             </div>
                         </a>
                         <button id="close-mobile-menu" class="p-4 -mr-4 text-slate-400 hover:text-orange-600 font-black text-4xl transition-colors">&times;</button>

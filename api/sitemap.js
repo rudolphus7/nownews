@@ -123,7 +123,7 @@ ${validArticles.map(a => {
         return `  <url>
     <loc>${escapeXml(`${SITE_URL}${path}`)}</loc>
     <news:news>
-      <news:publication><news:name>Прикарпаття News</news:name><news:language>uk</news:language></news:publication>
+      <news:publication><news:name>BUKVA NEWS</news:name><news:language>uk</news:language></news:publication>
       <news:publication_date>${formatDate(a.created_at)}</news:publication_date>
       <news:title>${escapeXml(a.title)}</news:title>
     </news:news>

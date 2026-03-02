@@ -61,8 +61,8 @@ module.exports = async (req, res) => {
             return res.status(200).send(htmlContent);
         }
 
-        const title = `${news.title} • Голосові новини | IF News`;
-        const description = (news.meta_description || news.content || 'Слухайте новини Прикарпаття у форматі аудіо-подкасту.')
+        const title = `${news.title} • Голосові новини | BUKVA NEWS`;
+        const description = (news.meta_description || news.content || 'Слухайте новини BUKVA NEWS у форматі аудіо-подкасту.')
             .replace(/<[^>]*>/g, '')
             .replace(/\s+/g, ' ')
             .trim()
@@ -87,12 +87,12 @@ module.exports = async (req, res) => {
     <meta property="og:description" content="${escapeAttr(description)}">
     <meta property="og:image" content="${escapeAttr(image)}">
     <meta property="og:url" content="${escapeAttr(canonicalUrl)}">
-    <meta property="og:site_name" content="Прикарпаття News | Live">
+    <meta property="og:site_name" content="BUKVA NEWS | Live">
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:site" content="@ifnews_pro">
-    <meta name="twitter:creator" content="@ifnews_pro">
+    <meta name="twitter:site" content="@bukvanews">
+    <meta name="twitter:creator" content="@bukvanews">
     <meta name="twitter:title" content="${escapeAttr(title)}">
     <meta name="twitter:description" content="${escapeAttr(description)}">
     <meta name="twitter:image" content="${escapeAttr(image)}">
