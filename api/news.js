@@ -269,6 +269,7 @@ module.exports = async (req, res) => {
     <meta property="og:image:height" content="630">
     <meta property="og:url" content="${escapeAttr(canonicalUrl)}">
     <meta property="og:locale" content="uk_UA">
+    <meta property="fb:app_id" content="1617708079361633">
     ${publishedDate ? `<meta property="article:published_time" content="${publishedDate}">` : ''}
     ${news.category ? `<meta property="article:section" content="${news.category}">` : ''}
 
