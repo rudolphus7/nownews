@@ -100,14 +100,15 @@ module.exports = async (req, res) => {
 6. Хештеги: Додай 2-3 релевантних хештеги.
 
 Оригінальний заголовок: ${title}
-Текст статті: ${cleanText.substring(0, 2000)}...
+Текст статті:
+${cleanText}
 
 Посилання на статтю:
 ${articleUrl || "https://ifnews-omega.vercel.app/"}
 
-ВАЖЛИВО: Поверни тільки готовий текст поста (опис + заклик + посилання + хештеги), без жодних вступних слів, привітань чи markdown форматування.`;
+ВАЖЛИВО: Поверни тільки готовий текст поста (зв'язний опис із 2-4 завершених речень + органічний заклик + посилання + хештеги). Ніколи не обривай текст на півслові!`;
 
-        const { ok, data } = await tryGemini(prompt, 1024, 0.8);
+        const { ok, data } = await tryGemini(prompt, 2048, 0.8);
         if (!ok || !data.candidates) return res.status(500).json({ error: "Помилка AI. Спробуйте ще раз." });
         return res.status(200).json({ text: data.candidates[0].content.parts[0].text.trim() });
     }
