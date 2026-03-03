@@ -6,11 +6,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BUKVA NEWS | Головні новини Івано-Франківщини</title>
     <meta name="description"
-        content="Головні новини Івано-Франківщини: політика, економіка, війна, культура і спорт. Оперативні події Ivano-Frankivsk регіону.">
+        content="Головні новини Івано-Франківщини та Прикарпаття: політика, економіка, війна, культура і спорт. Новини Калуша, Коломиї, Надвірної та всієї області. Читайте оперативно.">
     <meta name="robots" content="index, follow, max-image-preview:large">
     <link rel="canonical" href="https://ifnews-omega.vercel.app/">
     <link rel="alternate" hreflang="uk" href="https://ifnews-omega.vercel.app/">
     <link rel="alternate" hreflang="x-default" href="https://ifnews-omega.vercel.app/">
+
+    <!-- Google Analytics 4 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-383BY386JQ"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-383BY386JQ');
+    </script>
 
     <!-- Open Graph -->
     <meta property="og:type" content="website">
@@ -38,6 +47,57 @@
 
     <link rel="stylesheet" href="/components/header.css">
     <script src="/components/header.js"></script>
+
+    <!-- Schema.org Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@graph": [
+            {
+                "@type": "WebPage",
+                "@id": "https://ifnews-omega.vercel.app/#webpage",
+                "url": "https://ifnews-omega.vercel.app/",
+                "name": "BUKVA NEWS | Головні новини Івано-Франківщини",
+                "description": "Головні новини Івано-Франківщини та Прикарпаття: політика, економіка, війна, культура і спорт.",
+                "inLanguage": "uk",
+                "isPartOf": { "@id": "https://ifnews-omega.vercel.app/#website" }
+            },
+            {
+                "@type": "WebSite",
+                "@id": "https://ifnews-omega.vercel.app/#website",
+                "url": "https://ifnews-omega.vercel.app/",
+                "name": "BUKVA NEWS",
+                "description": "Незалежна журналістика Івано-Франківщини",
+                "inLanguage": "uk",
+                "publisher": { "@id": "https://ifnews-omega.vercel.app/#organization" },
+                "potentialAction": {
+                    "@type": "SearchAction",
+                    "target": "https://ifnews-omega.vercel.app/?q={search_term_string}",
+                    "query-input": "required name=search_term_string"
+                }
+            },
+            {
+                "@type": "NewsMediaOrganization",
+                "@id": "https://ifnews-omega.vercel.app/#organization",
+                "name": "BUKVA NEWS",
+                "url": "https://ifnews-omega.vercel.app/",
+                "logo": {
+                    "@type": "ImageObject",
+                    "url": "https://ifnews-omega.vercel.app/logo.png",
+                    "width": 200,
+                    "height": 200
+                },
+                "sameAs": [],
+                "contactPoint": {
+                    "@type": "ContactPoint",
+                    "email": "info@bukvanews.com",
+                    "contactType": "editorial"
+                }
+            }
+        ]
+    }
+    </script>
+
     <style>
         :root {
             --accent: #ea580c;
