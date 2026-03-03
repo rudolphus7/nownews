@@ -9,12 +9,11 @@ module.exports = async (req, res) => {
 
     // --- FACEBOOK PUBLISHING LOGIC ---
     if (action === 'post-facebook') {
-        const FB_PAGE_ID = process.env.FB_PAGE_ID;
         const FB_PAGE_ACCESS_TOKEN = process.env.FB_PAGE_ACCESS_TOKEN;
 
-        if (!FB_PAGE_ID || !FB_PAGE_ACCESS_TOKEN) {
+        if (!FB_PAGE_ACCESS_TOKEN) {
             return res.status(500).json({
-                error: 'Server configuration error: Missing Facebook Credentials (FB_PAGE_ID or FB_PAGE_ACCESS_TOKEN) in Vercel settings.'
+                error: 'Server configuration error: Missing Facebook Credentials (FB_PAGE_ACCESS_TOKEN) in Vercel settings.'
             });
         }
 
@@ -23,7 +22,7 @@ module.exports = async (req, res) => {
         }
 
         try {
-            const fbUrl = `https://graph.facebook.com/v19.0/${FB_PAGE_ID}/feed`;
+            const fbUrl = `https://graph.facebook.com/v19.0/me/feed`;
             const params = new URLSearchParams();
             params.append('message', message);
             params.append('access_token', FB_PAGE_ACCESS_TOKEN);
