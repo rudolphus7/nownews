@@ -136,13 +136,14 @@
                     class="text-[10px] font-black text-orange-600 uppercase tracking-widest bg-orange-50 px-3 py-1 rounded-lg border border-orange-100"
                     id="section-subtitle">Розділ</span>
             </div>
-            <!-- h1 for city/category pages — updated dynamically by JS -->
-            <h1 id="section-title"
-                class="text-5xl md:text-8xl font-black italic tracking-tighter text-slate-900 leading-none">Новини</h1>
+            <!-- h1 title for city/category pages — updated dynamically by JS -->
+            <div id="section-title-container">
+                <h1 id="section-title"
+                    class="text-5xl md:text-8xl font-black italic tracking-tighter text-slate-900 leading-none">Новини
+                </h1>
+            </div>
         </div>
 
-        <!-- Visually hidden H1 for homepage — shown only when no city/category filter active -->
-        <h1 id="homepage-h1" class="sr-only">BUKVA NEWS | Головні новини Івано-Франківщини</h1>
 
         <!-- Hero Section -->
         <div id="hero-container" class="mb-8 md:mb-20">
@@ -372,30 +373,32 @@
             setOg('og:url', canonical);
             setOg('og:type', 'website');
 
-            const homepageH1 = document.getElementById('homepage-h1');
-            const sectionH1 = document.getElementById('section-title');
+            const sectionTitleContainer = document.getElementById('section-title-container');
             const sectionSubtitle = document.getElementById('section-subtitle');
             const heroSec = document.getElementById('hero-container');
             const sectionHead = document.getElementById('section-header');
 
             if (city || category) {
-                if (homepageH1) homepageH1.classList.add('hidden');
                 if (heroSec) heroSec.classList.add('hidden');
                 if (sectionHead) sectionHead.classList.remove('hidden');
-                if (sectionH1) {
+
+                if (sectionTitleContainer) {
+                    let headingText = '';
                     if (city && cityName) {
-                        sectionH1.textContent = `Новини міста ${cityName}`;
+                        headingText = `Новини міста ${cityName}`;
                     } else if (category && catName) {
-                        sectionH1.textContent = `Рубрика: ${catName}`;
+                        headingText = `Рубрика: ${catName}`;
                     }
+                    sectionTitleContainer.innerHTML = `<h1 id="section-title" class="text-5xl md:text-8xl font-black italic tracking-tighter text-slate-900 leading-none">${headingText}</h1>`;
                 }
+
                 if (sectionSubtitle) {
                     sectionSubtitle.textContent = city ? 'Місто' : 'Рубрика';
                 }
             } else {
-                if (homepageH1) homepageH1.classList.remove('hidden');
                 if (heroSec) heroSec.classList.remove('hidden');
                 if (sectionHead) sectionHead.classList.add('hidden');
+                if (sectionTitleContainer) sectionTitleContainer.innerHTML = '';
             }
         }
 
@@ -504,8 +507,9 @@
                             : (catName ? `Рубрика: ${catName}` : 'Новини');
                         const subtitle = currentFilters.category ? 'Рубрика' : 'Місто';
 
-                        if (document.getElementById('section-title')) {
-                            document.getElementById('section-title').innerText = headingText;
+                        const sectionTitleContainer = document.getElementById('section-title-container');
+                        if (sectionTitleContainer) {
+                            sectionTitleContainer.innerHTML = `<h1 id="section-title" class="text-5xl md:text-8xl font-black italic tracking-tighter text-slate-900 leading-none">${headingText}</h1>`;
                         }
                         if (document.getElementById('section-subtitle')) {
                             document.getElementById('section-subtitle').innerText = subtitle;
