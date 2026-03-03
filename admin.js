@@ -237,6 +237,112 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
+    // --- FACEBOOK AUTO-POSTING ---
+    const btnGenerateFb = document.getElementById('btn-generate-fb');
+    const btnPublishFb = document.getElementById('btn-publish-fb');
+    const fbPostText = document.getElementById('fb_post_text');
+    const fbStatusIcon = document.getElementById('fb-status-icon');
+    const fbStatusText = document.getElementById('fb-status-text');
+
+    if (btnGenerateFb && fbPostText) {
+        btnGenerateFb.addEventListener('click', async () => {
+            const title = titleInput?.value || "";
+            const content = quill ? quill.getText() : "";
+
+            if (!title || !content.trim()) {
+                alert("Спочатку напишіть заголовок та текст статті!");
+                return;
+            }
+
+            const originalText = btnGenerateFb.innerHTML;
+            btnGenerateFb.innerHTML = '<span>⏳</span> Генерую...';
+            btnGenerateFb.disabled = true;
+
+            try {
+                // Determine absolute URL for CTA link
+                const slug = slugInput?.value || "";
+                const city = document.getElementById('city')?.value || "";
+                let articleUrl = "https://ifnews-omega.vercel.app/";
+                if (city) {
+                    articleUrl += `${city}/${slug}/`;
+                } else if (slug) {
+                    articleUrl += `news/?slug=${slug}`;
+                }
+
+                const response = await fetch('/api/ai-fb', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, content, articleUrl })
+                });
+
+                const data = await response.json();
+                if (response.ok && data.text) {
+                    fbPostText.value = data.text;
+                } else {
+                    alert("Помилка генерації AI: " + (data.error || "Невідома помилка"));
+                }
+            } catch (err) {
+                console.error("AI FB error:", err);
+                alert("Помилка запиту до AI: " + err.message);
+            } finally {
+                btnGenerateFb.innerHTML = originalText;
+                btnGenerateFb.disabled = false;
+            }
+        });
+    }
+
+    if (btnPublishFb && fbPostText) {
+        btnPublishFb.addEventListener('click', async () => {
+            const text = fbPostText.value.trim();
+            if (!text) {
+                alert("Спочатку згенеруйте або напишіть текст поста!");
+                return;
+            }
+
+            if (!confirm("Опублікувати цей пост на Facebook прямо зараз?")) {
+                return;
+            }
+
+            btnPublishFb.disabled = true;
+            fbStatusIcon.innerText = '⏳';
+            fbStatusText.innerText = 'Публікація...';
+
+            try {
+                const response = await fetch('/api/post-facebook', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: text })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    fbStatusIcon.innerText = '✅';
+                    fbStatusText.innerText = 'Успішно опубліковано!';
+                    btnPublishFb.classList.replace('bg-blue-100', 'bg-green-100');
+                    btnPublishFb.classList.replace('text-blue-600', 'text-green-700');
+
+                    setTimeout(() => {
+                        fbStatusIcon.innerText = '📤';
+                        fbStatusText.innerText = 'Опублікувати у Facebook';
+                        btnPublishFb.classList.replace('bg-green-100', 'bg-blue-100');
+                        btnPublishFb.classList.replace('text-green-700', 'text-blue-600');
+                        btnPublishFb.disabled = false;
+                    }, 5000);
+                } else {
+                    throw new Error(data.error || "Помилка API Facebook");
+                }
+            } catch (err) {
+                console.error("FB Post error:", err);
+                alert("Помилка публікації: " + err.message);
+                fbStatusIcon.innerText = '❌';
+                fbStatusText.innerText = 'Помилка';
+                btnPublishFb.disabled = false;
+            }
+        });
+    }
+
+
     let CATEGORIES_UK = {};
     let CITIES_UK = {};
 
