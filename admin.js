@@ -305,13 +305,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
             btnPublishFb.disabled = true;
             fbStatusIcon.innerText = '⏳';
-            fbStatusText.innerText = 'Публікація...';
-
             try {
+                const slug = document.getElementById('slug')?.value || "";
+                const city = document.getElementById('city')?.value || "";
+                let articleUrl = "https://ifnews-omega.vercel.app/";
+                if (city) {
+                    articleUrl += `${city}/${slug}/`;
+                } else if (slug) {
+                    articleUrl += `news/?slug=${slug}`;
+                }
+
                 const response = await fetch('/api/ai', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'post-facebook', message: text })
+                    body: JSON.stringify({ action: 'post-facebook', message: text, articleUrl })
                 });
 
                 const data = await response.json();

@@ -19,7 +19,7 @@ module.exports = async (req, res) => {
             const response = await fetch(webhookUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: message })
+                body: JSON.stringify({ message: message, articleUrl: articleUrl })
             });
 
             if (!response.ok) {
