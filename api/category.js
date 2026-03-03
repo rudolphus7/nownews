@@ -189,13 +189,13 @@ module.exports = async (req, res) => {
 
         <header class="bg-white/95 backdrop-blur-xl sticky top-0 z-[100] border-b border-slate-100">
             <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-                <a href="/" class="flex items-center space-x-4 group">
+                <a href="/" class="flex items-center space-x-3 group">
                     <div class="relative">
-                        <span class="bg-orange-600 text-white w-12 h-12 flex items-center justify-center rounded-2xl font-black text-2xl italic tracking-tighter shadow-2xl shadow-orange-200">B</span>
-                        <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-slate-900 border-2 border-white rounded-full"></div>
+                        <img src="/logo.png" alt="BUKVA NEWS" class="w-12 h-12 rounded-2xl shadow-2xl shadow-orange-200/60 group-hover:rotate-3 transition-transform duration-500 object-cover">
+                        <div class="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-orange-500 border-2 border-white rounded-full"></div>
                     </div>
                     <div class="leading-none text-left">
-                        <span class="text-2xl font-black uppercase tracking-tighter text-slate-900 block mt-1">BUKVA <span class="text-orange-600">NEWS</span></span>
+                        <span class="text-3xl font-black uppercase tracking-tighter text-slate-900 block mt-1">BUKVA <span class="text-orange-600">NEWS</span></span>
                         <span class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 opacity-80">Незалежна Журналістика</span>
                     </div>
                 </a>
@@ -238,10 +238,10 @@ module.exports = async (req, res) => {
         <div id="mobile-menu-overlay" class="fixed inset-0 z-[200] bg-white/95 backdrop-blur-xl translate-x-full transition-transform duration-500 md:hidden overflow-y-auto">
             <div class="p-8">
                 <div class="flex justify-between items-center mb-12">
-                    <a href="/" class="flex items-center space-x-4 group">
+                    <a href="/" class="flex items-center space-x-3 group">
                         <div class="relative">
-                            <span class="bg-orange-600 text-white w-10 h-10 flex items-center justify-center rounded-xl font-black text-xl italic tracking-tighter">B</span>
-                            <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-slate-900 border border-white rounded-full"></div>
+                            <img src="/logo.png" alt="BUKVA NEWS" class="w-10 h-10 rounded-xl object-cover shadow-md">
+                            <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-orange-500 border border-white rounded-full"></div>
                         </div>
                         <div class="leading-none text-left">
                             <span class="text-xl font-black uppercase tracking-tighter text-slate-900 block">BUKVA <span class="text-orange-600">NEWS</span></span>
