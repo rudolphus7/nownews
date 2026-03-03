@@ -1621,6 +1621,7 @@
         window.onload = async () => {
             await initNav();
             loadFullNews();
+            window.initSiteFooter && window.initSiteFooter(_supabase);
         };
 
         // Підтримка навігації браузера назад/вперед
@@ -1637,6 +1638,10 @@
             loadFullNews();
         };
     </script>
+
+    <div id="site-footer-placeholder"></div>
+    <script src="/components/footer.js"></script>
+
 </body>
 
 </html>

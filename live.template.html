@@ -829,6 +829,9 @@
         </div>
     </div>
 
+    <div id="site-footer-placeholder"></div>
+    <script src="/components/footer.js"></script>
+
     <!-- Filter Drawer -->
     <div id="filter-drawer">
         <div class="drawer-overlay" onclick="closeFilters()"></div>
@@ -866,6 +869,7 @@
         // Init
         async function init() {
             await window.initSiteHeader(_supabase);
+            window.initSiteFooter(_supabase);
             const { data } = await _supabase.from('news')
                 .select('id, title, slug, image_url, category, city, created_at, tts_audio_url')
                 .eq('is_published', true).not('tts_audio_url', 'is', null)
