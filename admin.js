@@ -269,10 +269,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     articleUrl += `news/?slug=${slug}`;
                 }
 
-                const response = await fetch('/api/ai-fb', {
+                const response = await fetch('/api/ai', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ title, content, articleUrl })
+                    body: JSON.stringify({ action: 'generate-fb', title, content, articleUrl })
                 });
 
                 const data = await response.json();
@@ -308,10 +308,10 @@ document.addEventListener('DOMContentLoaded', () => {
             fbStatusText.innerText = 'Публікація...';
 
             try {
-                const response = await fetch('/api/post-facebook', {
+                const response = await fetch('/api/ai', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: text })
+                    body: JSON.stringify({ action: 'post-facebook', message: text })
                 });
 
                 const data = await response.json();
