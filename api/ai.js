@@ -7,43 +7,33 @@ module.exports = async (req, res) => {
 
     const { action, title, content, articleUrl, message } = req.body;
 
-    // --- FACEBOOK PUBLISHING LOGIC ---
+    // --- FACEBOOK PUBLISHING LOGIC (VIA MAKE.COM) ---
     if (action === 'post-facebook') {
-        const FB_PAGE_ACCESS_TOKEN = process.env.FB_PAGE_ACCESS_TOKEN;
-
-        if (!FB_PAGE_ACCESS_TOKEN) {
-            return res.status(500).json({
-                error: 'Server configuration error: Missing Facebook Credentials (FB_PAGE_ACCESS_TOKEN) in Vercel settings.'
-            });
-        }
-
         if (!message || message.trim() === '') {
             return res.status(400).json({ error: 'Message content is required' });
         }
 
         try {
-            const fbUrl = `https://graph.facebook.com/v19.0/me/feed`;
-            const params = new URLSearchParams();
-            params.append('message', message);
-            params.append('access_token', FB_PAGE_ACCESS_TOKEN);
+            const webhookUrl = 'https://hook.eu2.make.com/ryu7i1m6rr64jqclnhjta2fynlje792j';
 
-            const response = await fetch(fbUrl, {
+            const response = await fetch(webhookUrl, {
                 method: 'POST',
-                body: params
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: message })
             });
 
-            const data = await response.json();
-
             if (!response.ok) {
-                console.error("Facebook API Error:", data);
-                throw new Error(data.error?.message || "Невідома помилка Facebook API");
+                const text = await response.text();
+                console.error("Make.com Webhook Error:", text);
+                throw new Error("Помилка відправки в Make.com");
             }
 
-            return res.status(200).json({ success: true, id: data.id });
+            return res.status(200).json({ success: true, info: 'Відправлено до Make.com' });
         } catch (error) {
             return res.status(500).json({ error: error.message });
         }
     }
+
 
     // --- AI CONTENT GENERATION LOGIC ---
     if (!title || !content) {
