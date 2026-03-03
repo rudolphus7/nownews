@@ -262,10 +262,11 @@
                         <h4 class="text-2xl font-black mb-4 relative z-10 italic">Все в одному листі</h4>
                         <p class="text-slate-400 text-sm mb-8 relative z-10">Кращі матеріали тижня на вашу пошту.</p>
                         <div class="flex flex-col space-y-3 relative z-10">
-                            <input type="email" placeholder="Ваш Email"
+                            <input type="email" id="newsletter-email" placeholder="Ваш Email"
                                 class="bg-white/10 border border-white/10 rounded-2xl px-5 py-4 text-sm focus:outline-none focus:border-orange-600 transition">
-                            <button
+                            <button id="newsletter-btn" onclick="submitNewsletter()"
                                 class="bg-orange-600 text-white font-black py-4 rounded-2xl text-xs uppercase tracking-widest hover:bg-orange-700 transition">Підписатись</button>
+                            <p id="newsletter-msg" class="text-xs text-center font-bold hidden"></p>
                         </div>
                     </div>
                 </div>
@@ -742,6 +743,47 @@
 
         init();
         loadTrending();
+
+        // ── Newsletter subscription ──────────────────────────────────────
+        async function submitNewsletter() {
+            const input = document.getElementById('newsletter-email');
+            const btn = document.getElementById('newsletter-btn');
+            const msg = document.getElementById('newsletter-msg');
+            const email = input.value.trim();
+
+            if (!email) { input.focus(); return; }
+
+            btn.disabled = true;
+            btn.textContent = '...';
+            msg.className = 'text-xs text-center font-bold hidden';
+
+            try {
+                const res = await fetch('/api/subscribe', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                const data = await res.json();
+
+                if (data.ok) {
+                    msg.textContent = '✅ ' + data.message;
+                    msg.className = 'text-xs text-center font-bold text-green-400';
+                    input.value = '';
+                    btn.textContent = 'Підписатись';
+                } else {
+                    msg.textContent = '⚠️ ' + (data.error || 'Помилка');
+                    msg.className = 'text-xs text-center font-bold text-orange-300';
+                    btn.textContent = 'Підписатись';
+                }
+            } catch (e) {
+                msg.textContent = '⚠️ Помилка з\'єднання';
+                msg.className = 'text-xs text-center font-bold text-orange-300';
+                btn.textContent = 'Підписатись';
+            }
+            msg.classList.remove('hidden');
+            btn.disabled = false;
+        }
+        window.submitNewsletter = submitNewsletter;
     </script>
 </body>
 

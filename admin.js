@@ -1495,6 +1495,99 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    // ═══════════════════════════════════════════════════════════════════════
+    // SUBSCRIBERS MANAGEMENT
+    // ═══════════════════════════════════════════════════════════════════════
+    let _allSubscribers = [];
+
+    window.loadSubscribers = async () => {
+        const token = localStorage.getItem('ifnews_admin_token') || '';
+        const tbody = document.getElementById('subscribers-table-body');
+        if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="p-10 text-center text-slate-400 italic">Завантаження...</td></tr>';
+
+        try {
+            const res = await fetch('/api/subscribe?token=' + encodeURIComponent(token));
+            const data = await res.json();
+            if (!Array.isArray(data)) throw new Error(data.error || 'Помилка');
+
+            _allSubscribers = data;
+            renderSubscribersTable(data);
+            updateSubStats(data);
+        } catch (e) {
+            if (tbody) tbody.innerHTML = `<tr><td colspan="5" class="p-10 text-center text-red-400 italic">Помилка: ${e.message}</td></tr>`;
+        }
+    };
+
+    function updateSubStats(data) {
+        const now = new Date();
+        const todayStr = now.toISOString().slice(0, 10);
+        const weekAgo = new Date(now - 7 * 86400000).toISOString();
+
+        document.getElementById('sub-count-total').textContent = data.length;
+        document.getElementById('sub-count-today').textContent = data.filter(s => (s.subscribed_at || '').startsWith(todayStr)).length;
+        document.getElementById('sub-count-week').textContent = data.filter(s => s.subscribed_at >= weekAgo).length;
+    }
+
+    function renderSubscribersTable(data) {
+        const tbody = document.getElementById('subscribers-table-body');
+        if (!tbody) return;
+
+        if (!data.length) {
+            tbody.innerHTML = '<tr><td colspan="5" class="p-10 text-center text-slate-400 italic">Підписників ще немає</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = data.map(s => {
+            const date = s.subscribed_at ? new Date(s.subscribed_at).toLocaleString('uk-UA') : '—';
+            const status = s.status === 'active'
+                ? '<span class="bg-green-100 text-green-700 text-[10px] font-black px-3 py-1 rounded-lg uppercase">Активний</span>'
+                : '<span class="bg-slate-100 text-slate-500 text-[10px] font-black px-3 py-1 rounded-lg uppercase">Неактивний</span>';
+
+            const src = (s.source || 'website').replace(/^https?:\/\/[^/]+/, '').replace('/', '') || 'Сайт';
+
+            return `<tr class="hover:bg-slate-50 transition-colors">
+                <td class="p-6 font-bold text-slate-800 text-sm">${s.email}</td>
+                <td class="p-6 text-center text-slate-400 text-xs">${src}</td>
+                <td class="p-6 text-center">${status}</td>
+                <td class="p-6 text-slate-500 text-xs">${date}</td>
+                <td class="p-6 text-right">
+                    <button onclick="window.deleteSubscriber('${s.id}')"
+                        class="text-[10px] font-black text-red-400 hover:text-white hover:bg-red-500 px-4 py-2 rounded-xl transition-all">
+                        Видалити
+                    </button>
+                </td>
+            </tr>`;
+        }).join('');
+    }
+
+    window.filterSubscribers = () => {
+        const q = (document.getElementById('subscriber-search')?.value || '').toLowerCase();
+        const filtered = _allSubscribers.filter(s => (s.email || '').toLowerCase().includes(q));
+        renderSubscribersTable(filtered);
+    };
+
+    window.deleteSubscriber = async (id) => {
+        if (!confirm("Видалити підписника?")) return;
+        const token = localStorage.getItem('ifnews_admin_token') || '';
+        await fetch(`/api/subscribe?id=${id}&token=${encodeURIComponent(token)}`, { method: 'DELETE' });
+        window.loadSubscribers();
+    };
+
+    window.exportSubscribersCSV = () => {
+        if (!_allSubscribers.length) { alert('Підписників немає'); return; }
+        const csv = ['Email,Дата підписки,Статус,Джерело',
+            ..._allSubscribers.map(s =>
+                `"${s.email}","${s.subscribed_at || ''}","${s.status || ''}","${s.source || ''}"`
+            )
+        ].join('\n');
+
+        const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `subscribers_${new Date().toISOString().slice(0, 10)}.csv`;
+        a.click();
+    };
+
     setTimeout(() => { if (_supabase) window.loadSettings(); }, 1000);
     window.loadStats();
 });
