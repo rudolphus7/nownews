@@ -848,13 +848,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const payload = { contents: [{ parts: [{ text: prompt }] }] };
                 const models = [
-                    'gemini-1.5-flash-latest',
-                    'gemini-1.5-flash',
-                    'gemini-1.5-pro-latest',
-                    'gemini-2.0-flash-exp',
-                    'gemini-3-flash'
+                    'gemini-2.5-flash',
+                    'gemini-2.5-pro',
+                    'gemini-2.0-flash',
+                    'gemini-2.0-flash-lite'
                 ];
-                const versions = ['v1', 'v1beta'];
+                const versions = ['v1beta', 'v1'];
                 let finalData = null;
                 let clientErrors = [];
 

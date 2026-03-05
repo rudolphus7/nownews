@@ -43,6 +43,10 @@ module.exports = async (req, res) => {
     const cleanText = content.replace(/<[^>]*>/g, ' ').trim();
 
     async function tryGemini(promptText, maxTokens, temperature) {
+        if (!GEMINI_API_KEY) {
+            console.error('API/AI: GEMINI_API_KEY is not set in environment variables (likely testing locally).');
+            return { ok: false, data: { error: 'GEMINI_API_KEY not set' } };
+        }
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
         try {
             const response = await fetch(url, {
