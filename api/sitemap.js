@@ -1,6 +1,6 @@
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kgrxlznhimwuvwhjfzhv.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_KEY || 'sb_publishable_L4_HhLhbj_m6wbEc3ZqhcQ_QNGOLWXU';
-const SITE_URL = process.env.SITE_URL || 'https://ifnews-omega.vercel.app';
+const SITE_URL = process.env.SITE_URL || 'https://bukva.news';
 
 module.exports = async (req, res) => {
     const { type } = req.query;

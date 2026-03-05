@@ -41,7 +41,7 @@ module.exports = async (req, res) => {
             signal: controller.signal,
             headers: {
                 // Представляємось як браузер, щоб сайти не блокували запит
-                'User-Agent': 'Mozilla/5.0 (compatible; IF-News-RSS-Bot/1.0; +https://ifnews-omega.vercel.app)',
+                'User-Agent': 'Mozilla/5.0 (compatible; BUKVA-NEWS-RSS-Bot/1.0; +https://bukva.news)',
                 'Accept': 'application/rss+xml, application/xml, text/xml, application/atom+xml, */*',
                 'Accept-Language': 'uk,en;q=0.9',
                 'Cache-Control': 'no-cache',

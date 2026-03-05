@@ -11,5 +11,5 @@ Allow: /api/sitemap
 User-agent: Googlebot-Image
 Allow: /
 
-Sitemap: https://ifnews-omega.vercel.app/sitemap.xml
-Sitemap: https://ifnews-omega.vercel.app/sitemap-news.xml
+Sitemap: https://bukva.news/sitemap.xml
+Sitemap: https://bukva.news/sitemap-news.xml

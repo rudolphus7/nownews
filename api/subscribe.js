@@ -49,7 +49,7 @@ module.exports = async (req, res) => {
         if (!token) return res.status(401).json({ error: 'Unauthorized' });
 
         // Validate admin token via admin-auth
-        const authRes = await fetch(`${process.env.SITE_URL || 'https://ifnews-omega.vercel.app'}/api/admin-auth?token=${encodeURIComponent(token)}`);
+        const authRes = await fetch(`${process.env.SITE_URL || 'https://bukva.news'}/api/admin-auth?token=${encodeURIComponent(token)}`);
         const authData = await authRes.json();
         if (!authData.valid) return res.status(401).json({ error: 'Unauthorized' });
 
@@ -72,7 +72,7 @@ module.exports = async (req, res) => {
         const id = req.query.id;
         if (!token || !id) return res.status(400).json({ error: 'Missing params' });
 
-        const authRes = await fetch(`${process.env.SITE_URL || 'https://ifnews-omega.vercel.app'}/api/admin-auth?token=${encodeURIComponent(token)}`);
+        const authRes = await fetch(`${process.env.SITE_URL || 'https://bukva.news'}/api/admin-auth?token=${encodeURIComponent(token)}`);
         const authData = await authRes.json();
         if (!authData.valid) return res.status(401).json({ error: 'Unauthorized' });
 

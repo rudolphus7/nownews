@@ -262,7 +262,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Determine absolute URL for CTA link
                 const slug = slugInput?.value || "";
                 const city = document.getElementById('city')?.value || "";
-                let articleUrl = "https://ifnews-omega.vercel.app/";
+                let articleUrl = "https://bukva.news/";
                 if (city) {
                     articleUrl += `${city}/${slug}/`;
                 } else if (slug) {
@@ -308,7 +308,7 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const slug = document.getElementById('slug')?.value || "";
                 const city = document.getElementById('city')?.value || "";
-                let articleUrl = "https://ifnews-omega.vercel.app/";
+                let articleUrl = "https://bukva.news/";
                 if (city) {
                     articleUrl += `${city}/${slug}/`;
                 } else if (slug) {
