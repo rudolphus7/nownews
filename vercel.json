@@ -216,6 +216,10 @@
         "api/subscribe.js": {
             "memory": 128,
             "maxDuration": 10
+        },
+        "api/ai.js": {
+            "memory": 256,
+            "maxDuration": 30
         }
     }
 }
