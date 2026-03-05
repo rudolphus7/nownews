@@ -899,403 +899,355 @@
             }
         } catch (e) { }
 
-        window.toggleTTS = () => {
-            console.log("TTS Toggle Triggered. Mode:", isCloudMode ? "Cloud" : "Native", "State:", { isTtsPlaying, isTtsPaused });
-
+        window.toggleTTS = async () => {
+            console.log("TTS Toggle Triggered. State:", { isTtsPlaying, isTtsPaused });
             if (!currentPost) return;
-
-            // Unlock audio context for mobile webviews
-            if (!cloudAudio) {
-                cloudAudio = new Audio();
-                cloudAudio.play().catch(() => { }); // Prime audio
-                console.log("Audio primed for unlocking");
-            }
 
             const icon = document.getElementById('tts-icon');
             const anim = document.getElementById('tts-status-anim');
 
+            // --- MOBILE AUDIO PRIMING ---
+            if (!isTtsPlaying && !isTtsPaused) {
+                if (!cloudAudio) cloudAudio = new Audio();
+                cloudAudio.src = "data:audio/wav;base64,UklGRigAAABXQVZFRm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA== ";
+                cloudAudio.play().catch(() => { });
+                cloudAudio.pause();
+                console.log("Audio primed for mobile");
+            }
+
             if (isTtsPlaying && !isTtsPaused) {
                 console.log("TTS Pausing...");
                 if (isCloudMode && cloudAudio) {
-                    window.toggleTTS = async () => {
-                        console.log("TTS Toggle Triggered. State:", { isTtsPlaying, isTtsPaused });
-                        if (!currentPost) return;
+                    cloudAudio.pause();
+                } else if (window.speechSynthesis && window.speechSynthesis.speaking) {
+                    window.speechSynthesis.pause();
+                }
+                isTtsPaused = true;
+                if (icon) icon.innerText = '▶';
+                if (anim) anim.classList.add('hidden');
 
-                        const icon = document.getElementById('tts-icon');
-                        const anim = document.getElementById('tts-status-anim');
+                if (window.BukvaAnalytics && currentPost) {
+                    await window.BukvaAnalytics.stopVoiceTracking(false, _supabase);
+                    window.BukvaAnalytics.startTextTracking(currentPost.id, _supabase);
+                }
+            } else if (isTtsPaused) {
+                console.log("TTS Resuming...");
+                if (isCloudMode && cloudAudio) {
+                    cloudAudio.play().catch(e => console.error("Resume failed:", e));
+                } else if (window.speechSynthesis) {
+                    window.speechSynthesis.resume();
+                }
+                isTtsPaused = false;
+                if (icon) icon.innerText = '⏸';
+                if (anim) anim.classList.remove('hidden');
 
-                        // --- MOBILE AUDIO PRIMING ---
-                        // On mobile browsers (like Facebook), audio.play() must be triggered by a direct user gesture.
-                        // If we're starting a new playback that might involve an async fetch, we prime the object here.
-                        if (!isTtsPlaying && !isTtsPaused) {
-                            if (!cloudAudio) cloudAudio = new Audio();
-                            // Play a tiny silent sound or just call play/pause to "unlock" the audio context
-                            cloudAudio.src = "data:audio/wav;base64,UklGRigAAABXQVZFRm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA== ";
-                            cloudAudio.play().catch(() => { });
-                            cloudAudio.pause();
-                        }
+                if (window.BukvaAnalytics && currentPost) {
+                    window.BukvaAnalytics.stopTextTracking();
+                    window.BukvaAnalytics.startVoiceTracking(currentPost.id, _supabase, cloudAudio);
+                }
+            } else {
+                console.log("TTS Calling startTTS()...");
+                startTTS();
+            }
+        };
 
-                        if (isTtsPlaying && !isTtsPaused) {
-                            console.log("TTS Pausing...");
-                            if (isCloudMode && cloudAudio) {
-                                cloudAudio.pause();
-                            } else if (window.speechSynthesis && window.speechSynthesis.speaking) {
-                                window.speechSynthesis.pause();
-                            }
-                            isTtsPaused = true;
-                            if (icon) icon.innerText = '▶';
-                            if (anim) anim.classList.add('hidden');
+        function startTTS() {
+            const icon = document.getElementById('tts-icon');
+            const anim = document.getElementById('tts-status-anim');
+            const ttsBtn = document.getElementById('tts-play-btn');
 
-                            if (window.BukvaAnalytics && currentPost) {
-                                await window.BukvaAnalytics.stopVoiceTracking(false, _supabase);
-                                window.BukvaAnalytics.startTextTracking(currentPost.id, _supabase);
-                            }
-                        } else if (isTtsPaused) {
-                            console.log("TTS Resuming...");
-                            if (isCloudMode && cloudAudio) {
-                                cloudAudio.play().catch(e => console.error("Resume failed:", e));
-                            } else if (window.speechSynthesis) {
-                                window.speechSynthesis.resume();
-                            }
-                            isTtsPaused = false;
-                            if (icon) icon.innerText = '⏸';
-                            if (anim) anim.classList.remove('hidden');
+            try {
+                if (window.speechSynthesis && ttsVoices.length === 0) {
+                    ttsVoices = window.speechSynthesis.getVoices();
+                }
+            } catch (e) { console.warn("SpeechSynthesis restricted"); }
 
-                            if (window.BukvaAnalytics && currentPost) {
-                                window.BukvaAnalytics.stopTextTracking();
-                                window.BukvaAnalytics.startVoiceTracking(currentPost.id, _supabase, cloudAudio);
-                            }
-                        } else {
-                            console.log("TTS Calling startTTS()...");
-                            startTTS();
-                        }
-                    };
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = (currentPost.title || "") + ". " + (currentPost.content || "");
+            const cleanText = tempDiv.innerText || tempDiv.textContent || "";
 
-                    function startTTS() {
-                        const icon = document.getElementById('tts-icon');
-                        const anim = document.getElementById('tts-status-anim');
-                        const ttsBtn = document.getElementById('tts-play-btn'); // FIXED ID match
+            if (!cleanText.trim()) return;
 
-                        try {
-                            if (window.speechSynthesis && ttsVoices.length === 0) {
-                                ttsVoices = window.speechSynthesis.getVoices();
-                            }
-                        } catch (e) { console.warn("SpeechSynthesis restricted"); }
+            stopTTS();
 
-                        const tempDiv = document.createElement('div');
-                        tempDiv.innerHTML = (currentPost.title || "") + ". " + (currentPost.content || "");
-                        const cleanText = tempDiv.innerText || tempDiv.textContent || "";
+            if (window.BukvaAnalytics && currentPost) {
+                window.BukvaAnalytics.stopTextTracking();
+                window.BukvaAnalytics.startVoiceTracking(currentPost.id, _supabase, cloudAudio);
+            }
 
-                        if (!cleanText.trim()) return;
+            const isMobile = /Android|iPhone|iPad|iPod|FB_IAB|FB4A|FBAV/i.test(navigator.userAgent);
+            let ukVoice = null;
+            if (!isMobile && window.speechSynthesis) {
+                ukVoice = ttsVoices.find(v => v.lang.toLowerCase().includes('uk') || v.name.toLowerCase().includes('ukrainian'));
+            }
 
-                        // Reset any previous state
-                        stopTTS();
+            if (ukVoice) {
+                console.log("Using Native TTS:", ukVoice.name);
+                isCloudMode = false;
+                if (icon) icon.innerText = '⏸';
+                if (anim) anim.classList.remove('hidden');
+                playNativeTTS(cleanText, ukVoice);
+            } else {
+                console.log(isMobile ? "Mobile/FB detected. Using Cloud TTS." : "Ukrainian voice not found. Using Cloud TTS.");
+                isCloudMode = true;
+                if (icon) icon.innerText = '⏳';
+                if (anim) anim.classList.remove('hidden');
+                if (ttsBtn) {
+                    ttsBtn.style.opacity = '0.7';
+                    ttsBtn.style.pointerEvents = 'none';
+                }
+                playCloudTTS(cleanText);
+            }
+        }
 
-                        // Immediately switch analytics
-                        if (window.BukvaAnalytics && currentPost) {
-                            window.BukvaAnalytics.stopTextTracking();
-                            window.BukvaAnalytics.startVoiceTracking(currentPost.id, _supabase, cloudAudio);
-                        }
+        function playNativeTTS(text, voice) {
+            if (!window.speechSynthesis) return;
+            window.speechSynthesis.cancel();
+            setTimeout(() => {
+                ttsUtterance = new SpeechSynthesisUtterance(text);
+                ttsUtterance.lang = 'uk-UA';
+                ttsUtterance.voice = voice;
+                ttsUtterance.onstart = () => {
+                    isTtsPlaying = true;
+                    isTtsPaused = false;
+                };
+                ttsUtterance.onend = () => { stopTTS(); };
+                ttsUtterance.onerror = () => { stopTTS(); };
+                window.speechSynthesis.speak(ttsUtterance);
 
-                        // On mobile (including FB browser), always use Cloud TTS
-                        const isMobile = /Android|iPhone|iPad|iPod|FB_IAB|FB4A|FBAV/i.test(navigator.userAgent);
+                setTimeout(() => {
+                    if (isTtsPlaying && !window.speechSynthesis.speaking) window.speechSynthesis.resume();
+                }, 1000);
+            }, 300);
+        }
 
-                        // Check if Ukrainian voice exists (desktop only)
-                        let ukVoice = null;
-                        if (!isMobile && window.speechSynthesis) {
-                            ukVoice = ttsVoices.find(v => v.lang.toLowerCase().includes('uk') || v.name.toLowerCase().includes('ukrainian'));
-                        }
+        async function playCloudTTS(text) {
+            console.log("Starting Premium TTS...");
 
-                        if (ukVoice) {
-                            console.log("Using Native TTS:", ukVoice.name);
-                            isCloudMode = false;
-                            if (icon) icon.innerText = '⏸';
-                            if (anim) anim.classList.remove('hidden');
-                            playNativeTTS(cleanText, ukVoice);
-                        } else {
-                            console.log(isMobile ? "Mobile/FB detected. Using Cloud TTS." : "Ukrainian voice not found. Using Cloud TTS.");
-                            isCloudMode = true;
-                            if (icon) icon.innerText = '⏳';
-                            if (anim) anim.classList.remove('hidden');
-                            if (ttsBtn) {
-                                ttsBtn.style.opacity = '0.7';
-                                ttsBtn.style.pointerEvents = 'none';
-                            }
-                            playCloudTTS(cleanText);
-                        }
-                    }
+            if (currentPost && currentPost.tts_audio_url) {
+                console.log("Using cached audio:", currentPost.tts_audio_url);
+                isTtsPlaying = true;
+                isTtsPaused = false;
 
-                    function playNativeTTS(text, voice) {
-                        window.speechSynthesis.cancel();
-                        setTimeout(() => {
-                            ttsUtterance = new SpeechSynthesisUtterance(text);
-                            ttsUtterance.lang = 'uk-UA';
-                            ttsUtterance.voice = voice;
-                            ttsUtterance.onstart = () => {
-                                isTtsPlaying = true;
-                                isTtsPaused = false;
-                            };
-                            ttsUtterance.onend = () => { stopTTS(); };
-                            ttsUtterance.onerror = () => { stopTTS(); };
-                            window.speechSynthesis.speak(ttsUtterance);
+                const icon = document.getElementById('tts-icon');
+                const ttsBtn = document.getElementById('tts-play-btn');
+                if (icon) icon.innerText = '⏸';
+                if (ttsBtn) { ttsBtn.style.opacity = ''; ttsBtn.style.pointerEvents = ''; }
 
-                            // Backup check
-                            setTimeout(() => {
-                                if (isTtsPlaying && !window.speechSynthesis.speaking) window.speechSynthesis.resume();
-                            }, 1000);
-                        }, 300);
-                    }
+                if (!cloudAudio) cloudAudio = new Audio();
+                else {
+                    cloudAudio.pause();
+                    if (cloudAudio.src.startsWith('blob:')) URL.revokeObjectURL(cloudAudio.src);
+                }
 
-                    async function playCloudTTS(text) {
-                        console.log("Starting Premium TTS...");
+                cloudAudio.src = currentPost.tts_audio_url;
+                cloudAudio.onended = () => { stopTTS(); };
+                cloudAudio.onerror = (e) => {
+                    console.error("Cached Audio Error:", e);
+                    currentPost.tts_audio_url = null;
+                    playCloudTTS(text);
+                };
+                cloudAudio.play().catch(e => {
+                    console.error("Cached Playback Blocked:", e);
+                    stopTTS();
+                });
+                return;
+            }
 
-                        // 1. Check for cached narration in DB
-                        if (currentPost && currentPost.tts_audio_url) {
-                            console.log("Using cached audio:", currentPost.tts_audio_url);
-                            isTtsPlaying = true;
-                            isTtsPaused = false;
+            isTtsPlaying = true;
+            isTtsPaused = false;
 
-                            // Update UI immediately for cached playback
-                            const icon = document.getElementById('tts-icon');
-                            const ttsBtn = document.getElementById('tts-btn');
-                            if (icon) icon.innerText = '⏸';
-                            if (ttsBtn) { ttsBtn.style.opacity = ''; ttsBtn.style.pointerEvents = ''; }
+            const cleanText = text.replace(/\s+/g, ' ').trim();
+            cloudChunks = cleanText.match(/.{1,2500}(\s|$)/g) || [cleanText];
+            currentChunkIndex = 0;
+            playNextCloudChunk();
+        }
 
-                            // Reuse existing primed object if possible
-                            if (!cloudAudio) cloudAudio = new Audio();
-                            else {
-                                cloudAudio.pause();
-                                if (cloudAudio.src.startsWith('blob:')) URL.revokeObjectURL(cloudAudio.src);
-                            }
+        async function playNextCloudChunk() {
+            if (!isTtsPlaying || currentChunkIndex >= cloudChunks.length) {
+                if (currentChunkIndex >= cloudChunks.length) stopTTS();
+                return;
+            }
 
-                            cloudAudio.src = currentPost.tts_audio_url;
-                            cloudAudio.onended = () => { stopTTS(); };
-                            cloudAudio.onerror = (e) => {
-                                console.error("Cached Audio Error:", e);
-                                currentPost.tts_audio_url = null;
-                                playCloudTTS(text);
-                            };
-                            cloudAudio.play().catch(e => {
-                                console.error("Cached Playback Blocked:", e);
-                                stopTTS();
-                            });
-                            return;
-                        }
+            const chunk = cloudChunks[currentChunkIndex];
+            try {
+                const articleId = currentPost ? currentPost.id : undefined;
+                const response = await fetch('/api/tts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        text: chunk,
+                        articleId,
+                        chunkIndex: currentChunkIndex,
+                        totalChunks: cloudChunks.length
+                    })
+                });
 
-                        // 2. No cache — generate via /api/tts (server handles auth)
-                        isTtsPlaying = true;
-                        isTtsPaused = false;
+                if (response.status === 429) {
+                    const errData = await response.json().catch(() => ({}));
+                    const retryMs = errData.retryAfterMs || 60000;
+                    const retrySeconds = Math.ceil(retryMs / 1000);
+                    console.warn(`TTS rate limited. Retrying in ${retrySeconds}s...`);
 
-                        const cleanText = text.replace(/\s+/g, ' ').trim();
-                        console.log("Text length:", cleanText.length);
-                        // Chunking: 2500 chars is safe for Vercel timeouts (60s)
-                        cloudChunks = cleanText.match(/.{1,2500}(\s|$)/g) || [cleanText];
-                        console.log("Chunks count:", cloudChunks.length);
-                        currentChunkIndex = 0;
+                    const icon = document.getElementById('tts-icon');
+                    if (icon) icon.innerText = `⏳${retrySeconds}с`;
 
-                        playNextCloudChunk();
-                    }
-
-                    async function playNextCloudChunk() {
-                        console.log("playNextCloudChunk called, index:", currentChunkIndex, "/ total:", cloudChunks.length, "playing:", isTtsPlaying);
-                        if (!isTtsPlaying || currentChunkIndex >= cloudChunks.length) {
-                            if (currentChunkIndex >= cloudChunks.length) stopTTS();
-                            return;
-                        }
-
-                        const chunk = cloudChunks[currentChunkIndex];
-
-                        try {
-                            const articleId = currentPost ? currentPost.id : undefined;
-                            const response = await fetch('/api/tts', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    text: chunk,
-                                    articleId,
-                                    chunkIndex: currentChunkIndex,
-                                    totalChunks: cloudChunks.length
-                                })
-                            });
-
-                            // Handle rate limit: auto-retry after the specified delay
-                            if (response.status === 429) {
-                                const errData = await response.json().catch(() => ({}));
-                                const retryMs = errData.retryAfterMs || 60000;
-                                const retrySeconds = Math.ceil(retryMs / 1000);
-                                console.warn(`TTS rate limited. Retrying in ${retrySeconds}s...`);
-
-                                // Show a friendly waiting message in the button
-                                const icon = document.getElementById('tts-icon');
-                                if (icon) icon.innerText = `⏳${retrySeconds}с`;
-
-                                await new Promise(resolve => {
-                                    let remaining = retrySeconds;
-                                    const interval = setInterval(() => {
-                                        remaining--;
-                                        if (icon) icon.innerText = `⏳${remaining}с`;
-                                        if (remaining <= 0) { clearInterval(interval); resolve(); }
-                                    }, 1000);
-                                });
-
-                                if (isTtsPlaying) playNextCloudChunk(); // retry
-                                return;
-                            }
-
-                            if (!response.ok) {
-                                const err = await response.json().catch(() => ({ error: 'Unknown server error' }));
-                                throw new Error(err.error || `Server error ${response.status}`);
-                            }
-
-                            const wavBuffer = await response.arrayBuffer();
-                            console.log("Received WAV audio:", wavBuffer.byteLength, "bytes");
-
-                            // Read server-set cached URL and update local state for this session
-                            const cachedUrl = response.headers.get('X-TTS-Cached-URL');
-                            if (cachedUrl && currentPost) {
-                                console.log("TTS cached URL received from server:", cachedUrl);
-                                currentPost.tts_audio_url = cachedUrl;
-                            }
-
-                            // Caching is handled server-side in /api/tts (uses service role key)
-                            // No client-side upload needed
-                            const blob = new Blob([wavBuffer], { type: 'audio/wav' });
-                            const blobUrl = URL.createObjectURL(blob);
-
-                            // Reuse existing primed object
-                            if (!cloudAudio) cloudAudio = new Audio();
-                            else {
-                                cloudAudio.pause();
-                                if (cloudAudio.src.startsWith('blob:')) URL.revokeObjectURL(cloudAudio.src);
-                            }
-
-                            cloudAudio.src = blobUrl;
-                            cloudAudio.onended = () => {
-                                if (blobUrl.startsWith('blob:')) URL.revokeObjectURL(blobUrl);
-                                currentChunkIndex++;
-                                playNextCloudChunk();
-                            };
-                            cloudAudio.onerror = (e) => {
-                                console.error("Audio Playback Error:", e);
-                                stopTTS();
-                            };
-
-                            // Switch from ⏳ loading to ⏸ playing
-                            const icon = document.getElementById('tts-icon');
-                            const ttsBtn = document.getElementById('tts-btn');
-                            if (icon) icon.innerText = '⏸';
-                            if (ttsBtn) { ttsBtn.style.opacity = ''; ttsBtn.style.pointerEvents = ''; }
-                            cloudAudio.play().then(() => {
-                                console.log("Audio playing successfully!");
-                            }).catch(e => {
-                                console.error("Playback Blocked:", e.name, e.message);
-                                stopTTS();
-                            });
-
-                        } catch (err) {
-                            console.error("TTS Error:", err.message);
-                            const icon = document.getElementById('tts-icon');
-                            const ttsBtn = document.getElementById('tts-play-btn'); // FIXED ID match
-                            if (icon) icon.innerText = '▶';
-                            if (ttsBtn) { ttsBtn.style.opacity = ''; ttsBtn.style.pointerEvents = ''; }
-                            stopTTS();
-                        }
-                    }
-
-                    window.stopTTS = () => {
-                        const wasPlaying = isTtsPlaying;
-
-                        try {
-                            if (window.speechSynthesis) window.speechSynthesis.cancel();
-                        } catch (e) { }
-                        if (cloudAudio) {
-                            cloudAudio.pause();
-                            cloudAudio = null;
-                        }
-                        isTtsPlaying = false;
-                        isTtsPaused = false;
-                        isCloudMode = false;
-                        cloudChunks = [];
-                        currentChunkIndex = 0;
-
-                        const icon = document.getElementById('tts-icon');
-                        const anim = document.getElementById('tts-status-anim');
-                        const ttsBtn = document.getElementById('tts-play-btn'); // FIXED ID match
-                        if (icon) icon.innerText = '▶';
-                        if (anim) anim.classList.add('hidden');
-                        if (ttsBtn) { ttsBtn.style.opacity = ''; ttsBtn.style.pointerEvents = ''; }
-
-                        if (wasPlaying && window.BukvaAnalytics && currentPost) {
-                            window.BukvaAnalytics.stopVoiceTracking(false, _supabase);
-                            if (document.visibilityState !== 'hidden') {
-                                window.BukvaAnalytics.startTextTracking(currentPost.id, _supabase);
-                            }
-                        }
-                    };
-
-                    // Stop speech when leaving page
-                    window.addEventListener('beforeunload', () => {
-                        if (window.speechSynthesis) window.speechSynthesis.cancel();
+                    await new Promise(resolve => {
+                        let remaining = retrySeconds;
+                        const interval = setInterval(() => {
+                            remaining--;
+                            if (icon) icon.innerText = `⏳${remaining}с`;
+                            if (remaining <= 0) { clearInterval(interval); resolve(); }
+                        }, 1000);
                     });
 
-                    function subscribeToReactions(id) {
-                        if (!_supabase) return;
-                        _supabase.channel(`news-reactions-${id}`)
-                            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'news', filter: `id=eq.${id}` }, payload => {
-                                const data = payload.new;
-                                if (data) {
-                                    // Update all potential counters that might be on the page
-                                    Object.keys(REACTION_MAP).forEach(type => {
-                                        const elem = document.getElementById(`count-${type}`);
-                                        const dbField = type === 'like' ? 'likes' : type;
-                                        if (elem && data[dbField] !== undefined) {
-                                            elem.innerText = data[dbField] || 0;
-                                        }
-                                    });
-                                }
-                            })
-                            .subscribe();
-                    }
+                    if (isTtsPlaying) playNextCloudChunk();
+                    return;
+                }
 
-                    async function loadComments(postId) {
-                        const container = document.getElementById('comments-list');
-                        const countElem = document.getElementById('comments-count');
-                        if (!container) return;
+                if (!response.ok) {
+                    const err = await response.json().catch(() => ({ error: 'Unknown server error' }));
+                    throw new Error(err.error || `Server error ${response.status}`);
+                }
 
-                        try {
-                            const { data, error } = await _supabase
-                                .from('comments')
-                                .select('*')
-                                .eq('post_id', postId)
-                                .eq('is_approved', true)
-                                .order('created_at', { ascending: true });
+                const wavBuffer = await response.arrayBuffer();
+                const cachedUrl = response.headers.get('X-TTS-Cached-URL');
+                if (cachedUrl && currentPost) {
+                    currentPost.tts_audio_url = cachedUrl;
+                }
 
-                            if (error) throw error;
+                const blob = new Blob([wavBuffer], { type: 'audio/wav' });
+                const blobUrl = URL.createObjectURL(blob);
 
-                            if (countElem) countElem.innerText = data.length;
+                if (!cloudAudio) cloudAudio = new Audio();
+                else {
+                    cloudAudio.pause();
+                    if (cloudAudio.src.startsWith('blob:')) URL.revokeObjectURL(cloudAudio.src);
+                }
 
-                            if (data.length === 0) {
-                                container.innerHTML = '<div class="text-center py-10 text-slate-400 italic font-medium">Поки що немає коментарів. Будьте першим! 📣</div>';
-                                return;
+                cloudAudio.src = blobUrl;
+                cloudAudio.onended = () => {
+                    if (blobUrl.startsWith('blob:')) URL.revokeObjectURL(blobUrl);
+                    currentChunkIndex++;
+                    playNextCloudChunk();
+                };
+                cloudAudio.onerror = (e) => {
+                    console.error("Audio Playback Error:", e);
+                    stopTTS();
+                };
+
+                const icon = document.getElementById('tts-icon');
+                const ttsBtn = document.getElementById('tts-play-btn');
+                if (icon) icon.innerText = '⏸';
+                if (ttsBtn) { ttsBtn.style.opacity = ''; ttsBtn.style.pointerEvents = ''; }
+                cloudAudio.play().catch(e => {
+                    console.error("Playback Blocked:", e);
+                    stopTTS();
+                });
+
+            } catch (err) {
+                console.error("TTS Error:", err.message);
+                const icon = document.getElementById('tts-icon');
+                const ttsBtn = document.getElementById('tts-play-btn');
+                if (icon) icon.innerText = '▶';
+                if (ttsBtn) { ttsBtn.style.opacity = ''; ttsBtn.style.pointerEvents = ''; }
+                stopTTS();
+            }
+        }
+
+        window.stopTTS = () => {
+            const wasPlaying = isTtsPlaying;
+            try {
+                if (window.speechSynthesis) window.speechSynthesis.cancel();
+            } catch (e) { }
+            if (cloudAudio) {
+                cloudAudio.pause();
+                cloudAudio = null;
+            }
+            isTtsPlaying = false;
+            isTtsPaused = false;
+            isCloudMode = false;
+            cloudChunks = [];
+            currentChunkIndex = 0;
+
+            const icon = document.getElementById('tts-icon');
+            const anim = document.getElementById('tts-status-anim');
+            const ttsBtn = document.getElementById('tts-play-btn');
+            if (icon) icon.innerText = '▶';
+            if (anim) anim.classList.add('hidden');
+            if (ttsBtn) { ttsBtn.style.opacity = ''; ttsBtn.style.pointerEvents = ''; }
+
+            if (wasPlaying && window.BukvaAnalytics && currentPost) {
+                window.BukvaAnalytics.stopVoiceTracking(false, _supabase);
+                if (document.visibilityState !== 'hidden') {
+                    window.BukvaAnalytics.startTextTracking(currentPost.id, _supabase);
+                }
+            }
+        };
+
+        // Stop speech when leaving page
+        window.addEventListener('beforeunload', () => {
+            if (window.speechSynthesis) window.speechSynthesis.cancel();
+        });
+
+        function subscribeToReactions(id) {
+            if (!_supabase) return;
+            _supabase.channel(`news-reactions-${id}`)
+                .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'news', filter: `id=eq.${id}` }, payload => {
+                    const data = payload.new;
+                    if (data) {
+                        // Update all potential counters that might be on the page
+                        Object.keys(REACTION_MAP).forEach(type => {
+                            const elem = document.getElementById(`count-${type}`);
+                            const dbField = type === 'like' ? 'likes' : type;
+                            if (elem && data[dbField] !== undefined) {
+                                elem.innerText = data[dbField] || 0;
                             }
+                        });
+                    }
+                })
+                .subscribe();
+        }
 
-                            // Build comment tree
-                            const commentMap = {};
-                            const roots = [];
-                            data.forEach(c => {
-                                c.replies = [];
-                                commentMap[c.id] = c;
-                                if (c.parent_id) {
-                                    if (commentMap[c.parent_id]) commentMap[c.parent_id].replies.push(c);
-                                    else roots.push(c);
-                                } else {
-                                    roots.push(c);
-                                }
-                            });
+        async function loadComments(postId) {
+            const container = document.getElementById('comments-list');
+            const countElem = document.getElementById('comments-count');
+            if (!container) return;
 
-                            function renderComment(comment, depth = 0) {
-                                const isReply = depth > 0;
-                                return `
+            try {
+                const { data, error } = await _supabase
+                    .from('comments')
+                    .select('*')
+                    .eq('post_id', postId)
+                    .eq('is_approved', true)
+                    .order('created_at', { ascending: true });
+
+                if (error) throw error;
+
+                if (countElem) countElem.innerText = data.length;
+
+                if (data.length === 0) {
+                    container.innerHTML = '<div class="text-center py-10 text-slate-400 italic font-medium">Поки що немає коментарів. Будьте першим! 📣</div>';
+                    return;
+                }
+
+                // Build comment tree
+                const commentMap = {};
+                const roots = [];
+                data.forEach(c => {
+                    c.replies = [];
+                    commentMap[c.id] = c;
+                    if (c.parent_id) {
+                        if (commentMap[c.parent_id]) commentMap[c.parent_id].replies.push(c);
+                        else roots.push(c);
+                    } else {
+                        roots.push(c);
+                    }
+                });
+
+                function renderComment(comment, depth = 0) {
+                    const isReply = depth > 0;
+                    return `
                     <div class="${isReply ? 'ml-6 md:ml-12 mt-4 border-l-2 border-slate-100 pl-4 md:pl-8' : 'bg-slate-50 p-6 rounded-3xl border border-slate-100 mb-6'} transition hover:border-orange-200 group relative">
                         <div class="flex justify-between items-start mb-4">
                             <div>
@@ -1324,21 +1276,21 @@
                             ${comment.replies.map(r => renderComment(r, depth + 1)).join('')}
                         </div>
                     </div>`;
-                            }
+                }
 
-                            container.innerHTML = roots.reverse().map(c => renderComment(c)).join('');
-                        } catch (err) {
-                            console.error("Comments load error:", err);
-                            container.innerHTML = '<div class="text-center py-10 text-red-400 italic font-medium">Не вдалося завантажити коментарі.</div>';
-                        }
-                    }
+                container.innerHTML = roots.reverse().map(c => renderComment(c)).join('');
+            } catch (err) {
+                console.error("Comments load error:", err);
+                container.innerHTML = '<div class="text-center py-10 text-red-400 italic font-medium">Не вдалося завантажити коментарі.</div>';
+            }
+        }
 
-                    window.showReplyForm = (parentId) => {
-                        const container = document.getElementById(`reply-form-container-${parentId}`);
-                        if (!container) return;
+        window.showReplyForm = (parentId) => {
+            const container = document.getElementById(`reply-form-container-${parentId}`);
+            if (!container) return;
 
-                        if (!container.innerHTML) {
-                            container.innerHTML = `
+            if (!container.innerHTML) {
+                container.innerHTML = `
                     <div class="bg-white p-4 rounded-2xl border border-orange-100 shadow-sm mt-2">
                         <input type="text" id="reply-user-${parentId}" placeholder="Ваше ім'я" class="w-full bg-slate-50 border-0 rounded-xl px-4 py-2 text-sm font-bold mb-2 focus:ring-2 focus:ring-orange-500/20 transition">
                         <textarea id="reply-content-${parentId}" placeholder="Ваша відповідь..." class="w-full bg-slate-50 border-0 rounded-xl px-4 py-2 text-sm font-medium h-20 mb-2 focus:ring-2 focus:ring-orange-500/20 transition"></textarea>
@@ -1348,199 +1300,199 @@
                         </div>
                     </div>
                 `;
-                        }
-                        container.classList.toggle('hidden');
-                    };
+            }
+            container.classList.toggle('hidden');
+        };
 
-                    window.submitReply = async (parentId) => {
-                        const name = document.getElementById(`reply-user-${parentId}`);
-                        const content = document.getElementById(`reply-content-${parentId}`);
-                        const btn = document.getElementById(`btn-submit-reply-${parentId}`);
+        window.submitReply = async (parentId) => {
+            const name = document.getElementById(`reply-user-${parentId}`);
+            const content = document.getElementById(`reply-content-${parentId}`);
+            const btn = document.getElementById(`btn-submit-reply-${parentId}`);
 
-                        if (!name.value || !content.value) return;
+            if (!name.value || !content.value) return;
 
-                        btn.disabled = true;
-                        btn.innerText = "...";
+            btn.disabled = true;
+            btn.innerText = "...";
 
-                        try {
-                            const { error } = await _supabase.from('comments').insert([{
-                                post_id: currentPost.id,
-                                parent_id: parentId,
-                                user_name: name.value,
-                                content: content.value,
-                                is_approved: true
-                            }]);
-                            if (error) throw error;
+            try {
+                const { error } = await _supabase.from('comments').insert([{
+                    post_id: currentPost.id,
+                    parent_id: parentId,
+                    user_name: name.value,
+                    content: content.value,
+                    is_approved: true
+                }]);
+                if (error) throw error;
 
-                            name.value = '';
-                            content.value = '';
-                            document.getElementById(`reply-form-container-${parentId}`).classList.add('hidden');
-                            loadComments(currentPost.id);
-                        } catch (err) {
-                            alert(err.message);
-                        } finally {
-                            btn.disabled = false;
-                            btn.innerText = "ВІДПОВІСТИ";
-                        }
-                    };
+                name.value = '';
+                content.value = '';
+                document.getElementById(`reply-form-container-${parentId}`).classList.add('hidden');
+                loadComments(currentPost.id);
+            } catch (err) {
+                alert(err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "ВІДПОВІСТИ";
+            }
+        };
 
-                    async function handleCommentReaction(commentId, type) {
-                        const currentReaction = localStorage.getItem(`comment_reaction_${commentId}`);
+        async function handleCommentReaction(commentId, type) {
+            const currentReaction = localStorage.getItem(`comment_reaction_${commentId}`);
 
-                        // If same reaction clicked again, remove it
-                        if (currentReaction === type) {
-                            try {
-                                const { error } = await _supabase.rpc('update_comment_reaction', {
-                                    comment_id: commentId,
-                                    reaction_type: type,
-                                    delta: -1
-                                });
-                                if (error) throw error;
-                                localStorage.removeItem(`comment_reaction_${commentId}`);
-                                const countElem = document.getElementById(`comment-${type}-${commentId}`);
-                                if (countElem) countElem.innerText = Math.max(0, parseInt(countElem.innerText) - 1);
-                            } catch (err) { console.error(err); }
-                            return;
-                        }
+            // If same reaction clicked again, remove it
+            if (currentReaction === type) {
+                try {
+                    const { error } = await _supabase.rpc('update_comment_reaction', {
+                        comment_id: commentId,
+                        reaction_type: type,
+                        delta: -1
+                    });
+                    if (error) throw error;
+                    localStorage.removeItem(`comment_reaction_${commentId}`);
+                    const countElem = document.getElementById(`comment-${type}-${commentId}`);
+                    if (countElem) countElem.innerText = Math.max(0, parseInt(countElem.innerText) - 1);
+                } catch (err) { console.error(err); }
+                return;
+            }
 
-                        // If different reaction exists, remove old one first
-                        if (currentReaction) {
-                            try {
-                                await _supabase.rpc('update_comment_reaction', {
-                                    comment_id: commentId,
-                                    reaction_type: currentReaction,
-                                    delta: -1
-                                });
-                                const oldCountElem = document.getElementById(`comment-${currentReaction}-${commentId}`);
-                                if (oldCountElem) oldCountElem.innerText = Math.max(0, parseInt(oldCountElem.innerText) - 1);
-                            } catch (err) { console.error(err); }
-                        }
+            // If different reaction exists, remove old one first
+            if (currentReaction) {
+                try {
+                    await _supabase.rpc('update_comment_reaction', {
+                        comment_id: commentId,
+                        reaction_type: currentReaction,
+                        delta: -1
+                    });
+                    const oldCountElem = document.getElementById(`comment-${currentReaction}-${commentId}`);
+                    if (oldCountElem) oldCountElem.innerText = Math.max(0, parseInt(oldCountElem.innerText) - 1);
+                } catch (err) { console.error(err); }
+            }
 
-                        // Add new reaction
-                        try {
-                            const { error } = await _supabase.rpc('update_comment_reaction', {
-                                comment_id: commentId,
-                                reaction_type: type,
-                                delta: 1
-                            });
-                            if (error) throw error;
-                            localStorage.setItem(`comment_reaction_${commentId}`, type);
-                            const countElem = document.getElementById(`comment-${type}-${commentId}`);
-                            if (countElem) countElem.innerText = parseInt(countElem.innerText) + 1;
-                        } catch (err) { console.error(err); }
-                    }
+            // Add new reaction
+            try {
+                const { error } = await _supabase.rpc('update_comment_reaction', {
+                    comment_id: commentId,
+                    reaction_type: type,
+                    delta: 1
+                });
+                if (error) throw error;
+                localStorage.setItem(`comment_reaction_${commentId}`, type);
+                const countElem = document.getElementById(`comment-${type}-${commentId}`);
+                if (countElem) countElem.innerText = parseInt(countElem.innerText) + 1;
+            } catch (err) { console.error(err); }
+        }
 
-                    // Initialize Comment Form
-                    const commentForm = document.getElementById('comment-form');
-                    if (commentForm) {
-                        commentForm.addEventListener('submit', async (e) => {
-                            e.preventDefault();
-                            if (!currentPost) return;
+        // Initialize Comment Form
+        const commentForm = document.getElementById('comment-form');
+        if (commentForm) {
+            commentForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                if (!currentPost) return;
 
-                            const btn = document.getElementById('btn-submit-comment');
-                            const userName = document.getElementById('comment-user-name');
-                            const content = document.getElementById('comment-content');
+                const btn = document.getElementById('btn-submit-comment');
+                const userName = document.getElementById('comment-user-name');
+                const content = document.getElementById('comment-content');
 
-                            if (!userName.value || !content.value) return;
+                if (!userName.value || !content.value) return;
 
-                            btn.disabled = true;
-                            btn.innerText = 'Надсилаємо...';
+                btn.disabled = true;
+                btn.innerText = 'Надсилаємо...';
 
-                            try {
-                                const { error } = await _supabase.from('comments').insert([{
-                                    post_id: currentPost.id,
-                                    user_name: userName.value,
-                                    content: content.value,
-                                    is_approved: true
-                                }]);
-                                if (error) throw error;
+                try {
+                    const { error } = await _supabase.from('comments').insert([{
+                        post_id: currentPost.id,
+                        user_name: userName.value,
+                        content: content.value,
+                        is_approved: true
+                    }]);
+                    if (error) throw error;
 
-                                userName.value = '';
-                                content.value = '';
-                                loadComments(currentPost.id);
-                            } catch (err) {
-                                alert("Помилка: " + err.message);
-                            } finally {
-                                btn.disabled = false;
-                                btn.innerText = 'Надіслати';
-                            }
-                        });
-                    }
+                    userName.value = '';
+                    content.value = '';
+                    loadComments(currentPost.id);
+                } catch (err) {
+                    alert("Помилка: " + err.message);
+                } finally {
+                    btn.disabled = false;
+                    btn.innerText = 'Надіслати';
+                }
+            });
+        }
 
-                    window.handleReaction = async (e, type) => {
-                        if (!currentPost) return;
-                        const btn = e.currentTarget;
-                        const dbField = type === 'like' ? 'likes' : type;
-                        const currentReaction = localStorage.getItem(`reaction_${currentPost.id}`);
+        window.handleReaction = async (e, type) => {
+            if (!currentPost) return;
+            const btn = e.currentTarget;
+            const dbField = type === 'like' ? 'likes' : type;
+            const currentReaction = localStorage.getItem(`reaction_${currentPost.id}`);
 
-                        // If same reaction clicked again, remove it
-                        if (currentReaction === type) {
-                            try {
-                                const { error } = await _supabase.rpc('update_reaction', {
-                                    post_id: currentPost.id,
-                                    reaction_type: dbField,
-                                    delta: -1
-                                });
-                                if (error) throw error;
-                                localStorage.removeItem(`reaction_${currentPost.id}`);
-                                btn.classList.remove('bg-orange-600/20', 'border-orange-600');
+            // If same reaction clicked again, remove it
+            if (currentReaction === type) {
+                try {
+                    const { error } = await _supabase.rpc('update_reaction', {
+                        post_id: currentPost.id,
+                        reaction_type: dbField,
+                        delta: -1
+                    });
+                    if (error) throw error;
+                    localStorage.removeItem(`reaction_${currentPost.id}`);
+                    btn.classList.remove('bg-orange-600/20', 'border-orange-600');
 
-                                const countElem = document.getElementById(`count-${type}`);
-                                if (countElem) countElem.innerText = Math.max(0, parseInt(countElem.innerText) - 1);
-                            } catch (err) { console.error(err); }
-                            return;
-                        }
+                    const countElem = document.getElementById(`count-${type}`);
+                    if (countElem) countElem.innerText = Math.max(0, parseInt(countElem.innerText) - 1);
+                } catch (err) { console.error(err); }
+                return;
+            }
 
-                        // If different reaction exists, remove old one first
-                        if (currentReaction) {
-                            try {
-                                const oldField = currentReaction === 'like' ? 'likes' : currentReaction;
-                                await _supabase.rpc('update_reaction', {
-                                    post_id: currentPost.id,
-                                    reaction_type: oldField,
-                                    delta: -1
-                                });
+            // If different reaction exists, remove old one first
+            if (currentReaction) {
+                try {
+                    const oldField = currentReaction === 'like' ? 'likes' : currentReaction;
+                    await _supabase.rpc('update_reaction', {
+                        post_id: currentPost.id,
+                        reaction_type: oldField,
+                        delta: -1
+                    });
 
-                                const oldCountElem = document.getElementById(`count-${currentReaction}`);
-                                if (oldCountElem) oldCountElem.innerText = Math.max(0, parseInt(oldCountElem.innerText) - 1);
+                    const oldCountElem = document.getElementById(`count-${currentReaction}`);
+                    if (oldCountElem) oldCountElem.innerText = Math.max(0, parseInt(oldCountElem.innerText) - 1);
 
-                                document.querySelectorAll('.reaction-btn').forEach(b => b.classList.remove('bg-orange-600/20', 'border-orange-600'));
-                            } catch (err) { console.error(err); }
-                        }
+                    document.querySelectorAll('.reaction-btn').forEach(b => b.classList.remove('bg-orange-600/20', 'border-orange-600'));
+                } catch (err) { console.error(err); }
+            }
 
-                        // Add new reaction
-                        try {
-                            const { error } = await _supabase.rpc('update_reaction', {
-                                post_id: currentPost.id,
-                                reaction_type: dbField,
-                                delta: 1
-                            });
-                            if (error) throw error;
-                            localStorage.setItem(`reaction_${currentPost.id}`, type);
-                            btn.classList.add('bg-orange-600/20', 'border-orange-600');
+            // Add new reaction
+            try {
+                const { error } = await _supabase.rpc('update_reaction', {
+                    post_id: currentPost.id,
+                    reaction_type: dbField,
+                    delta: 1
+                });
+                if (error) throw error;
+                localStorage.setItem(`reaction_${currentPost.id}`, type);
+                btn.classList.add('bg-orange-600/20', 'border-orange-600');
 
-                            const countElem = document.getElementById(`count-${type}`);
-                            if (countElem) countElem.innerText = parseInt(countElem.innerText) + 1;
+                const countElem = document.getElementById(`count-${type}`);
+                if (countElem) countElem.innerText = parseInt(countElem.innerText) + 1;
 
-                            btn.style.transform = 'scale(1.2)';
-                            setTimeout(() => btn.style.transform = '', 200);
-                        } catch (err) { console.error(err); }
-                    };
+                btn.style.transform = 'scale(1.2)';
+                setTimeout(() => btn.style.transform = '', 200);
+            } catch (err) { console.error(err); }
+        };
 
-                    init();
-                    window.initSiteFooter && window.initSiteFooter(_supabase);
+        init();
+        window.initSiteFooter && window.initSiteFooter(_supabase);
 
-                    window.onpopstate = () => {
-                        document.getElementById('news-content').classList.add('hidden');
-                        document.getElementById('loader').classList.remove('hidden');
-                        loadFullNews();
-                    };
+        window.onpopstate = () => {
+            document.getElementById('news-content').classList.add('hidden');
+            document.getElementById('loader').classList.remove('hidden');
+            loadFullNews();
+        };
 
-                    window.onhashchange = () => {
-                        document.getElementById('news-content').classList.add('hidden');
-                        document.getElementById('loader').classList.remove('hidden');
-                        loadFullNews();
-                    };
+        window.onhashchange = () => {
+            document.getElementById('news-content').classList.add('hidden');
+            document.getElementById('loader').classList.remove('hidden');
+            loadFullNews();
+        };
     </script>
 </body>
 
