@@ -39,16 +39,12 @@ module.exports = async (req, res) => {
 
 
     // --- AI CONTENT GENERATION LOGIC ---
-    if (!title || !content) {
-        return res.status(400).json({ error: 'Title and content are required' });
-    }
-
-    const cleanText = content.replace(/<[^>]*>/g, ' ').trim();
+    const cleanText = (content || '').replace(/<[^>]*>/g, ' ').trim();
 
     async function tryGemini(promptText, maxTokens, temperature) {
         if (!activeApiKey) {
-            console.error('API/AI: No GEMINI_API_KEY provided in env or explicitly from client.');
-            return { ok: false, data: { error: 'Не задано API ключ для Gemini (ні на сервері, ні в налаштуваннях).' } };
+            console.error('API/AI: No GEMINI_API_KEY provided.');
+            return { ok: false, data: { error: { message: 'Не задано API ключ для Gemini. Збережіть ключ у Налаштуваннях → AI Конфігурація.' } } };
         }
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${activeApiKey}`;
         try {
@@ -64,6 +60,7 @@ module.exports = async (req, res) => {
 
             // Fallback to flash-lite if needed
             if (!response.ok || !data.candidates) {
+                console.error('Primary model failed:', response.status, data?.error?.message);
                 const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${activeApiKey}`;
                 const fallbackResponse = await fetch(fallbackUrl, {
                     method: 'POST',
@@ -74,6 +71,7 @@ module.exports = async (req, res) => {
                     })
                 });
                 const fallbackData = await fallbackResponse.json().catch(() => ({}));
+                console.error('Fallback result:', fallbackResponse.status, fallbackData?.error?.message);
                 return { ok: fallbackResponse.ok, data: fallbackData };
             }
 
@@ -85,6 +83,10 @@ module.exports = async (req, res) => {
 
     // --- GENERATE FACEBOOK POST ---
     if (action === 'generate-fb') {
+        if (!title) {
+            return res.status(400).json({ error: 'Заголовок статті обов\'язковий для генерації FB поста.' });
+        }
+        const fbContent = cleanText || title;
         const prompt = `Ти — професійний редактор українського новинного видання "BUKVA NEWS". Твоє завдання — написати ДУЖЕ КОРОТКЕ прев'ю до статті для Facebook.
 
 Вимоги:
@@ -96,14 +98,15 @@ module.exports = async (req, res) => {
 
 Оригінальний заголовок: ${title}
 Текст статті:
-${cleanText}
+${fbContent}
 
 ВАЖЛИВО: Поверни тільки готовий текст поста (1-2 речення + короткий заклик перейти за посиланням нижче + хештеги). Жодних URL в тексті!`;
 
         const { ok, data } = await tryGemini(prompt, 2048, 0.8);
         if (!ok || !data.candidates) {
-            console.error("Gemini FB Gen Error:", JSON.stringify(data));
-            return res.status(500).json({ error: "Помилка Gemini API: " + (data?.error?.message || data?.error || JSON.stringify(data)) });
+            const errMsg = data?.error?.message || data?.error || JSON.stringify(data);
+            console.error("Gemini FB Gen Error:", errMsg);
+            return res.status(500).json({ error: "Помилка Gemini API: " + errMsg });
         }
         return res.status(200).json({ text: data.candidates[0].content.parts[0].text.trim() });
     }
