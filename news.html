@@ -671,6 +671,11 @@
                 if (loader) loader.classList.add('hidden');
                 document.getElementById('news-content').classList.remove('hidden');
 
+                // Start Text Analytics Tracking
+                if (window.BukvaAnalytics) {
+                    window.BukvaAnalytics.startTextTracking(data.id, _supabase);
+                }
+
                 const viewedKey = `viewed_${data.id}`;
                 if (!sessionStorage.getItem(viewedKey)) {
                     await _supabase.rpc('increment_views', { post_id: data.id });
@@ -750,6 +755,11 @@
 
                 if (loader) loader.classList.add('hidden');
                 document.getElementById('news-content').classList.remove('hidden');
+
+                // Start Text Analytics Tracking
+                if (window.BukvaAnalytics) {
+                    window.BukvaAnalytics.startTextTracking(data.id, _supabase);
+                }
 
                 const viewedKey = `viewed_${data.id}`;
                 if (!sessionStorage.getItem(viewedKey)) {
@@ -1452,6 +1462,7 @@
             loadFullNews();
         };
     </script>
+    <script src="/components/analytics.js"></script>
 </body>
 
 </html>
