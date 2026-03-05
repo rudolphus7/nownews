@@ -112,11 +112,16 @@ module.exports = async (req, res) => {
 
         try {
             const webhookUrl = 'https://hook.eu2.make.com/ryu7i1m6rr64jqclnhjta2fynlje792j';
+            const { imageUrl } = req.body;
 
             const response = await fetch(webhookUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: message, articleUrl: articleUrl })
+                body: JSON.stringify({
+                    message,
+                    articleUrl: articleUrl || '',
+                    imageUrl: imageUrl || ''
+                })
             });
 
             if (!response.ok) {

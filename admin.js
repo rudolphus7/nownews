@@ -322,10 +322,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     articleUrl += `news/?slug=${slug}`;
                 }
 
+                const imageUrl = document.getElementById('image_url')?.value || "";
+
                 const response = await fetch('/api/ai', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'post-facebook', message: text, articleUrl })
+                    body: JSON.stringify({ action: 'post-facebook', message: text, articleUrl, imageUrl })
                 });
 
                 const data = await response.json();
@@ -352,77 +354,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 fbStatusIcon.innerText = '❌';
                 fbStatusText.innerText = 'Помилка';
                 btnPublishFb.disabled = false;
-            }
-        });
-    }
-
-    // --- INSTAGRAM AUTO-POSTING ---
-    const btnPublishIg = document.getElementById('btn-publish-ig');
-    const igStatusIcon = document.getElementById('ig-status-icon');
-    const igStatusText = document.getElementById('ig-status-text');
-
-    if (btnPublishIg && fbPostText) {
-        btnPublishIg.addEventListener('click', async () => {
-            const text = fbPostText.value.trim();
-            if (!text) {
-                alert("Спочатку згенеруйте або напишіть текст поста!");
-                return;
-            }
-
-            const imageUrl = document.getElementById('image_url')?.value || "";
-            if (!imageUrl) {
-                alert("⚠️ Для Instagram потрібне фото! Вкажіть URL головного фото статті.");
-                return;
-            }
-
-            if (!confirm("Опублікувати цей пост в Instagram прямо зараз?\n\n‼️ ВАЖЛИВО: Переконайтеся, що стаття вже опублікована на сайті та фото доступне за вказаним URL!")) {
-                return;
-            }
-
-            btnPublishIg.disabled = true;
-            if (igStatusIcon) igStatusIcon.innerText = '⏳';
-
-            try {
-                const slug = document.getElementById('slug')?.value || "";
-                const city = document.getElementById('city')?.value || "";
-                let articleUrl = "https://bukva.news/";
-                if (city) {
-                    articleUrl += `${city}/${slug}/`;
-                } else if (slug) {
-                    articleUrl += `news/?slug=${slug}`;
-                }
-
-                const response = await fetch('/api/ai', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'post-instagram',
-                        message: text,
-                        imageUrl,
-                        articleUrl
-                    })
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    if (igStatusIcon) igStatusIcon.innerText = '✅';
-                    if (igStatusText) igStatusText.innerText = 'Успішно опубліковано!';
-
-                    setTimeout(() => {
-                        if (igStatusIcon) igStatusIcon.innerText = '📸';
-                        if (igStatusText) igStatusText.innerText = 'Опублікувати в Instagram';
-                        btnPublishIg.disabled = false;
-                    }, 5000);
-                } else {
-                    throw new Error(data.error || "Помилка API Instagram");
-                }
-            } catch (err) {
-                console.error("Instagram Post error:", err);
-                alert("Помилка публікації в Instagram: " + err.message);
-                if (igStatusIcon) igStatusIcon.innerText = '❌';
-                if (igStatusText) igStatusText.innerText = 'Помилка';
-                btnPublishIg.disabled = false;
             }
         });
     }
