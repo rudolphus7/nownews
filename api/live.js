@@ -6,7 +6,7 @@ const SUPABASE_KEY = process.env.SUPABASE_KEY || 'sb_publishable_L4_HhLhbj_m6wbE
 const SITE_URL = process.env.SITE_URL || 'https://ifnews-omega.vercel.app';
 
 module.exports = async (req, res) => {
-    let id = req.query.id;
+    let id = req.query.track || req.query.id;
     if (Array.isArray(id)) id = id[0];
 
     console.log('Live SSR Request:', { url: req.url, id });
@@ -54,22 +54,22 @@ module.exports = async (req, res) => {
             return res.status(200).send(htmlContent);
         }
 
-        const news = await response.json();
+        const news = await response.json()[0]; // Supabase returns an array even for eq
 
         if (!news || Object.keys(news).length === 0) {
             res.setHeader('Content-Type', 'text/html; charset=utf-8');
             return res.status(200).send(htmlContent);
         }
 
-        const title = `${news.title} • Голосові новини | BUKVA NEWS`;
-        const description = (news.meta_description || news.content || 'Слухайте новини BUKVA NEWS у форматі аудіо-подкасту.')
-            .replace(/<[^>]*>/g, '')
-            .replace(/\s+/g, ' ')
-            .trim()
-            .substring(0, 160);
+        const title = `🔊 ${news.title} • Голосові новини BUKVA NEWS`;
+        let description = 'Слухайте новини BUKVA NEWS у форматі аудіо-подкасту.';
+        if (news.meta_description) description = news.meta_description;
+        else if (news.content) description = news.content.replace(/<[^>]*>/g, '').substring(0, 160) + '...';
+
+        description = description.replace(/\s+/g, ' ').trim();
 
         const image = news.image_url || `${SITE_URL}/og-default.jpg`;
-        const canonicalUrl = `${SITE_URL}/live/?id=${news.id}`;
+        const canonicalUrl = `${SITE_URL}/live/?track=${news.id}`;
 
         // Dynamic Meta Tags
         const metaTags = `
