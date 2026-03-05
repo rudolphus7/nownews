@@ -5,7 +5,10 @@ module.exports = async (req, res) => {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    const { action, title, content, articleUrl, message } = req.body;
+    const { action, title, content, articleUrl, message, apiKey } = req.body;
+
+    // Resolve which API key to use (backend env var or passed from client)
+    const activeApiKey = process.env.GEMINI_API_KEY || apiKey;
 
     // --- FACEBOOK PUBLISHING LOGIC (VIA MAKE.COM) ---
     if (action === 'post-facebook') {
@@ -43,11 +46,11 @@ module.exports = async (req, res) => {
     const cleanText = content.replace(/<[^>]*>/g, ' ').trim();
 
     async function tryGemini(promptText, maxTokens, temperature) {
-        if (!GEMINI_API_KEY) {
-            console.error('API/AI: GEMINI_API_KEY is not set in environment variables (likely testing locally).');
-            return { ok: false, data: { error: 'GEMINI_API_KEY not set' } };
+        if (!activeApiKey) {
+            console.error('API/AI: No GEMINI_API_KEY provided in env or explicitly from client.');
+            return { ok: false, data: { error: 'Не задано API ключ для Gemini (ні на сервері, ні в налаштуваннях).' } };
         }
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${activeApiKey}`;
         try {
             const response = await fetch(url, {
                 method: 'POST',
@@ -61,7 +64,7 @@ module.exports = async (req, res) => {
 
             // Fallback to flash-lite if needed
             if (!response.ok || !data.candidates) {
-                const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${GEMINI_API_KEY}`;
+                const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${activeApiKey}`;
                 const fallbackResponse = await fetch(fallbackUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -98,7 +101,10 @@ ${cleanText}
 ВАЖЛИВО: Поверни тільки готовий текст поста (1-2 речення + короткий заклик перейти за посиланням нижче + хештеги). Жодних URL в тексті!`;
 
         const { ok, data } = await tryGemini(prompt, 2048, 0.8);
-        if (!ok || !data.candidates) return res.status(500).json({ error: "Помилка AI. Спробуйте ще раз." });
+        if (!ok || !data.candidates) {
+            console.error("Gemini FB Gen Error:", JSON.stringify(data));
+            return res.status(500).json({ error: "Помилка Gemini API: " + (data?.error?.message || data?.error || JSON.stringify(data)) });
+        }
         return res.status(200).json({ text: data.candidates[0].content.parts[0].text.trim() });
     }
 

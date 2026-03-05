@@ -269,10 +269,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     articleUrl += `news/?slug=${slug}`;
                 }
 
+                // Get local key for fallback
+                const localKey = localStorage.getItem('gemini_api_key') || "";
+
                 const response = await fetch('/api/ai', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'generate-fb', title, content, articleUrl })
+                    body: JSON.stringify({ action: 'generate-fb', title, content, articleUrl, apiKey: localKey })
                 });
 
                 const data = await response.json();
@@ -824,10 +827,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // 1. Спроба через серверний проксі (працює на Vercel)
             try {
+                const localKey = localStorage.getItem('gemini_api_key') || "";
+
                 const response = await fetch('/api/ai', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ title: currentTitle, content: currentHtml })
+                    body: JSON.stringify({ title: currentTitle, content: currentHtml, apiKey: localKey })
                 });
 
                 const data = await response.json().catch(() => ({}));
