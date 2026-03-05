@@ -810,7 +810,7 @@ document.addEventListener('DOMContentLoaded', () => {
    - Ключові слова (місто, подія) став на початок.
    - Уникай клікбейту, інтриг та "жовтого" стилю.
    - Усі дати пиши виключно цифрами (наприклад: "25 лютого" замість "Двадцять п'ятого лютого").
-   - ВАЖЛИВА ВИМОГА: Жодних згадок про те, що це написав штучний інтелект або "ШІ"! Ти — справжній живий журналіст редакції BUKVA NEWS.
+   - ВАЖЛИВА ВИМОГА: Жодних згадок про те, що це написав штучний інтелект або "ШІ"! Ти — справжній живий журналіст редакції BUKVA NEWS. Категорично заборонено дописувати фрази типу "Матеріал відредаговано за допомогою ШІ".
 2. Далі — текст у форматі HTML (p, h2, strong).
 3. В кінці підпис: <p><br></p><hr><p><strong>Матеріал підготовано командою "BUKVA NEWS"</strong></p>
 
@@ -902,7 +902,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 resultData = {
                     title: rewrittenTitle,
                     content: (formattedBody.startsWith('<p') ? formattedBody : '<p>' + formattedBody + '</p>') +
-                        `<p><br></p><hr><p><strong>Матеріал відредаговано за допомогою ШІ для "BUKVA NEWS".</strong></p>`
+                        `<p><br></p><hr><p><strong>Матеріал підготовано командою "BUKVA NEWS"</strong></p>`
                 };
                 console.log("AI result from Direct Client call");
             }
