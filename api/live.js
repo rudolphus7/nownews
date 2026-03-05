@@ -62,7 +62,7 @@ module.exports = async (req, res) => {
         }
 
         const title = `🔊 ${news.title} • Голосові новини BUKVA NEWS`;
-        let description = 'Слухайте новини BUKVA NEWS у форматі аудіо-подкасту.';
+        let description = 'BUKVA NEWS — голосом диктора. Слухайте по дорозі — без рук, без зупинок.';
         if (news.meta_description) description = news.meta_description;
         else if (news.content) description = news.content.replace(/<[^>]*>/g, '').substring(0, 160) + '...';
 
