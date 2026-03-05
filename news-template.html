@@ -1399,6 +1399,12 @@
             // Reset any previous state
             stopTTS();
 
+            // Immediately switch analytics: stop text tracking, start voice tracking
+            if (window.BukvaAnalytics && currentPost) {
+                window.BukvaAnalytics.stopTextTracking();
+                window.BukvaAnalytics.startVoiceTracking(currentPost.id, _supabase);
+            }
+
             // On mobile, always use Cloud TTS (browser voice sounds robotic on phones)
             const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 

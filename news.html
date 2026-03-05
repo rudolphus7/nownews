@@ -1294,6 +1294,12 @@
             // Reset any previous state
             stopTTS();
 
+            // Immediately switch analytics: stop text tracking, start voice tracking
+            if (window.BukvaAnalytics && currentPost) {
+                window.BukvaAnalytics.stopTextTracking();
+                window.BukvaAnalytics.startVoiceTracking(currentPost.id, _supabase);
+            }
+
             // On mobile, always use Cloud TTS (browser voice sounds robotic on phones)
             const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
@@ -1325,10 +1331,6 @@
                 ttsUtterance.onstart = () => {
                     isTtsPlaying = true;
                     isTtsPaused = false;
-                    if (window.BukvaAnalytics && currentPost) {
-                        window.BukvaAnalytics.stopTextTracking();
-                        window.BukvaAnalytics.startVoiceTracking(currentPost.id, _supabase);
-                    }
                 };
                 ttsUtterance.onend = () => { stopTTS(); };
                 ttsUtterance.onerror = () => { stopTTS(); };
@@ -1352,12 +1354,6 @@
 
                 if (cloudAudio) cloudAudio.pause();
                 cloudAudio = new Audio(currentPost.tts_audio_url);
-                cloudAudio.onplay = () => {
-                    if (window.BukvaAnalytics && currentPost) {
-                        window.BukvaAnalytics.stopTextTracking();
-                        window.BukvaAnalytics.startVoiceTracking(currentPost.id, _supabase);
-                    }
-                };
                 cloudAudio.onended = () => { stopTTS(); };
                 cloudAudio.onerror = (e) => {
                     console.error("Cached Audio Error:", e);
@@ -1426,12 +1422,6 @@
                 }
 
                 cloudAudio = new Audio(blobUrl);
-                cloudAudio.onplay = () => {
-                    if (window.BukvaAnalytics && currentPost) {
-                        window.BukvaAnalytics.stopTextTracking();
-                        window.BukvaAnalytics.startVoiceTracking(currentPost.id, _supabase);
-                    }
-                };
                 cloudAudio.onended = () => {
                     if (blobUrl.startsWith('blob:')) URL.revokeObjectURL(blobUrl);
                     currentChunkIndex++;
