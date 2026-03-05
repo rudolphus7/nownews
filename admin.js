@@ -280,7 +280,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const data = await response.json();
                 if (response.ok && data.text) {
-                    fbPostText.value = data.text;
+                    // Append article URL to post text so it's visible and copyable
+                    const postText = articleUrl && articleUrl !== "https://bukva.news/"
+                        ? data.text + "\n\n" + articleUrl
+                        : data.text;
+                    fbPostText.value = postText;
                 } else {
                     alert("Помилка генерації AI: " + (data.error || "Невідома помилка"));
                 }
