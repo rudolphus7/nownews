@@ -1370,119 +1370,214 @@ document.addEventListener('DOMContentLoaded', () => {
     window.loadAnalytics = async () => {
         if (!_supabase) return;
 
-        // Reset UI
-        document.getElementById('stat-text-users').innerText = '...';
-        document.getElementById('stat-text-time').innerText = '...';
-        document.getElementById('stat-text-per-session').innerText = '...';
-
-        document.getElementById('stat-voice-users').innerText = '...';
-        document.getElementById('stat-voice-time').innerText = '...';
-        document.getElementById('stat-voice-per-session').innerText = '...';
-
-        document.getElementById('analytics-text-table').innerHTML = '<tr><td colspan="3" class="p-6 text-center text-slate-400 italic">Завантаження даних...</td></tr>';
-        document.getElementById('analytics-voice-table').innerHTML = '<tr><td colspan="3" class="p-6 text-center text-slate-400 italic">Завантаження даних...</td></tr>';
+        ['stat-text-users', 'stat-text-time', 'stat-text-per-session',
+            'stat-voice-users', 'stat-voice-time', 'stat-voice-per-session'].forEach(id => {
+                const el = document.getElementById(id); if (el) el.innerText = '...';
+            });
+        ['analytics-text-table', 'analytics-voice-table'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.innerHTML = '<tr><td colspan="4" class="p-6 text-center text-slate-400 italic">Завантаження...</td></tr>';
+        });
 
         try {
             const { data: events, error } = await _supabase.from('analytics_events').select('*');
             if (error) throw error;
 
             if (!events || events.length === 0) {
-                document.getElementById('analytics-text-table').innerHTML = '<tr><td colspan="3" class="p-6 text-center text-slate-400 italic">Немає зібраних даних</td></tr>';
-                document.getElementById('analytics-voice-table').innerHTML = '<tr><td colspan="3" class="p-6 text-center text-slate-400 italic">Немає зібраних даних</td></tr>';
+                ['analytics-text-table', 'analytics-voice-table'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.innerHTML = '<tr><td colspan="4" class="p-6 text-center text-slate-400 italic">Немає даних</td></tr>';
+                });
                 return;
             }
 
             const textEvents = events.filter(e => e.event_type === 'text_news_view');
             const voiceEvents = events.filter(e => e.event_type === 'voice_news_listen');
 
-            // --- TEXT METRICS ---
+            // ── TEXT METRICS
             const textSessions = new Set(textEvents.map(e => e.session_id)).size;
-            document.getElementById('stat-text-users').innerText = textSessions;
-
+            const el_tu = document.getElementById('stat-text-users');
+            const el_tt = document.getElementById('stat-text-time');
+            const el_tp = document.getElementById('stat-text-per-session');
+            if (el_tu) el_tu.innerText = textSessions;
             if (textEvents.length > 0) {
-                const totalTextTime = textEvents.reduce((acc, curr) => acc + (curr.duration_seconds || 0), 0);
-                document.getElementById('stat-text-time').innerText = Math.round(totalTextTime / textEvents.length) + ' сек.';
-                document.getElementById('stat-text-per-session').innerText = (textEvents.length / (textSessions || 1)).toFixed(1);
+                const totalT = textEvents.reduce((a, c) => a + (c.duration_seconds || 0), 0);
+                if (el_tt) el_tt.innerText = Math.round(totalT / textEvents.length) + ' сек.';
+                if (el_tp) el_tp.innerText = (textEvents.length / (textSessions || 1)).toFixed(1);
             } else {
-                document.getElementById('stat-text-time').innerText = '0 сек.';
-                document.getElementById('stat-text-per-session').innerText = '0';
+                if (el_tt) el_tt.innerText = '0 сек.';
+                if (el_tp) el_tp.innerText = '0';
+            }
+
+            // Scroll Depth gauge
+            const scrollEl = document.getElementById('stat-text-scroll');
+            if (scrollEl && textEvents.length > 0) {
+                const avgScroll = Math.round(textEvents.reduce((a, c) => a + (c.scroll_depth || 0), 0) / textEvents.length);
+                scrollEl.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <div class="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden">
+                            <div class="h-full bg-orange-500 rounded-full" style="width:${avgScroll}%"></div>
+                        </div>
+                        <span class="font-black text-slate-800 text-sm w-12 text-right">${avgScroll}%</span>
+                    </div>`;
             }
 
             // Top Text Articles
-            const textArticleStats = {};
+            const textStats = {};
             textEvents.forEach(e => {
                 if (!e.target_id) return;
-                if (!textArticleStats[e.target_id]) textArticleStats[e.target_id] = { views: 0, time: 0 };
-                textArticleStats[e.target_id].views += 1;
-                textArticleStats[e.target_id].time += (e.duration_seconds || 0);
+                if (!textStats[e.target_id]) textStats[e.target_id] = { views: 0, time: 0, scroll: 0 };
+                textStats[e.target_id].views++;
+                textStats[e.target_id].time += (e.duration_seconds || 0);
+                textStats[e.target_id].scroll += (e.scroll_depth || 0);
             });
+            const topText = Object.entries(textStats)
+                .map(([id, s]) => ({ id, views: s.views, avgTime: Math.round(s.time / s.views), avgScroll: Math.round(s.scroll / s.views) }))
+                .sort((a, b) => b.views - a.views).slice(0, 7);
+            await renderAnalyticsTable(topText, 'analytics-text-table', 'text');
 
-            const topText = Object.keys(textArticleStats).map(id => ({
-                id,
-                views: textArticleStats[id].views,
-                avgTime: Math.round(textArticleStats[id].time / textArticleStats[id].views)
-            })).sort((a, b) => b.views - a.views).slice(0, 5);
-
-            await renderTopAnalyticsTable(topText, 'analytics-text-table');
-
-            // --- VOICE METRICS ---
+            // ── VOICE METRICS
             const voiceSessions = new Set(voiceEvents.map(e => e.session_id)).size;
-            document.getElementById('stat-voice-users').innerText = voiceSessions;
-
+            const el_vu = document.getElementById('stat-voice-users');
+            const el_vt = document.getElementById('stat-voice-time');
+            const el_vp = document.getElementById('stat-voice-per-session');
+            if (el_vu) el_vu.innerText = voiceSessions;
             if (voiceEvents.length > 0) {
-                const totalVoiceTime = voiceEvents.reduce((acc, curr) => acc + (curr.duration_seconds || 0), 0);
-                document.getElementById('stat-voice-time').innerText = Math.round(totalVoiceTime / voiceEvents.length) + ' сек.';
-                document.getElementById('stat-voice-per-session').innerText = (voiceEvents.length / (voiceSessions || 1)).toFixed(1);
+                const totalV = voiceEvents.reduce((a, c) => a + (c.duration_seconds || 0), 0);
+                if (el_vt) el_vt.innerText = Math.round(totalV / voiceEvents.length) + ' сек.';
+                if (el_vp) el_vp.innerText = (voiceEvents.length / (voiceSessions || 1)).toFixed(1);
             } else {
-                document.getElementById('stat-voice-time').innerText = '0 сек.';
-                document.getElementById('stat-voice-per-session').innerText = '0';
+                if (el_vt) el_vt.innerText = '0 сек.';
+                if (el_vp) el_vp.innerText = '0';
+            }
+
+            // Audio Completion Rate
+            const compEl = document.getElementById('stat-voice-completion');
+            if (compEl && voiceEvents.length > 0) {
+                const withPct = voiceEvents.filter(e => (e.completion_pct || 0) > 0);
+                const avgComp = withPct.length > 0 ? Math.round(withPct.reduce((a, c) => a + c.completion_pct, 0) / withPct.length) : 0;
+                const finished = voiceEvents.filter(e => (e.completion_pct || 0) >= 95).length;
+                const finishedPct = Math.round((finished / voiceEvents.length) * 100);
+                compEl.innerHTML = `
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden">
+                            <div class="h-full bg-indigo-500 rounded-full" style="width:${avgComp}%"></div>
+                        </div>
+                        <span class="font-black text-slate-800 text-sm w-12 text-right">${avgComp}%</span>
+                    </div>
+                    <p class="text-xs text-slate-400"><span class="font-bold text-indigo-600">${finishedPct}%</span> слухачів дослухали до кінця</p>`;
             }
 
             // Top Voice Articles
-            const voiceArticleStats = {};
+            const voiceStats = {};
             voiceEvents.forEach(e => {
                 if (!e.target_id) return;
-                if (!voiceArticleStats[e.target_id]) voiceArticleStats[e.target_id] = { views: 0, time: 0 };
-                voiceArticleStats[e.target_id].views += 1;
-                voiceArticleStats[e.target_id].time += (e.duration_seconds || 0);
+                if (!voiceStats[e.target_id]) voiceStats[e.target_id] = { views: 0, time: 0, comp: 0, compCount: 0 };
+                voiceStats[e.target_id].views++;
+                voiceStats[e.target_id].time += (e.duration_seconds || 0);
+                if ((e.completion_pct || 0) > 0) {
+                    voiceStats[e.target_id].comp += e.completion_pct;
+                    voiceStats[e.target_id].compCount++;
+                }
             });
+            const topVoice = Object.entries(voiceStats)
+                .map(([id, s]) => ({ id, views: s.views, avgTime: Math.round(s.time / s.views), avgComp: s.compCount > 0 ? Math.round(s.comp / s.compCount) : 0 }))
+                .sort((a, b) => b.views - a.views).slice(0, 7);
+            await renderAnalyticsTable(topVoice, 'analytics-voice-table', 'voice');
 
-            const topVoice = Object.keys(voiceArticleStats).map(id => ({
-                id,
-                views: voiceArticleStats[id].views,
-                avgTime: Math.round(voiceArticleStats[id].time / voiceArticleStats[id].views)
-            })).sort((a, b) => b.views - a.views).slice(0, 5);
+            // ── DEVICE BREAKDOWN
+            renderDeviceStats(events);
 
-            await renderTopAnalyticsTable(topVoice, 'analytics-voice-table');
+            // ── GEO STATS
+            renderGeoStats(events);
 
         } catch (err) {
-            console.error('Error loading analytics:', err);
-            alert('Помилка завантаження бази аналітики. Перевірте консоль.');
+            console.error('Analytics load error:', err);
         }
     };
 
-    async function renderTopAnalyticsTable(topData, tableId) {
-        const tbody = document.getElementById(tableId);
-        if (!tbody) return;
 
-        if (topData.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="3" class="p-6 text-center text-slate-400 italic">Незрозуміло яку статтю читали</td></tr>';
+    function renderDeviceStats(events) {
+        const el = document.getElementById('analytics-device-chart');
+        if (!el) return;
+        const counts = { mobile: 0, desktop: 0, tablet: 0 };
+        events.forEach(e => {
+            const d = (e.device_type || 'desktop').toLowerCase();
+            if (counts[d] !== undefined) counts[d]++; else counts.desktop++;
+        });
+        const total = events.length || 1;
+        el.innerHTML = [
+            { key: 'mobile', label: '📱 Мобільний', color: 'bg-orange-500' },
+            { key: 'desktop', label: '💻 Десктоп', color: 'bg-indigo-500' },
+            { key: 'tablet', label: '📙 Планшет', color: 'bg-emerald-500' }
+        ].map(({ key, label, color }) => {
+            const pct = Math.round((counts[key] / total) * 100);
+            return `
+                <div>
+                    <div class="flex justify-between text-xs mb-1">
+                        <span class="font-bold text-slate-700">${label}</span>
+                        <span class="font-black text-slate-800">${pct}% <span class="text-slate-400 font-normal">(${counts[key]})</span></span>
+                    </div>
+                    <div class="h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                        <div class="h-full ${color} rounded-full" style="width:${pct}%"></div>
+                    </div>
+                </div>`;
+        }).join('');
+    }
+
+    function renderGeoStats(events) {
+        const el = document.getElementById('analytics-geo-list');
+        if (!el) return;
+        const cities = {};
+        events.forEach(e => {
+            const city = (e.geo_city || '').trim();
+            if (city) cities[city] = (cities[city] || 0) + 1;
+        });
+        const sorted = Object.entries(cities).sort((a, b) => b[1] - a[1]).slice(0, 10);
+        if (sorted.length === 0) {
+            el.innerHTML = '<p class="text-slate-400 text-sm italic">Поки немає гео-даних. Зʼявляться при нових переглядах.</p>';
             return;
         }
+        const maxVal = sorted[0][1];
+        el.innerHTML = sorted.map(([city, count], i) => {
+            const pct = Math.round((count / maxVal) * 100);
+            const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`;
+            return `
+                <div>
+                    <div class="flex justify-between text-xs mb-1">
+                        <span class="font-bold text-slate-700">${medal} ${city}</span>
+                        <span class="font-black text-orange-600">${count}</span>
+                    </div>
+                    <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <div class="h-full bg-orange-400 rounded-full" style="width:${pct}%"></div>
+                    </div>
+                </div>`;
+        }).join('');
+    }
 
-        // Needs title lookup
+    async function renderAnalyticsTable(topData, tableId, type) {
+        const tbody = document.getElementById(tableId);
+        if (!tbody) return;
+        if (topData.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="p-6 text-center text-slate-400 italic">Немає даних</td></tr>';
+            return;
+        }
         const ids = topData.map(d => d.id);
         const { data: newsItems } = await _supabase.from('news').select('id, title').in('id', ids);
         const titleMap = {};
         if (newsItems) newsItems.forEach(n => titleMap[n.id] = n.title);
-
-        tbody.innerHTML = topData.map(item => `
-            <tr class="border-b hover:bg-slate-50 transition group">
-                <td class="p-4 font-bold text-slate-800 text-xs">${titleMap[item.id] || 'Невідома Стаття (' + item.id.substring(0, 6) + '...)'}</td>
-                <td class="p-4 text-center text-slate-500 font-mono font-bold text-sm bg-slate-50">${item.views}</td>
-                <td class="p-4 text-right text-orange-600 font-black text-sm">${item.avgTime} с</td>
-            </tr>
-        `).join('');
+        tbody.innerHTML = topData.map(item => {
+            const extraCol = type === 'text'
+                ? `<td class="p-4 text-center font-bold text-emerald-600 text-sm">${item.avgScroll}%</td>`
+                : `<td class="p-4 text-center font-bold text-indigo-600 text-sm">${item.avgComp}%</td>`;
+            return `
+                <tr class="border-b hover:bg-slate-50 transition">
+                    <td class="p-4 font-bold text-slate-800 text-xs">${titleMap[item.id] || 'Стаття (' + item.id.substring(0, 6) + '...)'}</td>
+                    <td class="p-4 text-center text-slate-500 font-mono font-bold text-sm bg-slate-50">${item.views}</td>
+                    <td class="p-4 text-center text-orange-600 font-black text-sm">${item.avgTime}с</td>
+                    ${extraCol}
+                </tr>`;
+        }).join('');
     }
 
     // --- НАЛАШТУВАННЯ (РУБРИКИ ТА МІСТА) ---

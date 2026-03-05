@@ -1,105 +1,138 @@
 /**
- * BUKVA NEWS Analytics Module
- * Handles session generation and tracking text/voice news consumption.
+ * BUKVA NEWS Analytics Module v2
+ * Tracks: text reading, voice listening, device type, geo city, scroll depth, audio completion
  */
 
-// 1. Session Management
+// ── Session Management ───────────────────────────────────────────────────────
 function getOrCreateSessionId() {
     let sessionId = localStorage.getItem('bukva_session_id');
     if (!sessionId) {
-        // Generate a random unique ID for the session/user
         sessionId = crypto.randomUUID ? crypto.randomUUID() : 'session_' + Math.random().toString(36).substring(2, 15);
         localStorage.setItem('bukva_session_id', sessionId);
     }
     return sessionId;
 }
-
 const SESSION_ID = getOrCreateSessionId();
 
+// ── Device Detection ─────────────────────────────────────────────────────────
+function detectDevice() {
+    const ua = navigator.userAgent;
+    if (/tablet|ipad|playbook|silk/i.test(ua)) return 'tablet';
+    if (/mobile|iphone|ipod|android|blackberry|mini|windows\sce|palm/i.test(ua)) return 'mobile';
+    if (window.innerWidth <= 768) return 'mobile';
+    return 'desktop';
+}
+const DEVICE_TYPE = detectDevice();
+
+// ── Geo City Detection (once per session, cached) ─────────────────────────────
+let GEO_CITY = sessionStorage.getItem('bukva_geo_city') || '';
+if (!GEO_CITY) {
+    fetch('https://ipapi.co/json/')
+        .then(r => r.json())
+        .then(d => {
+            GEO_CITY = d.city || d.region || '';
+            sessionStorage.setItem('bukva_geo_city', GEO_CITY);
+        })
+        .catch(() => { GEO_CITY = ''; });
+}
+
+// ── Main Analytics Object ─────────────────────────────────────────────────────
 window.BukvaAnalytics = {
     sessionId: SESSION_ID,
+    deviceType: DEVICE_TYPE,
 
     // Text State
     currentTextArticleId: null,
     activeTextEvent: null,
     textDuration: 0,
     textInterval: null,
+    scrollDepth: 0,
+    _scrollHandler: null,
 
     // Voice State
     currentVoiceTrackId: null,
     activeVoiceEvent: null,
     voiceDuration: 0,
     voiceInterval: null,
+    _currentAudioEl: null,
 
-    /**
-     * Start tracking time spent on a TEXT article
-     */
+    // ── TEXT TRACKING ────────────────────────────────────────────────────────
     startTextTracking: async function (articleId, supabaseClient) {
         if (!articleId || !supabaseClient) return;
-
-        // Clear any previous interval
         this.stopTextTracking();
 
         if (this.currentTextArticleId !== articleId.toString()) {
             this.currentTextArticleId = articleId.toString();
             this.activeTextEvent = null;
             this.textDuration = 0;
+            this.scrollDepth = 0;
         }
 
-        console.log("Analytics: Starting/Resuming TEXT tracking for", articleId);
+        console.log('Analytics: TEXT tracking for', articleId, '| device:', DEVICE_TYPE, '| city:', GEO_CITY || '?');
 
         try {
             if (!this.activeTextEvent) {
-                // Create an initial record
                 const { data, error } = await supabaseClient
                     .from('analytics_events')
                     .insert([{
                         session_id: this.sessionId,
                         event_type: 'text_news_view',
                         target_id: articleId.toString(),
-                        duration_seconds: 0
+                        duration_seconds: 0,
+                        device_type: DEVICE_TYPE,
+                        geo_city: GEO_CITY,
+                        scroll_depth: 0,
+                        completion_pct: 0
                     }])
                     .select('id')
                     .single();
 
                 if (data && !error) {
                     this.activeTextEvent = data.id;
-                    this.textDuration = 0;
                 }
             }
 
             if (this.activeTextEvent) {
-                // Update duration every 5 seconds
+                // Scroll depth watcher
+                this._startScrollTracking(supabaseClient);
+
+                // Duration updater every 5 seconds (only when tab visible)
                 this.textInterval = setInterval(async () => {
-                    // Only count time if tab is visible and voice isn't playing
-                    if (document.visibilityState === 'visible') {
-                        this.textDuration += 5;
-                        await supabaseClient
-                            .from('analytics_events')
-                            .update({ duration_seconds: this.textDuration })
-                            .eq('id', this.activeTextEvent);
-                    }
+                    if (document.visibilityState !== 'visible') return;
+                    this.textDuration += 5;
+                    await supabaseClient
+                        .from('analytics_events')
+                        .update({ duration_seconds: this.textDuration, scroll_depth: this.scrollDepth })
+                        .eq('id', this.activeTextEvent);
                 }, 5000);
             }
         } catch (e) {
-            console.error("Analytics error (text tracking):", e);
+            console.error('Analytics error (text):', e);
         }
+    },
+
+    _startScrollTracking: function (supabaseClient) {
+        if (this._scrollHandler) window.removeEventListener('scroll', this._scrollHandler);
+        this._scrollHandler = () => {
+            const scrollTop = window.scrollY || document.documentElement.scrollTop;
+            const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+            if (docHeight <= 0) return;
+            const pct = Math.round((scrollTop / docHeight) * 100);
+            if (pct > this.scrollDepth) {
+                this.scrollDepth = Math.min(pct, 100);
+            }
+        };
+        window.addEventListener('scroll', this._scrollHandler, { passive: true });
     },
 
     stopTextTracking: function () {
-        if (this.textInterval) {
-            clearInterval(this.textInterval);
-            this.textInterval = null;
-        }
+        if (this.textInterval) { clearInterval(this.textInterval); this.textInterval = null; }
+        if (this._scrollHandler) { window.removeEventListener('scroll', this._scrollHandler); this._scrollHandler = null; }
     },
 
-    /**
-     * Start tracking time spent listening to a VOICE article (Live Center)
-     */
-    startVoiceTracking: async function (trackId, supabaseClient) {
+    // ── VOICE TRACKING ───────────────────────────────────────────────────────
+    startVoiceTracking: async function (trackId, supabaseClient, audioElement) {
         if (!trackId || !supabaseClient) return;
-
-        // Clear any previous
         this.stopVoiceTracking();
 
         if (this.currentVoiceTrackId !== trackId.toString()) {
@@ -107,8 +140,9 @@ window.BukvaAnalytics = {
             this.activeVoiceEvent = null;
             this.voiceDuration = 0;
         }
+        this._currentAudioEl = audioElement || null;
 
-        console.log("Analytics: Starting/Resuming VOICE tracking for", trackId);
+        console.log('Analytics: VOICE tracking for', trackId, '| device:', DEVICE_TYPE, '| city:', GEO_CITY || '?');
 
         try {
             if (!this.activeVoiceEvent) {
@@ -118,19 +152,21 @@ window.BukvaAnalytics = {
                         session_id: this.sessionId,
                         event_type: 'voice_news_listen',
                         target_id: trackId.toString(),
-                        duration_seconds: 0
+                        duration_seconds: 0,
+                        device_type: DEVICE_TYPE,
+                        geo_city: GEO_CITY,
+                        scroll_depth: 0,
+                        completion_pct: 0
                     }])
                     .select('id')
                     .single();
 
                 if (data && !error) {
                     this.activeVoiceEvent = data.id;
-                    this.voiceDuration = 0;
                 }
             }
 
             if (this.activeVoiceEvent) {
-                // Update duration every 3 seconds while playing
                 this.voiceInterval = setInterval(async () => {
                     this.voiceDuration += 3;
                     await supabaseClient
@@ -140,29 +176,40 @@ window.BukvaAnalytics = {
                 }, 3000);
             }
         } catch (e) {
-            console.error("Analytics error (voice tracking):", e);
+            console.error('Analytics error (voice):', e);
         }
     },
 
-    stopVoiceTracking: function () {
-        if (this.voiceInterval) {
-            clearInterval(this.voiceInterval);
-            this.voiceInterval = null;
+    /**
+     * Stop voice tracking and record completion %
+     * @param {boolean} completed - true if audio ended naturally (played to end)
+     * @param {object} supabaseClient
+     */
+    stopVoiceTracking: async function (completed, supabaseClient) {
+        if (this.voiceInterval) { clearInterval(this.voiceInterval); this.voiceInterval = null; }
+
+        // Record completion
+        if (this.activeVoiceEvent && supabaseClient) {
+            let pct = 0;
+            if (completed === true) {
+                pct = 100;
+            } else if (this._currentAudioEl && this._currentAudioEl.duration > 0) {
+                pct = Math.round((this._currentAudioEl.currentTime / this._currentAudioEl.duration) * 100);
+                pct = Math.min(pct, 100);
+            }
+            try {
+                await supabaseClient
+                    .from('analytics_events')
+                    .update({ completion_pct: pct })
+                    .eq('id', this.activeVoiceEvent);
+            } catch (e) { /* silent */ }
         }
+        this._currentAudioEl = null;
     }
 };
 
-// Stop all tracking if the user leaves the tab/window
+// Stop all tracking when leaving
 window.addEventListener('beforeunload', () => {
     window.BukvaAnalytics.stopTextTracking();
-    window.BukvaAnalytics.stopVoiceTracking();
-});
-
-// Pause text tracking when the user switches tabs or minimizes the window
-document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'hidden') {
-        // Technically it's paused by the interval check, but we could explicitly stop it here if we wanted
-    } else if (document.visibilityState === 'visible') {
-        // We rely on the interval check to resume counting when visible
-    }
+    window.BukvaAnalytics.stopVoiceTracking(false, null);
 });

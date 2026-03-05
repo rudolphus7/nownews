@@ -1065,9 +1065,9 @@
             // Voice Analytics Tracking
             if (window.BukvaAnalytics) {
                 if (p && tracks[currentIndex]) {
-                    window.BukvaAnalytics.startVoiceTracking(tracks[currentIndex].id, _supabase);
+                    window.BukvaAnalytics.startVoiceTracking(tracks[currentIndex].id, _supabase, audio);
                 } else {
-                    window.BukvaAnalytics.stopVoiceTracking();
+                    window.BukvaAnalytics.stopVoiceTracking(false, _supabase);
                 }
             }
         }

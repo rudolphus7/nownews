@@ -827,39 +827,58 @@
                         <div id="stat-text-users" class="text-4xl font-extrabold text-slate-800">...</div>
                         <div class="text-xs text-green-500 font-bold mt-2">За весь час</div>
                     </div>
-                    <div class="bg-white p-6 rounded-[2rem] shadow-xl border border-white">
-                        <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Середній Час
-                            Читання</div>
-                        <div id="stat-text-time" class="text-4xl font-extrabold text-slate-800">...</div>
-                        <div class="text-xs text-orange-500 font-bold mt-2">На одну новину</div>
-                    </div>
-                    <div class="bg-white p-6 rounded-[2rem] shadow-xl border border-white">
-                        <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Новин За Сеанс
+                    <div
+                        class="bg-white p-6 rounded-[2rem] shadow-xl border border-white flex flex-col justify-between">
+                        <div>
+                            <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Середній
+                                Час Читання</div>
+                            <div id="stat-text-time" class="text-4xl font-extrabold text-slate-800">...</div>
+                            <div class="text-xs text-orange-500 font-bold mt-2">На одну новину</div>
                         </div>
-                        <div id="stat-text-per-session" class="text-4xl font-extrabold text-slate-800">...</div>
-                        <div class="text-xs text-blue-500 font-bold mt-2">В середньому</div>
                     </div>
                 </div>
 
-                <!-- Text Top List -->
-                <div class="bg-white rounded-[2rem] shadow-xl border border-white overflow-hidden p-8">
-                    <h3 class="text-xl font-extrabold text-slate-800 mb-6">Топ Статей за Часом Читання</h3>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse min-w-[600px]">
-                            <thead class="bg-slate-50 text-slate-400 uppercase text-[10px] font-black tracking-widest">
-                                <tr>
-                                    <th class="p-4 rounded-l-xl">Стаття</th>
-                                    <th class="p-4 text-center">Переглядів</th>
-                                    <th class="p-4 text-right rounded-r-xl">Сер. час (сек)</th>
-                                </tr>
-                            </thead>
-                            <tbody id="analytics-text-table" class="divide-y divide-slate-100">
-                                <tr>
-                                    <td colspan="3" class="p-6 text-center text-slate-400 italic">Спершу оновіть дані
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Left: Devices -->
+                    <div class="bg-white p-8 rounded-[2rem] shadow-xl border border-white">
+                        <h3
+                            class="text-sm font-extrabold text-slate-800 uppercase tracking-widest mb-6 border-b border-slate-100 pb-4">
+                            Пристрої</h3>
+                        <div id="analytics-device-chart" class="space-y-5">
+                            <p class="text-slate-400 text-sm italic">Завантаження...</p>
+                        </div>
+                    </div>
+
+                    <!-- Right: Table & Scroll Depth -->
+                    <div class="lg:col-span-2 space-y-6">
+                        <div class="bg-white p-6 rounded-[2rem] shadow-xl border border-white">
+                            <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Середня
+                                глибина дочитування статей</h3>
+                            <div id="stat-text-scroll">...</div>
+                        </div>
+
+                        <div class="bg-white rounded-[2rem] shadow-xl border border-white overflow-hidden p-8">
+                            <h3 class="text-xl font-extrabold text-slate-800 mb-6">Топ Статей за Часом Читання</h3>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse min-w-[600px]">
+                                    <thead
+                                        class="bg-slate-50 text-slate-400 uppercase text-[10px] font-black tracking-widest">
+                                        <tr>
+                                            <th class="p-4 rounded-l-xl">Стаття</th>
+                                            <th class="p-4 text-center">Переглядів</th>
+                                            <th class="p-4 text-center">Сер. час (сек)</th>
+                                            <th class="p-4 text-center rounded-r-xl">Сер. дочитування</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="analytics-text-table" class="divide-y divide-slate-100">
+                                        <tr>
+                                            <td colspan="4" class="p-6 text-center text-slate-400 italic">Спершу оновіть
+                                                дані</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -873,40 +892,58 @@
                         <div id="stat-voice-users" class="text-4xl font-extrabold text-indigo-900">...</div>
                         <div class="text-xs text-green-600 font-bold mt-2">За весь час</div>
                     </div>
-                    <div class="bg-indigo-50 p-6 rounded-[2rem] shadow-xl border border-indigo-100 border-white">
-                        <div class="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-1">Сер. Час
-                            Слухання</div>
-                        <div id="stat-voice-time" class="text-4xl font-extrabold text-indigo-900">...</div>
-                        <div class="text-xs text-orange-600 font-bold mt-2">На один трек</div>
-                    </div>
-                    <div class="bg-indigo-50 p-6 rounded-[2rem] shadow-xl border border-indigo-100 border-white">
-                        <div class="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-1">Треків За
-                            Сеанс</div>
-                        <div id="stat-voice-per-session" class="text-4xl font-extrabold text-indigo-900">...</div>
-                        <div class="text-xs text-blue-600 font-bold mt-2">В середньому</div>
+                    <div
+                        class="bg-indigo-50 p-6 rounded-[2rem] shadow-xl border border-indigo-100 border-white flex flex-col justify-between">
+                        <div>
+                            <div class="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-1">Сер. Час
+                                Слухання</div>
+                            <div id="stat-voice-time" class="text-4xl font-extrabold text-indigo-900">...</div>
+                            <div class="text-xs text-orange-600 font-bold mt-2">На один трек</div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Voice Top List -->
-                <div class="bg-white rounded-[2rem] shadow-xl border border-white overflow-hidden p-8">
-                    <h3 class="text-xl font-extrabold text-indigo-900 mb-6">Топ Аудіо за Прослуховуваннями</h3>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse min-w-[600px]">
-                            <thead
-                                class="bg-indigo-50 text-indigo-400 uppercase text-[10px] font-black tracking-widest">
-                                <tr>
-                                    <th class="p-4 rounded-l-xl">Аудіо-новина</th>
-                                    <th class="p-4 text-center">Слухачів</th>
-                                    <th class="p-4 text-right rounded-r-xl">Сер. час (сек)</th>
-                                </tr>
-                            </thead>
-                            <tbody id="analytics-voice-table" class="divide-y divide-slate-100">
-                                <tr>
-                                    <td colspan="3" class="p-6 text-center text-slate-400 italic">Спершу оновіть дані
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Left: Geo Cities -->
+                    <div class="bg-white p-8 rounded-[2rem] shadow-xl border border-white">
+                        <h3
+                            class="text-sm font-extrabold text-slate-800 uppercase tracking-widest mb-6 border-b border-slate-100 pb-4">
+                            Географія (Топ Міст)</h3>
+                        <div id="analytics-geo-list" class="space-y-5">
+                            <p class="text-slate-400 text-sm italic">Завантаження...</p>
+                        </div>
+                    </div>
+
+                    <!-- Right: Table & Completion -->
+                    <div class="lg:col-span-2 space-y-6">
+                        <div class="bg-indigo-50 p-6 rounded-[2rem] shadow-xl border border-indigo-100 border-white">
+                            <h3 class="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-3">Середній
+                                відсоток дослуховування</h3>
+                            <div id="stat-voice-completion">...</div>
+                        </div>
+
+                        <div class="bg-white rounded-[2rem] shadow-xl border border-white overflow-hidden p-8">
+                            <h3 class="text-xl font-extrabold text-indigo-900 mb-6">Топ Аудіо за Прослуховуваннями</h3>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse min-w-[600px]">
+                                    <thead
+                                        class="bg-indigo-50 text-indigo-400 uppercase text-[10px] font-black tracking-widest">
+                                        <tr>
+                                            <th class="p-4 rounded-l-xl">Аудіо-новина</th>
+                                            <th class="p-4 text-center">Слухачів</th>
+                                            <th class="p-4 text-center">Сер. час (сек)</th>
+                                            <th class="p-4 text-center rounded-r-xl">Дослуховування</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="analytics-voice-table" class="divide-y divide-slate-100">
+                                        <tr>
+                                            <td colspan="4" class="p-6 text-center text-slate-400 italic">Спершу оновіть
+                                                дані</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

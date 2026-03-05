@@ -1220,6 +1220,7 @@
         let cloudAudio = null;
         let cloudChunks = [];
         let currentChunkIndex = 0;
+        let _ttsCompletedNaturally = false;
 
 
         // Force voices loading
@@ -1425,6 +1426,10 @@
                 cloudAudio.onended = () => {
                     if (blobUrl.startsWith('blob:')) URL.revokeObjectURL(blobUrl);
                     currentChunkIndex++;
+                    if (currentChunkIndex >= cloudChunks.length) {
+                        // Last chunk — mark as completed
+                        _ttsCompletedNaturally = true;
+                    }
                     playNextCloudChunk();
                 };
                 cloudAudio.onerror = (e) => {
@@ -1465,7 +1470,8 @@
             if (anim) anim.classList.add('hidden');
 
             if (wasPlaying && window.BukvaAnalytics && currentPost) {
-                window.BukvaAnalytics.stopVoiceTracking();
+                window.BukvaAnalytics.stopVoiceTracking(_ttsCompletedNaturally, _supabase);
+                _ttsCompletedNaturally = false;
                 if (document.visibilityState !== 'hidden') {
                     window.BukvaAnalytics.startTextTracking(currentPost.id, _supabase);
                 }

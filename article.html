@@ -1199,7 +1199,7 @@
             if (ttsBtn) { ttsBtn.style.opacity = ''; ttsBtn.style.pointerEvents = ''; }
 
             if (wasPlaying && window.BukvaAnalytics && currentPost) {
-                window.BukvaAnalytics.stopVoiceTracking();
+                window.BukvaAnalytics.stopVoiceTracking(false, _supabase);
                 if (document.visibilityState !== 'hidden') {
                     window.BukvaAnalytics.startTextTracking(currentPost.id, _supabase);
                 }
