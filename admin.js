@@ -1485,11 +1485,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 .sort((a, b) => b.views - a.views).slice(0, 7);
             await renderAnalyticsTable(topVoice, 'analytics-voice-table', 'voice');
 
-            // ── DEVICE BREAKDOWN
-            renderDeviceStats(events);
+            // ── TEXT DEVICE & GEO STATS
+            renderDeviceStats(textEvents, 'analytics-text-device-chart');
+            renderGeoStats(textEvents, 'analytics-text-geo-list');
 
-            // ── GEO STATS
-            renderGeoStats(events);
+            // ── VOICE DEVICE & GEO STATS
+            renderDeviceStats(voiceEvents, 'analytics-voice-device-chart');
+            renderGeoStats(voiceEvents, 'analytics-voice-geo-list');
 
         } catch (err) {
             console.error('Analytics load error:', err);
@@ -1497,8 +1499,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
 
-    function renderDeviceStats(events) {
-        const el = document.getElementById('analytics-device-chart');
+    function renderDeviceStats(events, elementId) {
+        const el = document.getElementById(elementId);
         if (!el) return;
         const counts = { mobile: 0, desktop: 0, tablet: 0 };
         events.forEach(e => {
@@ -1525,8 +1527,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }).join('');
     }
 
-    function renderGeoStats(events) {
-        const el = document.getElementById('analytics-geo-list');
+    function renderGeoStats(events, elementId) {
+        const el = document.getElementById(elementId);
         if (!el) return;
         const cities = {};
         events.forEach(e => {
