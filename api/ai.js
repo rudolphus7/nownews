@@ -1,4 +1,101 @@
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+// --- API KEYS ---
+// Primary key: GEMINI_API_KEY
+// Backup key:  GEMINI_API_KEY_BACKUP
+// Logic: try primary key first. If quota exceeded (429) → switch to backup key.
+// Client can also pass apiKey in body as last resort.
+
+const PRIMARY_KEY = process.env.GEMINI_API_KEY;
+const BACKUP_KEY = process.env.GEMINI_API_KEY_BACKUP;
+
+// Models to try in order (primary preferred)
+const MODELS = [
+    'gemini-2.5-flash',
+    'gemini-2.0-flash',
+    'gemini-2.0-flash-lite'
+];
+
+/**
+ * Calls Gemini API with a specific key and model.
+ * Returns { ok, data, quotaExceeded }
+ */
+async function callGemini(key, model, promptText, maxTokens, temperature) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: promptText }] }],
+                generationConfig: { temperature, maxOutputTokens: maxTokens }
+            })
+        });
+        const data = await response.json().catch(() => ({}));
+        const quotaExceeded = response.status === 429 ||
+            (data?.error?.status === 'RESOURCE_EXHAUSTED') ||
+            (data?.error?.message || '').toLowerCase().includes('quota');
+
+        if (response.ok && data.candidates) {
+            return { ok: true, data, quotaExceeded: false };
+        }
+        return { ok: false, data, quotaExceeded };
+    } catch (e) {
+        return { ok: false, data: { error: { message: e.message } }, quotaExceeded: false };
+    }
+}
+
+/**
+ * Smart Gemini caller:
+ * 1. Try PRIMARY key through all models
+ * 2. If all fail due to quota → switch to BACKUP key
+ * 3. If backup also quota → try client-provided key
+ */
+async function tryGemini(promptText, maxTokens, temperature, clientKey) {
+    const keys = [];
+    if (PRIMARY_KEY) keys.push({ key: PRIMARY_KEY, label: 'primary' });
+    if (BACKUP_KEY) keys.push({ key: BACKUP_KEY, label: 'backup' });
+    if (clientKey && clientKey !== PRIMARY_KEY && clientKey !== BACKUP_KEY) {
+        keys.push({ key: clientKey, label: 'client' });
+    }
+
+    if (keys.length === 0) {
+        return {
+            ok: false,
+            data: { error: { message: 'Не задано API ключ. Збережіть ключ у Налаштуваннях → AI Конфігурація.' } }
+        };
+    }
+
+    let lastError = null;
+
+    for (const { key, label } of keys) {
+        let allQuota = true; // assume all models for this key have quota issues
+
+        for (const model of MODELS) {
+            const result = await callGemini(key, model, promptText, maxTokens, temperature);
+
+            if (result.ok) {
+                console.log(`✅ Gemini success: key=${label}, model=${model}`);
+                return result;
+            }
+
+            if (!result.quotaExceeded) {
+                // Not a quota issue — real error for this model, skip to next model
+                allQuota = false;
+                lastError = result.data;
+                console.error(`❌ Gemini error (key=${label}, model=${model}):`, result.data?.error?.message);
+            } else {
+                console.warn(`⚠️ Quota exceeded: key=${label}, model=${model}`);
+                lastError = result.data;
+            }
+        }
+
+        if (allQuota) {
+            console.warn(`⚠️ All models quota exceeded for key=${label}, trying next key...`);
+        }
+    }
+
+    // All keys and models failed
+    return { ok: false, data: lastError || { error: { message: 'Всі ключі та моделі недоступні.' } } };
+}
 
 module.exports = async (req, res) => {
     if (req.method !== 'POST') {
@@ -6,9 +103,6 @@ module.exports = async (req, res) => {
     }
 
     const { action, title, content, articleUrl, message, apiKey } = req.body;
-
-    // Resolve which API key to use (backend env var or passed from client)
-    const activeApiKey = process.env.GEMINI_API_KEY || apiKey;
 
     // --- FACEBOOK PUBLISHING LOGIC (VIA MAKE.COM) ---
     if (action === 'post-facebook') {
@@ -37,55 +131,15 @@ module.exports = async (req, res) => {
         }
     }
 
-
     // --- AI CONTENT GENERATION LOGIC ---
     const cleanText = (content || '').replace(/<[^>]*>/g, ' ').trim();
-
-    async function tryGemini(promptText, maxTokens, temperature) {
-        if (!activeApiKey) {
-            console.error('API/AI: No GEMINI_API_KEY provided.');
-            return { ok: false, data: { error: { message: 'Не задано API ключ для Gemini. Збережіть ключ у Налаштуваннях → AI Конфігурація.' } } };
-        }
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${activeApiKey}`;
-        try {
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: promptText }] }],
-                    generationConfig: { temperature, maxOutputTokens: maxTokens }
-                })
-            });
-            const data = await response.json().catch(() => ({}));
-
-            // Fallback to flash-lite if needed
-            if (!response.ok || !data.candidates) {
-                console.error('Primary model failed:', response.status, data?.error?.message);
-                const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${activeApiKey}`;
-                const fallbackResponse = await fetch(fallbackUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: promptText }] }],
-                        generationConfig: { temperature, maxOutputTokens: maxTokens }
-                    })
-                });
-                const fallbackData = await fallbackResponse.json().catch(() => ({}));
-                console.error('Fallback result:', fallbackResponse.status, fallbackData?.error?.message);
-                return { ok: fallbackResponse.ok, data: fallbackData };
-            }
-
-            return { ok: response.ok, data };
-        } catch (e) {
-            return { ok: false, data: { error: { message: e.message } } };
-        }
-    }
 
     // --- GENERATE FACEBOOK POST ---
     if (action === 'generate-fb') {
         if (!title) {
             return res.status(400).json({ error: 'Заголовок статті обов\'язковий для генерації FB поста.' });
         }
+
         const fbContent = cleanText || title;
         const prompt = `Ти — професійний редактор українського новинного видання "BUKVA NEWS". Твоє завдання — написати ДУЖЕ КОРОТКЕ прев'ю до статті для Facebook.
 
@@ -102,9 +156,9 @@ ${fbContent}
 
 ВАЖЛИВО: Поверни тільки готовий текст поста (1-2 речення + короткий заклик перейти за посиланням нижче + хештеги). Жодних URL в тексті!`;
 
-        const { ok, data } = await tryGemini(prompt, 2048, 0.8);
+        const { ok, data } = await tryGemini(prompt, 2048, 0.8, apiKey);
         if (!ok || !data.candidates) {
-            const errMsg = data?.error?.message || data?.error || JSON.stringify(data);
+            const errMsg = data?.error?.message || JSON.stringify(data);
             console.error("Gemini FB Gen Error:", errMsg);
             return res.status(500).json({ error: "Помилка Gemini API: " + errMsg });
         }
@@ -112,6 +166,10 @@ ${fbContent}
     }
 
     // --- REWRITE FULL ARTICLE (Default Action) ---
+    if (!title || !cleanText) {
+        return res.status(400).json({ error: 'Title and content are required' });
+    }
+
     const wordCount = cleanText.split(/\s+/).length;
     const prompt = `Ти — досвідчений старший журналіст українського видання "BUKVA NEWS". Твоє завдання — повністю переписати статтю нижче.
 
@@ -158,10 +216,11 @@ ${fbContent}
 ${cleanText}`;
 
     try {
-        const { ok, data } = await tryGemini(prompt, 8192, 0.9);
+        const { ok, data } = await tryGemini(prompt, 8192, 0.9, apiKey);
 
         if (!ok || !data.candidates) {
-            return res.status(500).json({ error: 'Всі моделі ШІ недоступні.' });
+            const errMsg = data?.error?.message || 'Всі моделі ШІ недоступні.';
+            return res.status(500).json({ error: errMsg });
         }
 
         const aiText = data.candidates[0].content.parts[0].text;
