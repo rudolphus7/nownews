@@ -613,6 +613,11 @@
                 if (loader) loader.classList.add('hidden');
                 document.getElementById('news-content').classList.remove('hidden');
 
+                // Start Text Analytics Tracking
+                if (window.BukvaAnalytics) {
+                    window.BukvaAnalytics.startTextTracking(data.id, _supabase);
+                }
+
                 // Інкремент переглядів все одно потрібен
                 const viewedKey = `viewed_${data.id}`;
                 if (!_safeSessGet(viewedKey)) {
@@ -679,6 +684,11 @@
 
                     if (loader) loader.classList.add('hidden');
                     document.getElementById('news-content').classList.remove('hidden');
+
+                    // Start Text Analytics Tracking
+                    if (window.BukvaAnalytics) {
+                        window.BukvaAnalytics.startTextTracking(data.id, _supabase);
+                    }
 
                     // Increment Views (with session guard)
                     const viewedKey = `viewed_${data.id}`;
@@ -1476,6 +1486,7 @@
             loadFullNews();
         };
     </script>
+    <script src="/components/analytics.js"></script>
 </body>
 
 </html>

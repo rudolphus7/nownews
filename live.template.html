@@ -1061,6 +1061,15 @@
             document.getElementById('m-pause').classList.toggle('hidden', !p);
             document.getElementById('wave-box').classList.toggle('wave-active', p);
             renderFeed();
+
+            // Voice Analytics Tracking
+            if (window.BukvaAnalytics) {
+                if (p && tracks[currentIndex]) {
+                    window.BukvaAnalytics.startVoiceTracking(tracks[currentIndex].id, _supabase);
+                } else {
+                    window.BukvaAnalytics.stopVoiceTracking();
+                }
+            }
         }
 
         function nextTrack() { if (currentIndex < tracks.length - 1) loadTrack(currentIndex + 1, true); }
@@ -1119,6 +1128,7 @@
 
         init();
     </script>
+    <script src="/components/analytics.js"></script>
 </body>
 
 </html>
