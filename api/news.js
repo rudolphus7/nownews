@@ -244,7 +244,15 @@ module.exports = async (req, res) => {
             .replace(/\s+/g, ' ')
             .trim()
             .substring(0, 160);
-        const image = news.image_url || `${SITE_URL}/og-default.jpg`;
+        let image = news.image_url;
+        if (!image && news.content) {
+            const imgMatch = news.content.match(/<img[^>]+src=["']([^"']+)["']/i);
+            if (imgMatch && imgMatch[1]) {
+                image = imgMatch[1];
+            }
+        }
+        image = image || `${SITE_URL}/og-default.jpg`;
+
         const author = news.author || 'Редакція BUKVA NEWS';
         const siteName = 'BUKVA NEWS';
         const publishedDate = news.created_at ? new Date(news.created_at).toISOString() : '';
@@ -265,8 +273,6 @@ module.exports = async (req, res) => {
     <meta property="og:title" content="${escapeAttr(title)}">
     <meta property="og:description" content="${escapeAttr(description)}">
     <meta property="og:image" content="${escapeAttr(image)}">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
     <meta property="og:url" content="${escapeAttr(canonicalUrl)}">
     <meta property="og:locale" content="uk_UA">
     <meta property="fb:app_id" content="1617708079361633">
