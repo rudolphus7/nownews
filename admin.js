@@ -322,7 +322,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     articleUrl += `news/?slug=${slug}`;
                 }
 
-                const imageUrl = document.getElementById('image_url')?.value || "";
+                const imageUrl = document.getElementById('ig_image_url')?.value || "";
 
                 const response = await fetch('/api/ai', {
                     method: 'POST',
