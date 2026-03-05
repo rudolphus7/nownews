@@ -1588,6 +1588,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }).join('');
     }
 
+    // --- AI CONFIG ---
+    window.saveAIConfig = () => {
+        const keyInput = document.getElementById('gemini-api-key');
+        if (!keyInput) return;
+        const key = keyInput.value.trim();
+        if (key) {
+            localStorage.setItem('gemini_api_key', key);
+            alert('✅ API ключ збережено!');
+        } else {
+            localStorage.removeItem('gemini_api_key');
+            alert('🗑️ API ключ видалено.');
+        }
+    };
+
+    window.toggleKeyVisibility = (inputId) => {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+        input.type = input.type === 'password' ? 'text' : 'password';
+    };
+
     // --- НАЛАШТУВАННЯ (РУБРИКИ ТА МІСТА) ---
     window.loadSettings = async () => {
         if (!_supabase) return;
@@ -1643,6 +1663,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (categorySelect) categorySelect.innerHTML = cats.map(c => `<option value="${c.slug}">${c.name}</option>`).join('');
             const citySelect = document.getElementById('city');
             if (citySelect) citySelect.innerHTML = '<option value="">Вся область</option>' + cities.map(c => `<option value="${c.slug}">${c.name}</option>`).join('');
+
+            // Load saved Gemini API key into the settings form
+            const savedKey = localStorage.getItem('gemini_api_key') || '';
+            const keyInput = document.getElementById('gemini-api-key');
+            if (keyInput) keyInput.value = savedKey;
         } catch (e) { console.error(e); }
     };
 
