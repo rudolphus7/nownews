@@ -115,9 +115,30 @@ window.BukvaAnalytics = {
         if (this._scrollHandler) window.removeEventListener('scroll', this._scrollHandler);
         this._scrollHandler = () => {
             const scrollTop = window.scrollY || document.documentElement.scrollTop;
-            const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-            if (docHeight <= 0) return;
-            const pct = Math.round((scrollTop / docHeight) * 100);
+
+            // Fix: Target the actual article content if it exists, otherwise fallback to document
+            const targetEl = document.getElementById('news-content') || document.getElementById('news-text') || document.documentElement;
+            const rect = targetEl.getBoundingClientRect();
+            const winHeight = window.innerHeight;
+
+            let pct = 0;
+            if (targetEl === document.documentElement) {
+                const docHeight = document.documentElement.scrollHeight - winHeight;
+                if (docHeight > 0) pct = Math.round((scrollTop / docHeight) * 100);
+            } else {
+                // If we have a target element, 100% is when the BOTTOM of the element enters the viewport
+                // or when we've scrolled past it.
+                const elementTop = rect.top + scrollTop;
+                const elementHeight = rect.height;
+                const scrollPosition = scrollTop + winHeight;
+                const offsetTop = elementTop;
+
+                // percentage = (how much of the element we've seen) / (element height)
+                // but we want 100% when the bottom of the article is visible.
+                const seenHeight = Math.max(0, scrollPosition - offsetTop);
+                pct = Math.round((seenHeight / elementHeight) * 100);
+            }
+
             if (pct > this.scrollDepth) {
                 this.scrollDepth = Math.min(pct, 100);
             }
