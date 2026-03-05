@@ -50,7 +50,7 @@ module.exports = async (req, res) => {
             console.error('API/AI: No GEMINI_API_KEY provided in env or explicitly from client.');
             return { ok: false, data: { error: 'Не задано API ключ для Gemini (ні на сервері, ні в налаштуваннях).' } };
         }
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${activeApiKey}`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${activeApiKey}`;
         try {
             const response = await fetch(url, {
                 method: 'POST',
