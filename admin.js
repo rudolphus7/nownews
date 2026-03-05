@@ -377,18 +377,20 @@ document.addEventListener('DOMContentLoaded', () => {
             <td class="p-4 text-center font-mono text-[11px] font-black text-slate-400">
                 👁️ ${item.views || 0}
             </td>
-            <td class="p-4 text-center">
-                ${item.tts_audio_url ?
-                `<span class="text-green-500 font-black cursor-help" title="${item.tts_audio_url}">✅</span>` :
+            <td class="p-4 text-center min-w-[80px]">
+                <div class="flex items-center justify-center gap-2">
+                    ${item.tts_audio_url ?
+                `<a href="${item.tts_audio_url}" target="_blank" class="text-orange-500 hover:scale-110 transition-transform text-lg" title="Слухати">▶️</a>
+                     <span class="text-green-500 font-black cursor-help" title="${item.tts_audio_url}">✅</span>` :
                 `<span class="text-slate-200 font-black">⚪</span>`
             }
+                </div>
             </td>
             <td class="p-4 text-xs text-gray-400 font-bold">${new Date(item.created_at).toLocaleDateString()}</td>
             <td class="p-4 text-right space-x-2">
                 <button id="btn-tts-${item.id}" onclick="window.generateTTS('${item.id}')" 
-                    class="text-indigo-500 font-bold hover:underline uppercase text-xs"
-                    ${item.tts_audio_url ? 'disabled' : ''}>
-                    ${item.tts_audio_url ? '🎙️ Готово' : '🎙️ Озвучити'}
+                    class="text-indigo-500 font-bold hover:underline uppercase text-xs">
+                    ${item.tts_audio_url ? '🎙️ Переозвучити' : '🎙️ Озвучити'}
                 </button>
                 <button onclick="window.editItem('${item.id}')" class="text-orange-500 font-bold hover:underline uppercase text-xs">Редагувати</button>
                 <button onclick="window.deleteItem('${item.id}')" class="text-red-500 font-bold hover:underline uppercase text-xs">Видалити</button>
