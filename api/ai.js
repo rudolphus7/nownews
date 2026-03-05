@@ -131,6 +131,38 @@ module.exports = async (req, res) => {
         }
     }
 
+    // --- INSTAGRAM PUBLISHING LOGIC (VIA MAKE.COM) ---
+    if (action === 'post-instagram') {
+        if (!message || message.trim() === '') {
+            return res.status(400).json({ error: 'Message content is required' });
+        }
+
+        try {
+            const webhookUrl = process.env.MAKE_INSTAGRAM_WEBHOOK || 'https://hook.eu2.make.com/REPLACE_WITH_YOUR_INSTAGRAM_WEBHOOK';
+            const { imageUrl } = req.body;
+
+            const response = await fetch(webhookUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    message,
+                    imageUrl: imageUrl || '',
+                    articleUrl: articleUrl || ''
+                })
+            });
+
+            if (!response.ok) {
+                const text = await response.text();
+                console.error("Make.com Instagram Webhook Error:", text);
+                throw new Error("Помилка відправки в Make.com (Instagram)");
+            }
+
+            return res.status(200).json({ success: true, info: 'Відправлено до Make.com (Instagram)' });
+        } catch (error) {
+            return res.status(500).json({ error: error.message });
+        }
+    }
+
     // --- AI CONTENT GENERATION LOGIC ---
     const cleanText = (content || '').replace(/<[^>]*>/g, ' ').trim();
 
