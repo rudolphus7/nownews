@@ -5,12 +5,18 @@
 
 // ── Session Management ───────────────────────────────────────────────────────
 function getOrCreateSessionId() {
-    let sessionId = localStorage.getItem('bukva_session_id');
-    if (!sessionId) {
-        sessionId = crypto.randomUUID ? crypto.randomUUID() : 'session_' + Math.random().toString(36).substring(2, 15);
-        localStorage.setItem('bukva_session_id', sessionId);
+    try {
+        let sessionId = localStorage.getItem('bukva_session_id');
+        if (!sessionId) {
+            sessionId = (typeof crypto !== 'undefined' && crypto.randomUUID)
+                ? crypto.randomUUID()
+                : 'session_' + Math.random().toString(36).substring(2, 15);
+            localStorage.setItem('bukva_session_id', sessionId);
+        }
+        return sessionId;
+    } catch (e) {
+        return 'session_temp_' + Date.now();
     }
-    return sessionId;
 }
 const SESSION_ID = getOrCreateSessionId();
 
@@ -25,16 +31,19 @@ function detectDevice() {
 const DEVICE_TYPE = detectDevice();
 
 // ── Geo City Detection (once per session, cached) ─────────────────────────────
-let GEO_CITY = sessionStorage.getItem('bukva_geo_city') || '';
-if (!GEO_CITY) {
-    fetch('https://ipapi.co/json/')
-        .then(r => r.json())
-        .then(d => {
-            GEO_CITY = d.city || d.region || '';
-            sessionStorage.setItem('bukva_geo_city', GEO_CITY);
-        })
-        .catch(() => { GEO_CITY = ''; });
-}
+let GEO_CITY = '';
+try {
+    GEO_CITY = sessionStorage.getItem('bukva_geo_city') || '';
+    if (!GEO_CITY) {
+        fetch('https://ipapi.co/json/')
+            .then(r => r.json())
+            .then(d => {
+                GEO_CITY = d.city || d.region || '';
+                sessionStorage.setItem('bukva_geo_city', GEO_CITY);
+            })
+            .catch(() => { GEO_CITY = ''; });
+    }
+} catch (e) { GEO_CITY = ''; }
 
 // ── Main Analytics Object ─────────────────────────────────────────────────────
 window.BukvaAnalytics = {
@@ -154,7 +163,7 @@ window.BukvaAnalytics = {
     // ── VOICE TRACKING ───────────────────────────────────────────────────────
     startVoiceTracking: async function (trackId, supabaseClient, audioElement) {
         if (!trackId || !supabaseClient) return;
-        this.stopVoiceTracking();
+        await this.stopVoiceTracking(false, supabaseClient);
 
         if (this.currentVoiceTrackId !== trackId.toString()) {
             this.currentVoiceTrackId = trackId.toString();
@@ -225,6 +234,8 @@ window.BukvaAnalytics = {
                     .eq('id', this.activeVoiceEvent);
             } catch (e) { /* silent */ }
         }
+
+        this.activeVoiceEvent = null; // Important: Clear the ID
         this._currentAudioEl = null;
     }
 };
