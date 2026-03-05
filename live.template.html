@@ -405,6 +405,15 @@
             margin-top: 48px;
         }
 
+        @media (min-width: 1024px) {
+            .feed-header {
+                top: 80px;
+                margin-top: 0;
+                padding: 16px 20px 12px;
+                background: rgba(9, 9, 11, 0.85);
+            }
+        }
+
         .feed-label {
             font-size: 18px;
             font-weight: 900;
@@ -428,6 +437,28 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.03);
             position: relative;
             transition: background 0.2s;
+            cursor: pointer;
+        }
+
+        @media (min-width: 1024px) {
+            .item {
+                border-radius: 16px;
+                border-bottom: 1px solid transparent;
+                margin-bottom: 4px;
+            }
+
+            .item:hover {
+                background: rgba(255, 255, 255, 0.03);
+            }
+
+            .item.active {
+                border-radius: 16px;
+            }
+
+            .item.active::before {
+                border-top-left-radius: 16px;
+                border-bottom-left-radius: 16px;
+            }
         }
 
         .item.active {
@@ -695,109 +726,118 @@
 <body>
     <div id="site-header-placeholder"></div>
 
-    <main class="max-w-xl mx-auto">
-        <!-- Hero Section -->
-        <div class="hero">
-            <div class="hero-live">
-                <div class="live-dot"></div>
-                LIVE • ЕФІР
-            </div>
-            <h1 class="hero-title">АУДІО-<span>НОВИНИ</span></h1>
-            <p class="hero-desc">BUKVA NEWS — голосом диктора. Слухайте по дорозі — без рук, без зупинок.</p>
-
-            <div class="hero-row">
-                <div class="btn-pill" id="radio-pill" onclick="toggleRadio()">
-                    АВТОРАДІО <span class="pill-val" id="radio-status">ВИМК</span>
+    <main
+        class="max-w-xl lg:max-w-6xl xl:max-w-[1300px] mx-auto lg:grid lg:grid-cols-[400px_1fr] xl:grid-cols-[460px_1fr] lg:gap-10 xl:gap-20 lg:px-6">
+        <!-- Desktop Sticky Sidebar -->
+        <div class="lg:sticky lg:top-[80px] lg:h-[calc(100vh-80px)] lg:overflow-y-auto lg:pb-12 flex flex-col hide-scrollbar"
+            style="scrollbar-width: none;">
+            <!-- Hero Section -->
+            <div class="hero lg:pt-8 w-full">
+                <div class="hero-live">
+                    <div class="live-dot"></div>
+                    LIVE • ЕФІР
                 </div>
-                <button onclick="openFilters()" class="btn-pill city-pill" id="city-label">
-                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
-                    ВСІ НОВИНИ
-                </button>
-            </div>
-        </div>
+                <h1 class="hero-title">АУДІО-<span>НОВИНИ</span></h1>
+                <p class="hero-desc">BUKVA NEWS — голосом диктора. Слухайте по дорозі — без рук, без зупинок.</p>
 
-        <!-- Main Player Stage -->
-        <div class="stage">
-            <div class="cover-box">
-                <img id="p-art" src="" class="cover-img">
-                <div id="p-badge" class="cover-badge">НОВИНИ</div>
-            </div>
-
-            <div class="stage-info">
-                <h2 id="p-title" class="stage-title">Завантаження...</h2>
-                <p id="p-date" class="stage-date">---</p>
-            </div>
-
-            <div class="wave-vis" id="wave-box">
-                <!-- Bars via JS -->
-            </div>
-
-            <div class="p-main-track" onclick="seek(event)">
-                <div class="p-main-fill" id="p-fill"></div>
-            </div>
-            <div class="p-main-labels">
-                <span id="p-time">0:00 / 0:00</span>
-            </div>
-
-            <div class="p-main-controls">
-                <button onclick="prevTrack()" class="p-side-btn">
-                    <svg width="34" height="34" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M6 6h2v12H6zm3.5 6 8.5 6V6z" />
-                    </svg>
-                </button>
-                <button onclick="togglePlay()" class="p-circle">
-                    <svg id="play-ico" width="38" height="38" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M8 5v14l11-7z" />
-                    </svg>
-                    <svg id="pause-ico" class="hidden" width="38" height="38" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
-                    </svg>
-                </button>
-                <button onclick="nextTrack()" class="p-side-btn">
-                    <svg width="34" height="34" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M6 18l8.5-6L6 6v12zm2-8.14L11.03 12 8 14.14V9.86zM16 6h2v12h-2z" />
-                    </svg>
-                </button>
-            </div>
-
-            <div class="volume-box">
-                <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z" />
-                </svg>
-                <div class="v-slider">
-                    <div class="v-fill"></div>
-                    <div class="v-knob"></div>
+                <div class="hero-row">
+                    <div class="btn-pill" id="radio-pill" onclick="toggleRadio()">
+                        АВТОРАДІО <span class="pill-val" id="radio-status">ВИМК</span>
+                    </div>
+                    <button onclick="openFilters()" class="btn-pill city-pill" id="city-label">
+                        <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+                        ВСІ НОВИНИ
+                    </button>
                 </div>
-                <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
-                    <path
-                        d="M14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
-                </svg>
             </div>
 
-            <div class="act-footer">
-                <a id="p-read" href="#" class="read-link">
-                    ЧИТАТИ СТАТТЮ
-                    <svg class="ml-1" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3"
-                        viewBox="0 0 24 24">
-                        <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3" />
-                    </svg>
-                </a>
-                <button onclick="copyLink()" class="share-pill">
-                    <svg class="inline-block mr-2" width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+            <!-- Main Player Stage -->
+            <div class="stage">
+                <div class="cover-box">
+                    <img id="p-art" src="" class="cover-img">
+                    <div id="p-badge" class="cover-badge">НОВИНИ</div>
+                </div>
+
+                <div class="stage-info">
+                    <h2 id="p-title" class="stage-title">Завантаження...</h2>
+                    <p id="p-date" class="stage-date">---</p>
+                </div>
+
+                <div class="wave-vis" id="wave-box">
+                    <!-- Bars via JS -->
+                </div>
+
+                <div class="p-main-track" onclick="seek(event)">
+                    <div class="p-main-fill" id="p-fill"></div>
+                </div>
+                <div class="p-main-labels">
+                    <span id="p-time">0:00 / 0:00</span>
+                </div>
+
+                <div class="p-main-controls">
+                    <button onclick="prevTrack()" class="p-side-btn">
+                        <svg width="34" height="34" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M6 6h2v12H6zm3.5 6 8.5 6V6z" />
+                        </svg>
+                    </button>
+                    <button onclick="togglePlay()" class="p-circle">
+                        <svg id="play-ico" width="38" height="38" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M8 5v14l11-7z" />
+                        </svg>
+                        <svg id="pause-ico" class="hidden" width="38" height="38" fill="currentColor"
+                            viewBox="0 0 24 24">
+                            <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+                        </svg>
+                    </button>
+                    <button onclick="nextTrack()" class="p-side-btn">
+                        <svg width="34" height="34" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M6 18l8.5-6L6 6v12zm2-8.14L11.03 12 8 14.14V9.86zM16 6h2v12h-2z" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="volume-box">
+                    <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
                         <path
-                            d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z" />
+                            d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z" />
                     </svg>
-                    ПОДІЛИТИСЯ
-                </button>
+                    <div class="v-slider">
+                        <div class="v-fill"></div>
+                        <div class="v-knob"></div>
+                    </div>
+                    <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
+                        <path
+                            d="M14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
+                    </svg>
+                </div>
+
+                <div class="act-footer">
+                    <a id="p-read" href="#" class="read-link">
+                        ЧИТАТИ СТАТТЮ
+                        <svg class="ml-1" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3"
+                            viewBox="0 0 24 24">
+                            <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3" />
+                        </svg>
+                    </a>
+                    <button onclick="copyLink()" class="share-pill">
+                        <svg class="inline-block mr-2" width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                            <path
+                                d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z" />
+                        </svg>
+                        ПОДІЛИТИСЯ
+                    </button>
+                </div>
             </div>
-        </div>
+        </div> <!-- End of Desktop Sticky Sidebar -->
 
-        <!-- News Feed Container -->
-        <div id="feed">
-            <!-- Rendered by JS -->
-        </div>
+        <!-- Right Column: News Feed Container -->
+        <div class="lg:pt-6 lg:pb-24 min-w-0 lg:pl-6 xl:pl-8">
+            <div id="feed">
+                <!-- Rendered by JS -->
+            </div>
+        </div> <!-- End of Right Column -->
 
-        <div class="h-48"></div>
+        <div class="h-48 lg:hidden"></div>
     </main>
 
     <!-- Mini Player Bar -->
