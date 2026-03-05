@@ -923,6 +923,11 @@
                 isTtsPaused = true;
                 if (icon) icon.innerText = '▶';
                 if (anim) anim.classList.add('hidden');
+
+                if (window.BukvaAnalytics && currentPost) {
+                    window.BukvaAnalytics.stopVoiceTracking();
+                    window.BukvaAnalytics.startTextTracking(currentPost.id, _supabase);
+                }
             } else if (isTtsPaused) {
                 console.log("TTS Resuming...");
                 if (isCloudMode && cloudAudio) {
@@ -933,6 +938,11 @@
                 isTtsPaused = false;
                 if (icon) icon.innerText = '⏸';
                 if (anim) anim.classList.remove('hidden');
+
+                if (window.BukvaAnalytics && currentPost) {
+                    window.BukvaAnalytics.stopTextTracking();
+                    window.BukvaAnalytics.startVoiceTracking(currentPost.id, _supabase);
+                }
             } else {
                 console.log("TTS Calling startTTS()...");
                 startTTS();
@@ -986,7 +996,14 @@
                 ttsUtterance = new SpeechSynthesisUtterance(text);
                 ttsUtterance.lang = 'uk-UA';
                 ttsUtterance.voice = voice;
-                ttsUtterance.onstart = () => { isTtsPlaying = true; isTtsPaused = false; };
+                ttsUtterance.onstart = () => {
+                    isTtsPlaying = true;
+                    isTtsPaused = false;
+                    if (window.BukvaAnalytics && currentPost) {
+                        window.BukvaAnalytics.stopTextTracking();
+                        window.BukvaAnalytics.startVoiceTracking(currentPost.id, _supabase);
+                    }
+                };
                 ttsUtterance.onend = () => { stopTTS(); };
                 ttsUtterance.onerror = () => { stopTTS(); };
                 window.speechSynthesis.speak(ttsUtterance);
@@ -1156,6 +1173,8 @@
         }
 
         window.stopTTS = () => {
+            const wasPlaying = isTtsPlaying;
+
             try {
                 if (window.speechSynthesis) window.speechSynthesis.cancel();
             } catch (e) { }
@@ -1175,6 +1194,13 @@
             if (icon) icon.innerText = '▶';
             if (anim) anim.classList.add('hidden');
             if (ttsBtn) { ttsBtn.style.opacity = ''; ttsBtn.style.pointerEvents = ''; }
+
+            if (wasPlaying && window.BukvaAnalytics && currentPost) {
+                window.BukvaAnalytics.stopVoiceTracking();
+                if (document.visibilityState !== 'hidden') {
+                    window.BukvaAnalytics.startTextTracking(currentPost.id, _supabase);
+                }
+            }
         };
 
         // Stop speech when leaving page
