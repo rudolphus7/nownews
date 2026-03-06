@@ -1,9 +1,5 @@
-const { createClient } = require('@supabase/supabase-js');
-
-// Init Supabase
-const supabaseUrl = process.env.SUPABASE_URL || 'https://kgrxlznhimwuvwhjfzhv.supabase.co';
-const supabaseKey = process.env.SUPABASE_KEY || 'sb_publishable_L4_HhLhbj_m6wbEc3ZqhcQ_QNGOLWXU';
-const supabase = createClient(supabaseUrl, supabaseKey);
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kgrxlznhimwuvwhjfzhv.supabase.co';
+const SUPABASE_KEY = process.env.SUPABASE_KEY || 'sb_publishable_L4_HhLhbj_m6wbEc3ZqhcQ_QNGOLWXU';
 
 module.exports = async (req, res) => {
     // Встановлюємо заголовки CORS (хоча Vercel зазвичай це хендлить)
@@ -17,15 +13,20 @@ module.exports = async (req, res) => {
 
     try {
         if (req.method === 'GET') {
-            const { data, error } = await supabase
-                .from('settings')
-                .select('key, value');
+            const r = await fetch(`${SUPABASE_URL}/rest/v1/settings?select=key,value`, {
+                headers: {
+                    'apikey': SUPABASE_KEY,
+                    'Authorization': `Bearer ${SUPABASE_KEY}`
+                }
+            });
 
-            if (error) {
-                console.error("Supabase GET error:", error);
-                return res.status(500).json({ error: error.message });
+            if (!r.ok) {
+                const err = await r.text();
+                console.error("Supabase GET error:", err);
+                return res.status(500).json({ error: 'Failed to fetch settings' });
             }
 
+            const data = await r.json();
             // Перетворюємо масив [{key: 'a', value: '1'}] на об'єкт {a: '1'}
             const settingsObj = {};
             if (data) {
@@ -53,13 +54,21 @@ module.exports = async (req, res) => {
             }));
 
             if (updates.length > 0) {
-                const { error } = await supabase
-                    .from('settings')
-                    .upsert(updates, { onConflict: 'key' });
+                const r = await fetch(`${SUPABASE_URL}/rest/v1/settings?on_conflict=key`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'resolution=merge-duplicates,return=minimal'
+                    },
+                    body: JSON.stringify(updates)
+                });
 
-                if (error) {
-                    console.error("Supabase POST error:", error);
-                    return res.status(500).json({ error: error.message });
+                if (!r.ok) {
+                    const err = await r.text();
+                    console.error("Supabase POST error:", err);
+                    return res.status(500).json({ error: 'Failed to save settings' });
                 }
             }
 
