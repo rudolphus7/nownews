@@ -206,8 +206,8 @@
             "memory": 128
         },
         "api/sitemap.js": {
-            "maxDuration": 30,
-            "memory": 128
+            "maxDuration": 60,
+            "memory": 512
         },
         "api/tts.js": {
             "memory": 256,

@@ -11,12 +11,12 @@ module.exports = async (req, res) => {
             'Authorization': `Bearer ${SUPABASE_KEY}`
         };
 
-        if (type === 'pages') return servePages(res, headers);
-        if (type === 'posts') return servePosts(res, headers);
-        if (type === 'news') return serveNews(res, headers);
+        if (type === 'pages') return await servePages(res, headers);
+        if (type === 'posts') return await servePosts(res, headers);
+        if (type === 'news') return await serveNews(res, headers);
 
         // Default to Index
-        return serveIndex(res);
+        return await serveIndex(res);
 
     } catch (err) {
         console.error('Sitemap error:', err);
@@ -71,9 +71,13 @@ ${urls.map(u => `  <url>
 }
 
 async function servePosts(res, headers) {
-    const response = await fetch(`${SUPABASE_URL}/rest/v1/news?is_published=eq.true&select=slug,updated_at,created_at,city,category&order=created_at.desc`, { headers });
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/news?is_published=eq.true&select=slug,updated_at,created_at,city,category&order=created_at.desc&limit=5000`, { headers });
     if (!response.ok) throw new Error(`Supabase error: ${response.status}`);
-    const articles = await response.json();
+    const articles = await response.json() || [];
+
+    if (!Array.isArray(articles)) {
+        throw new Error('Supabase response is not an array: ' + JSON.stringify(articles).slice(0, 100));
+    }
 
     const CAT_MAP = {
         'war': 'viyna', 'politics': 'polityka', 'economy': 'ekonomika',
