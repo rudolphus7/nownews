@@ -1377,6 +1377,76 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // ═══════════════════════════════════════════════════════════════════════
+    // SETTINGS MANAGEMENT (Categories, Cities, AI, Social Media)
+    // ═══════════════════════════════════════════════════════════════════════
+
+    // -- Social Media Settings --
+    window.loadSocialSettings = async () => {
+        try {
+            const res = await fetch('/api/settings');
+            const settings = await res.json();
+
+            if (settings) {
+                if (settings.social_facebook) document.getElementById('setting_social_facebook').value = settings.social_facebook;
+                if (settings.social_instagram) document.getElementById('setting_social_instagram').value = settings.social_instagram;
+                if (settings.social_telegram) document.getElementById('setting_social_telegram').value = settings.social_telegram;
+                if (settings.social_youtube) document.getElementById('setting_social_youtube').value = settings.social_youtube;
+            }
+        } catch (e) {
+            console.error('Error loading social settings:', e);
+        }
+    };
+
+    window.saveSocialSettings = async () => {
+        const btn = document.getElementById('btn-save-social');
+        const status = document.getElementById('social-save-status');
+        const prevHtml = btn.innerHTML;
+
+        btn.disabled = true;
+        btn.innerHTML = `<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline z-10" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> ЗБЕРЕЖЕННЯ...`;
+
+        const settings = {
+            social_facebook: document.getElementById('setting_social_facebook').value.trim() || '#',
+            social_instagram: document.getElementById('setting_social_instagram').value.trim() || '#',
+            social_telegram: document.getElementById('setting_social_telegram').value.trim() || '#',
+            social_youtube: document.getElementById('setting_social_youtube').value.trim() || '#'
+        };
+
+        try {
+            const res = await fetch('/api/settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(settings)
+            });
+
+            if (!res.ok) throw new Error('Помилка збереження');
+
+            status.classList.remove('opacity-0');
+            setTimeout(() => status.classList.add('opacity-0'), 3000);
+        } catch (e) {
+            alert('Помилка збереження налаштувань: ' + e.message);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = prevHtml;
+        }
+    };
+
+    window.loadSettings = async () => {
+        if (!_supabase) return;
+
+        // Categories
+        const { data: catData } = await _supabase.from('categories').select('*').order('order_index', { ascending: true });
+        if (catData) renderSettingsTable('categories', catData);
+
+        // Cities
+        const { data: cityData } = await _supabase.from('cities').select('*').order('order_index', { ascending: true });
+        if (cityData) renderSettingsTable('cities', cityData);
+
+        // Load social specific settings from api
+        await window.loadSocialSettings();
+    };
+
+    // ═══════════════════════════════════════════════════════════════════════
     // ANALYTICS MANAGEMENT
     // ═══════════════════════════════════════════════════════════════════════
     window.loadAnalytics = async () => {
