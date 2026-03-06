@@ -1476,7 +1476,7 @@ document.addEventListener('DOMContentLoaded', () => {
         readAlsoTimeout = setTimeout(async () => {
             if (!_supabase) return;
 
-            let supaQuery = _supabase.from('news').select('id, title, slug, city, pub_date').order('pub_date', { ascending: false });
+            let supaQuery = _supabase.from('news').select('id, title, slug, city, created_at').order('created_at', { ascending: false });
 
             if (query) {
                 supaQuery = supaQuery.ilike('title', `%${query}%`).limit(20);
@@ -1498,7 +1498,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             resultsEl.innerHTML = data.map(art => {
-                const dateHtml = art.pub_date ? `<span class="text-[9px] text-slate-400 font-bold uppercase tracking-widest bg-slate-100 px-2 py-0.5 rounded mr-2 mt-1 inline-block">${new Date(art.pub_date).toLocaleDateString('uk-UA')}</span>` : '';
+                const dateHtml = art.created_at ? `<span class="text-[9px] text-slate-400 font-bold uppercase tracking-widest bg-slate-100 px-2 py-0.5 rounded mr-2 mt-1 inline-block">${new Date(art.created_at).toLocaleDateString('uk-UA')}</span>` : '';
                 return `
                     <li class="p-4 bg-white rounded-2xl border border-slate-100 hover:border-orange-200 transition-colors shadow-sm mb-2 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between group">
                         <div class="flex-1 min-w-0">
