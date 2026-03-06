@@ -78,17 +78,41 @@ ${urls.map(u => `  <url>
 async function servePosts(res, headers) {
     let articles = [];
     try {
-        const fetchHeaders = { ...headers, 'Range': '0-4999' };
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/news?is_published=eq.true&select=slug,updated_at,created_at,city,category&order=created_at.desc`, {
-            method: 'GET',
-            headers: fetchHeaders
-        });
+        let offset = 0;
+        const limit = 1000;
+        let hasMore = true;
 
-        if (!response.ok) {
-            console.error(`Supabase error: ${response.status}`);
-        } else {
+        while (hasMore) {
+            const fetchHeaders = { ...headers, 'Range': `${offset}-${offset + limit - 1}` };
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/news?is_published=eq.true&select=slug,updated_at,created_at,city,category&order=created_at.desc`, {
+                method: 'GET',
+                headers: fetchHeaders
+            });
+
+            if (!response.ok) {
+                console.error(`Supabase error fetching posts chunk at offset ${offset}: ${response.status}`);
+                break;
+            }
+
             const text = await response.text();
-            if (text) articles = JSON.parse(text);
+            if (text) {
+                const chunk = JSON.parse(text);
+                articles = articles.concat(chunk);
+
+                // If we got fewer items than the limit, we've reached the end
+                if (chunk.length < limit) {
+                    hasMore = false;
+                } else {
+                    offset += limit;
+                }
+            } else {
+                hasMore = false;
+            }
+
+            // Safety limit to prevent infinite loops or excessively large sitemaps (e.g., max 10000)
+            if (articles.length >= 10000) {
+                hasMore = false;
+            }
         }
     } catch (e) {
         console.error("Posts fetch/parse error:", e);
