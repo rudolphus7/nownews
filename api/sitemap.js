@@ -83,10 +83,9 @@ async function servePosts(res, headers) {
         let hasMore = true;
 
         while (hasMore) {
-            const fetchHeaders = { ...headers, 'Range': `${offset}-${offset + limit - 1}` };
-            const response = await fetch(`${SUPABASE_URL}/rest/v1/news?is_published=eq.true&select=slug,updated_at,created_at,city,category&order=created_at.desc`, {
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/news?is_published=eq.true&select=slug,updated_at,created_at,city,category&order=created_at.desc&limit=${limit}&offset=${offset}`, {
                 method: 'GET',
-                headers: fetchHeaders
+                headers: headers
             });
 
             if (!response.ok) {
@@ -199,9 +198,7 @@ function sendXml(res, xml, maxAge) {
 }
 
 function formatDate(dateStr) {
-    const d = new Date(dateStr);
-    const pad = (n) => String(n).padStart(2, '0');
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}+02:00`;
+    return new Date(dateStr).toISOString();
 }
 
 function escapeXml(str) {
