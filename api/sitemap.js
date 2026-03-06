@@ -78,9 +78,10 @@ ${urls.map(u => `  <url>
 async function servePosts(res, headers) {
     let articles = [];
     try {
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/news?is_published=eq.true&select=slug,updated_at,created_at,city,category&order=created_at.desc&limit=5000`, {
+        const fetchHeaders = { ...headers, 'Range': '0-4999' };
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/news?is_published=eq.true&select=slug,updated_at,created_at,city,category&order=created_at.desc`, {
             method: 'GET',
-            headers: headers
+            headers: fetchHeaders
         });
 
         if (!response.ok) {
