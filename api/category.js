@@ -74,8 +74,51 @@ module.exports = async (req, res) => {
 
     const categoryName = category.name;
     const canonicalUrl = `${SITE_URL}/category/${slug}/`;
-    const title = `${categoryName} | BUKVA NEWS`;
-    const description = `Новини рубрики «${categoryName}»: читайте оперативно на BUKVA NEWS.`;
+    const title = `${categoryName} | BUKVA NEWS — Новини Івано-Франківська`;
+
+    // Unique meta descriptions and SEO text per category slug
+    const CATEGORY_META = {
+        'sport': {
+            description: 'Спортивні новини Івано-Франківська та Прикарпаття. Результати матчів, турніри, досягнення місцевих спортсменів — усе на BUKVA NEWS.',
+            seoText: 'Спорт на Прикарпатті — це не просто змагання. Це досягнення, перемоги та боротьба тисяч людей. BUKVA NEWS стежить за результатами місцевих клубів, турнірами та успіхами івано-франківських спортсменів.'
+        },
+        'politics': {
+            description: 'Політичні новини Івано-Франківська та України. Рішення влади, вибори, аналітика подій — актуально на BUKVA NEWS.',
+            seoText: 'Політика відображає реальний стан суспільства. На BUKVA NEWS — об\'єктивні репортажі про рішення місцевої та центральної влади, резонансні події та позиції громади Прикарпаття.'
+        },
+        'economy': {
+            description: 'Економічні новини Прикарпаття: бізнес, ринки, зайнятість, тарифи та фінанси Івано-Франківська — на BUKVA NEWS.',
+            seoText: 'Економіка регіону — це робочі місця, ціни та добробут кожного мешканця. BUKVA NEWS висвітлює бізнес-події, ринок нерухомості, тарифи та фінансові новини Івано-Франківська і Прикарпаття.'
+        },
+        'culture': {
+            description: 'Культурне життя Івано-Франківська: події, виставки, театр, музика та мистецтво Прикарпаття — на BUKVA NEWS.',
+            seoText: 'Культура Прикарпаття — це багатство традицій і сучасних мистецьких форм. BUKVA NEWS розповідає про концерти, виставки, театральні прем\'єри та культурні події Івано-Франківська.'
+        },
+        'tech': {
+            description: 'Технологічні новини та інновації: IT, гаджети, наука та цифрові тренди для Прикарпаття — на BUKVA NEWS.',
+            seoText: 'Технології змінюють світ і наш регіон. BUKVA NEWS висвітлює новини IT-сфери, стартапи, цифрову трансформацію та науково-технічні досягнення, що мають значення для жителів Прикарпаття.'
+        },
+        'frankivsk': {
+            description: 'Новини Івано-Франківська: події, що відбуваються у місті прямо зараз — оперативно на BUKVA NEWS.',
+            seoText: 'Івано-Франківськ — живе місто з активним громадським, культурним та діловим життям. BUKVA NEWS — ваш провідник у міських новинах: від рішень міськради до подій у кварталах.'
+        },
+        'oblast': {
+            description: 'Новини Івано-Франківської області: події у районах та громадах Прикарпаття — на BUKVA NEWS.',
+            seoText: 'Івано-Франківська область — це 14 районів, десятки громад і тисячі подій щодня. BUKVA NEWS збирає найважливіше з усього Прикарпаття, щоб ви були в курсі того, що відбувається поряд.'
+        },
+        'war': {
+            description: 'Новини про війну в Україні: фронтові зведення, ситуація в регіоні та підтримка ЗСУ — на BUKVA NEWS.',
+            seoText: 'BUKVA NEWS висвітлює події російсько-української війни: фронтові зведення, новини з регіону, волонтерські ініціативи та підтримку захисників від прикарпатської громади.'
+        }
+    };
+
+    const meta = CATEGORY_META[slug] || {
+        description: `Новини рубрики «${categoryName}» — читайте найактуальніше на BUKVA NEWS. Перевірені факти, оперативні події з Івано-Франківська та Прикарпаття.`,
+        seoText: `«${categoryName}» — одна з ключових рубрик BUKVA NEWS. Тут зібрані найважливіші матеріали з перевіреними фактами та оперативними новинами Прикарпаття.`
+    };
+
+    const description = meta.description;
+    const seoText = meta.seoText;
     const siteName = 'BUKVA NEWS';
 
     // Read index.html template
@@ -278,7 +321,20 @@ module.exports = async (req, res) => {
     htmlContent = htmlContent.replace(/<meta name="description"[^>]*>/gi, '');
     htmlContent = htmlContent.replace(/<link rel="canonical"[^>]*>/gi, '');
     htmlContent = inject(htmlContent, 'site-header-placeholder', headerHtml);
-    htmlContent = htmlContent.replace(/<title>.*?<\/title>/s, `<title>${escapeHtml(title)}</title>\n${metaTags}\n${ssrScript}`);
+
+    // Build SEO text injector — avoids </script> escaping issues in template literals
+    const seoInjectorScript = '<scr' + 'ipt>document.addEventListener("DOMContentLoaded",function(){' +
+        'var st=' + JSON.stringify(seoText) + ';' +
+        'if(!st)return;' +
+        'var b=document.createElement("p");' +
+        'b.id="category-seo-text";' +
+        'b.setAttribute("style","max-width:760px;margin:0 auto 20px;padding:14px 18px;background:#fff7ed;border-left:3px solid #ea580c;border-radius:0 10px 10px 0;font-size:14px;line-height:1.75;color:#64748b;");' +
+        'b.textContent=st;' +
+        'var g=document.getElementById("news-grid")||document.getElementById("news-container")||document.querySelector("[id*=news]");' +
+        'if(g&&g.parentNode)g.parentNode.insertBefore(b,g);' +
+        '});<\/scr' + 'ipt>';
+
+    htmlContent = htmlContent.replace(/<title>.*?<\/title>/s, `<title>${escapeHtml(title)}</title>\n${metaTags}\n${ssrScript}\n${seoInjectorScript}`);
 
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=30');
