@@ -20,9 +20,14 @@
     <link rel="preconnect" href="https://kgrxlznhimwuvwhjfzhv.supabase.co">
     <link rel="dns-prefetch" href="https://kgrxlznhimwuvwhjfzhv.supabase.co">
     <link rel="dns-prefetch" href="https://kgrxlznhimwuvwhjfzhv.supabase.in">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="stylesheet" href="/components/header.css">
-    <script src="/components/header.js"></script>
+
+    <!-- Deferred Scripts for Performance -->
+    <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="preload" href="/components/header.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript>
+        <link rel="stylesheet" href="/components/header.css">
+    </noscript>
+    <script defer src="/components/header.js"></script>
 
     <!-- Google Analytics 4 -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-383BY386JQ"></script>
@@ -908,7 +913,7 @@
     <script>
         const SUPABASE_URL = 'https://kgrxlznhimwuvwhjfzhv.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_L4_HhLhbj_m6wbEc3ZqhcQ_QNGOLWXU';
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        let _supabase;
 
         let all = [], tracks = [], currentIndex = -1, isPlaying = false, radio = false;
         let activeFilter = { type: 'all', val: null };
@@ -1135,9 +1140,12 @@
         function share(t, u) { if (navigator.share) navigator.share({ title: t, url: u }); else { navigator.clipboard.writeText(u); alert('Посилання скопійовано'); } }
         function copyLink() { share(tracks[currentIndex]?.title, getShareLink(tracks[currentIndex])); }
 
-        init();
+        document.addEventListener('DOMContentLoaded', () => {
+            _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            init();
+        });
     </script>
-    <script src="/components/analytics.js"></script>
+    <script defer src="/components/analytics.js"></script>
 </body>
 
 </html>

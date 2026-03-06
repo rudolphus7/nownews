@@ -53,10 +53,14 @@
         href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
         rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    <link rel="stylesheet" href="/components/header.css">
-    <script src="/components/header.js"></script>
+    <!-- Deferred Scripts for Performance -->
+    <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="preload" href="/components/header.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript>
+        <link rel="stylesheet" href="/components/header.css">
+    </noscript>
+    <script defer src="/components/header.js"></script>
 
     <!-- Schema.org Structured Data -->
     <script type="application/ld+json">
@@ -286,12 +290,12 @@
 
     <div id="site-footer-placeholder"></div>
 
-    <script src="/components/footer.js"></script>
+    <script defer src="/components/footer.js"></script>
 
     <script>
         const SUPABASE_URL = 'https://kgrxlznhimwuvwhjfzhv.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_L4_HhLhbj_m6wbEc3ZqhcQ_QNGOLWXU';
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        let _supabase;
 
         // CATEGORIES_UK and CITIES_UK are now provided globally by /components/header.js
         const isLocal = window.location.hostname === 'localhost' ||
@@ -717,9 +721,12 @@
             }
         }
 
-        init();
-        loadTrending();
-        window.initSiteFooter(_supabase);
+        document.addEventListener('DOMContentLoaded', () => {
+            _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            init();
+            loadTrending();
+            window.initSiteFooter(_supabase);
+        });
 
         // ── Newsletter subscription ──────────────────────────────────────
         async function submitNewsletter() {
