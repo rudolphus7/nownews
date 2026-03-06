@@ -13,6 +13,13 @@
         href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
         rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Performance Optimizations -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://kgrxlznhimwuvwhjfzhv.supabase.co">
+    <link rel="dns-prefetch" href="https://kgrxlznhimwuvwhjfzhv.supabase.co">
+    <link rel="dns-prefetch" href="https://kgrxlznhimwuvwhjfzhv.supabase.in">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="/components/header.css">
     <script src="/components/header.js"></script>
@@ -756,7 +763,7 @@
             <!-- Main Player Stage -->
             <div class="stage">
                 <div class="cover-box">
-                    <img id="p-art" src="" class="cover-img">
+                    <img id="p-art" src="" class="cover-img" fetchpriority="high">
                     <div id="p-badge" class="cover-badge">НОВИНИ</div>
                 </div>
 

@@ -12,6 +12,13 @@
         href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
         rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Performance Optimizations -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://kgrxlznhimwuvwhjfzhv.supabase.co">
+    <link rel="dns-prefetch" href="https://kgrxlznhimwuvwhjfzhv.supabase.co">
+    <link rel="dns-prefetch" href="https://kgrxlznhimwuvwhjfzhv.supabase.in">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <link rel="stylesheet" href="/components/header.css">
@@ -381,7 +388,7 @@
                     </header>
 
                     <div class="relative group">
-                        <img id="news-image" src="" alt=""
+                        <img id="news-image" src="" alt="" fetchpriority="high"
                             class="w-full h-auto rounded-[1.5rem] md:rounded-[3rem] shadow-2xl mb-6 md:mb-16 object-cover max-h-[650px]">
                         <div id="image-caption"
                             class="absolute bottom-6 left-6 bg-white/90 backdrop-blur px-4 py-2 rounded-xl text-xs font-bold text-slate-700 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -798,7 +805,21 @@
                 img.classList.add('hidden');
             }
 
-            document.getElementById('news-text').innerHTML = data.content;
+            // Provide fallback image if error
+            img.onerror = () => { img.src = '/fallback-news.jpg'; };
+
+            // Optimize article body images
+            let optimizedContent = data.content || '';
+            optimizedContent = optimizedContent.replace(/<img\s+([^>]+)>/gi, (match, attrs) => {
+                if (!attrs.includes('loading=')) attrs += ' loading="lazy"';
+                if (!attrs.includes('decoding=')) attrs += ' decoding="async"';
+                return `<img ${attrs}>`;
+            });
+
+            const newsTextBody = document.getElementById('news-text');
+            newsTextBody.innerHTML = optimizedContent;
+
+            // ... SEO and other updates will be kept as-is...
 
             // Meta Badges
             let metaHtml = '';
@@ -824,7 +845,7 @@
                 container.innerHTML = data.map(post => `
                     <a href="${buildNewsUrl(post)}" class="group flex gap-4 items-center">
                         <div class="w-20 h-20 rounded-2xl overflow-hidden flex-shrink-0 relative">
-                            <img src="${post.image_url}" alt="${post.title}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                            <img src="${post.image_url}" alt="${post.title}" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
                         </div>
                         <div class="flex-1">
                             <h4 class="text-xs font-bold leading-tight group-hover:text-orange-600 transition-colors line-clamp-3">${post.title}</h4>
