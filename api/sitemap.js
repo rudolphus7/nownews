@@ -42,8 +42,13 @@ async function servePages(res, headers) {
         fetch(`${SUPABASE_URL}/rest/v1/categories?select=slug&order=order_index.asc`, { headers })
     ]);
 
-    const cities = citiesRes.ok ? await citiesRes.json().catch(() => []) : [];
-    const categories = categoriesRes.ok ? await categoriesRes.json().catch(() => []) : [];
+    let cities = [];
+    let categories = [];
+    try { cities = citiesRes.ok ? await citiesRes.json() : []; } catch (e) { }
+    try { categories = categoriesRes.ok ? await categoriesRes.json() : []; } catch (e) { }
+
+    if (!Array.isArray(cities)) cities = [];
+    if (!Array.isArray(categories)) categories = [];
 
     const CAT_MAP = {
         'war': 'viyna', 'politics': 'polityka', 'economy': 'ekonomika',
@@ -73,10 +78,16 @@ ${urls.map(u => `  <url>
 async function servePosts(res, headers) {
     const response = await fetch(`${SUPABASE_URL}/rest/v1/news?is_published=eq.true&select=slug,updated_at,created_at,city,category&order=created_at.desc&limit=5000`, { headers });
     if (!response.ok) throw new Error(`Supabase error: ${response.status}`);
-    const articles = await response.json() || [];
+    let articles = [];
+    try {
+        const text = await response.text();
+        if (text) articles = JSON.parse(text);
+    } catch (e) {
+        console.error("Posts JSON parse error:", e);
+    }
 
     if (!Array.isArray(articles)) {
-        throw new Error('Supabase response is not an array: ' + JSON.stringify(articles).slice(0, 100));
+        articles = [];
     }
 
     const CAT_MAP = {
@@ -88,7 +99,11 @@ async function servePosts(res, headers) {
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${articles.filter(a => a.slug).map(a => {
-        const lastmod = (a.updated_at || a.created_at || new Date().toISOString()).split('T')[0];
+        let lastmod = new Date().toISOString().split('T')[0];
+        try {
+            if (a.updated_at) lastmod = new Date(a.updated_at).toISOString().split('T')[0];
+            else if (a.created_at) lastmod = new Date(a.created_at).toISOString().split('T')[0];
+        } catch (e) { }
         let path = `/news/${a.slug}/`;
         if (a.city) path = `/${a.city}/${a.slug}/`;
         else if (a.category && CAT_MAP[a.category]) path = `/category/${CAT_MAP[a.category]}/${a.slug}/`;
@@ -108,7 +123,15 @@ async function serveNews(res, headers) {
     const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
     const apiUrl = `${SUPABASE_URL}/rest/v1/news?is_published=eq.true&created_at=gte.${encodeURIComponent(cutoff)}&select=slug,title,created_at,city,category&order=created_at.desc`;
     const response = await fetch(apiUrl, { headers });
-    const articles = response.ok ? await response.json() : [];
+    let articles = [];
+    try {
+        const text = await response.text();
+        if (text) articles = JSON.parse(text);
+    } catch (e) {
+        console.error("News JSON parse error", e);
+    }
+
+    if (!Array.isArray(articles)) articles = [];
     const validArticles = articles.filter(a => a.slug && a.title);
 
     const CAT_MAP = {
