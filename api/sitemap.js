@@ -76,14 +76,21 @@ ${urls.map(u => `  <url>
 }
 
 async function servePosts(res, headers) {
-    const response = await fetch(`${SUPABASE_URL}/rest/v1/news?is_published=eq.true&select=slug,updated_at,created_at,city,category&order=created_at.desc&limit=5000`, { headers });
-    if (!response.ok) throw new Error(`Supabase error: ${response.status}`);
     let articles = [];
     try {
-        const text = await response.text();
-        if (text) articles = JSON.parse(text);
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/news?is_published=eq.true&select=slug,updated_at,created_at,city,category&order=created_at.desc&limit=5000`, {
+            method: 'GET',
+            headers: headers
+        });
+
+        if (!response.ok) {
+            console.error(`Supabase error: ${response.status}`);
+        } else {
+            const text = await response.text();
+            if (text) articles = JSON.parse(text);
+        }
     } catch (e) {
-        console.error("Posts JSON parse error:", e);
+        console.error("Posts fetch/parse error:", e);
     }
 
     if (!Array.isArray(articles)) {
