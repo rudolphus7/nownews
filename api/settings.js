@@ -27,7 +27,6 @@ module.exports = async (req, res) => {
             }
 
             const data = await r.json();
-            // Перетворюємо масив [{key: 'a', value: '1'}] на об'єкт {a: '1'}
             const settingsObj = {};
             if (data) {
                 data.forEach(item => {
@@ -35,7 +34,7 @@ module.exports = async (req, res) => {
                 });
             }
 
-            res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=30');
+            res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
             return res.status(200).json(settingsObj);
         }
         else if (req.method === 'POST') {
