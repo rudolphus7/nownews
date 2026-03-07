@@ -545,7 +545,7 @@
             });
 
             // Use our PRE-FETCHED data if no filters applied
-            if (!currentFilters.category && !currentFilters.city) {
+            if (!currentFilters.category && !currentFilters.city && initialNewsPromise) {
                 const { data, error } = await initialNewsPromise;
                 if (!error && data && data.length > 0) {
                     renderHero(data[0]);
