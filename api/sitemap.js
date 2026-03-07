@@ -83,7 +83,7 @@ async function servePosts(res, headers) {
         let hasMore = true;
 
         while (hasMore) {
-            const response = await fetch(`${SUPABASE_URL}/rest/v1/news?is_published=is.true&select=slug,updated_at,created_at,city,category&order=created_at.desc&limit=${limit}&offset=${offset}`, {
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/news?select=slug,updated_at,created_at,city,category&order=created_at.desc&limit=${limit}&offset=${offset}`, {
                 method: 'GET',
                 headers: headers
             });
