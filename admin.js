@@ -1540,8 +1540,9 @@ document.addEventListener('DOMContentLoaded', () => {
     window.insertReadAlso = (slug, city, title) => {
         if (!quill) return;
 
-        const cityPrefix = city && city !== 'null' && city !== 'undefined' && city !== '' ? `/${city}` : '';
-        const url = `https://bukva.news${cityPrefix}/news/${slug}`;
+        const url = city && city !== 'null' && city !== 'undefined' && city !== ''
+            ? `https://bukva.news/${city}/${slug}/`
+            : `https://bukva.news/news/${slug}/`;
 
         const htmlSnippet = `
             <p><br/></p>
@@ -1573,8 +1574,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const slug = cb.dataset.slug;
             const city = cb.dataset.city;
             const title = cb.dataset.title;
-            const cityPrefix = city && city !== 'null' && city !== 'undefined' && city !== '' ? `/${city}` : '';
-            const url = `https://bukva.news${cityPrefix}/news/${slug}`;
+            const url = city && city !== 'null' && city !== 'undefined' && city !== ''
+                ? `https://bukva.news/${city}/${slug}/`
+                : `https://bukva.news/news/${slug}/`;
             listItems += `<li><a href="${url}" target="_blank" rel="noopener noreferrer">${title}</a></li>`;
         });
 
