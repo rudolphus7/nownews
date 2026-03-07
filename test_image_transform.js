@@ -1,24 +1,29 @@
-const SUPABASE_URL = 'https://kgrxlznhimwuvwhjfzhv.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_L4_HhLhbj_m6wbEc3ZqhcQ_QNGOLWXU';
 
-async function test() {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/news?is_published=eq.true&select=image_url&limit=1`, {
-        headers: {
-            'apikey': SUPABASE_KEY,
-            'Authorization': `Bearer ${SUPABASE_KEY}`
-        }
-    });
-    const data = await res.json();
-    if (data && data.length > 0) {
-        const originalUrl = data[0].image_url;
-        console.log("Original:", originalUrl);
+function optimizeImage(url, width = 800, quality = 80) {
+    if (!url) return '';
+    const q = width <= 480 ? 50 : (width <= 800 ? 65 : quality);
 
-        let transformUrl = originalUrl.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/');
-        transformUrl += '?width=500&quality=70';
-        console.log("Transform:", transformUrl);
-
-        const imgRes = await fetch(transformUrl, { method: 'HEAD' });
-        console.log("Transform response:", imgRes.status);
+    // 1. Supabase Storage URLs
+    if (url.includes('/storage/v1/object/public/')) {
+        return url.replace(
+            '/storage/v1/object/public/',
+            `/storage/v1/render/image/public/`
+        ) + `?width=${width}&quality=${q}&format=webp`;
     }
+
+    // 2. External URLs (Proxy via wsrv.nl)
+    if (url.startsWith('http')) {
+        return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=${width}&q=${q}&output=webp`;
+    }
+
+    return url;
 }
-test();
+
+const testUrl = "https://i.postimg.cc/HL6Ggbq5/1695897596-5d80c02e93bf76feda54-large.jpg";
+console.log("Original URL:", testUrl);
+console.log("Optimized Mobile (400px):", optimizeImage(testUrl, 400));
+console.log("Optimized Tablet (800px):", optimizeImage(testUrl, 800));
+
+const supabaseUrl = "https://kgrxlznhimwuvwhjfzhv.supabase.co/storage/v1/object/public/news/image.jpg";
+console.log("\nSupabase URL:", supabaseUrl);
+console.log("Optimized Supabase:", optimizeImage(supabaseUrl, 600));

@@ -55,6 +55,47 @@
             line-height: 1.2;
         }
 
+        /* Structural CSS shim for CLS prevention */
+        .container {
+            width: 100%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .max-w-7xl {
+            max-width: 80rem;
+        }
+
+        .mx-auto {
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .px-4 {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+
+        .flex {
+            display: flex;
+        }
+
+        .flex-col {
+            flex-direction: column;
+        }
+
+        .lg\:flex-row {
+            display: flex;
+            flex-direction: row;
+        }
+
+        #site-header-placeholder {
+            height: clamp(80px, 10vh, 140px);
+            min-height: 80px;
+            background: white;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
         .progress-bar {
             height: 4px;
             background: #ea580c;
@@ -808,13 +849,21 @@
          */
         function optimizeImage(url, width = 800, quality = 80) {
             if (!url) return '';
-            // Only transform if it's a supabase storage public URL
+            const q = width <= 480 ? 50 : (width <= 800 ? 65 : quality);
+
+            // 1. Supabase Storage URLs
             if (url.includes('/storage/v1/object/public/')) {
                 return url.replace(
                     '/storage/v1/object/public/',
                     `/storage/v1/render/image/public/`
-                ) + `?width=${width}&quality=${quality}`;
+                ) + `?width=${width}&quality=${q}&format=webp`;
             }
+
+            // 2. External URLs (Proxy via wsrv.nl)
+            if (url.startsWith('http')) {
+                return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=${width}&q=${q}&output=webp`;
+            }
+
             return url;
         }
 
