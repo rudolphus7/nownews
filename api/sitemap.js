@@ -2,16 +2,18 @@ const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kgrxlznhimwuvwhjfzhv.s
 const SUPABASE_KEY = process.env.SUPABASE_KEY || 'sb_publishable_L4_HhLhbj_m6wbEc3ZqhcQ_QNGOLWXU';
 const SITE_URL = process.env.SITE_URL || 'https://bukva.news';
 
-const { createClient } = require('@supabase/supabase-js');
-const _supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-
 module.exports = async (req, res) => {
     const { type } = req.query;
 
     try {
-        if (type === 'pages') return await servePages(res);
-        if (type === 'posts') return await servePosts(res);
-        if (type === 'news') return await serveNews(res);
+        const headers = {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`
+        };
+
+        if (type === 'pages') return await servePages(res, headers);
+        if (type === 'posts') return await servePosts(res, headers);
+        if (type === 'news') return await serveNews(res, headers);
 
         // Default to Index
         return await serveIndex(res);
@@ -34,11 +36,19 @@ ${sitemaps.map(s => `  <sitemap>
     return sendXml(res, xml, 3600);
 }
 
-async function servePages(res) {
-    const [{ data: cities }, { data: categories }] = await Promise.all([
-        _supabase.from('cities').select('slug').order('order_index', { ascending: true }),
-        _supabase.from('categories').select('slug').order('order_index', { ascending: true })
+async function servePages(res, headers) {
+    const [citiesRes, categoriesRes] = await Promise.all([
+        fetch(`${SUPABASE_URL}/rest/v1/cities?select=slug&order=order_index.asc`, { headers }),
+        fetch(`${SUPABASE_URL}/rest/v1/categories?select=slug&order=order_index.asc`, { headers })
     ]);
+
+    let cities = [];
+    let categories = [];
+    try { cities = citiesRes.ok ? await citiesRes.json() : []; } catch (e) { }
+    try { categories = categoriesRes.ok ? await categoriesRes.json() : []; } catch (e) { }
+
+    if (!Array.isArray(cities)) cities = [];
+    if (!Array.isArray(categories)) categories = [];
 
     const CAT_MAP = {
         'war': 'viyna', 'politics': 'polityka', 'economy': 'ekonomika',
@@ -47,10 +57,10 @@ async function servePages(res) {
     };
 
     const urls = [{ loc: `${SITE_URL}/`, priority: '1.0', changefreq: 'daily' }];
-    (categories || []).forEach(c => {
+    categories.forEach(c => {
         if (c.slug) urls.push({ loc: `${SITE_URL}/category/${CAT_MAP[c.slug] || c.slug}/`, priority: '0.7', changefreq: 'daily' });
     });
-    (cities || []).forEach(c => {
+    cities.forEach(c => {
         if (c.slug) urls.push({ loc: `${SITE_URL}/${c.slug}/`, priority: '0.6', changefreq: 'weekly' });
     });
 
@@ -65,7 +75,7 @@ ${urls.map(u => `  <url>
     return sendXml(res, xml, 3600);
 }
 
-async function servePosts(res) {
+async function servePosts(res, headers) {
     let articles = [];
     try {
         let offset = 0;
@@ -73,24 +83,28 @@ async function servePosts(res) {
         let hasMore = true;
 
         while (hasMore) {
-            const { data, error } = await _supabase
-                .from('news')
-                .select('slug,updated_at,created_at,city,category')
-                .eq('is_published', true)
-                .order('created_at', { ascending: false })
-                .range(offset, offset + limit - 1);
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/news?is_published=is.true&select=slug,updated_at,created_at,city,category&order=created_at.desc&limit=${limit}&offset=${offset}`, {
+                method: 'GET',
+                headers: headers
+            });
 
-            if (error) {
-                console.error(`Supabase error fetching posts chunk at offset ${offset}:`, error);
+            if (!response.ok) {
+                console.error(`Supabase error fetching posts chunk at offset ${offset}: ${response.status}`);
                 break;
             }
 
-            if (data && data.length > 0) {
-                articles = articles.concat(data);
-                if (data.length < limit) {
-                    hasMore = false;
+            const text = await response.text();
+            if (text) {
+                const chunk = JSON.parse(text);
+                if (Array.isArray(chunk) && chunk.length > 0) {
+                    articles = articles.concat(chunk);
+                    if (chunk.length < limit) {
+                        hasMore = false;
+                    } else {
+                        offset += limit;
+                    }
                 } else {
-                    offset += limit;
+                    hasMore = false;
                 }
             } else {
                 hasMore = false;
@@ -101,7 +115,7 @@ async function servePosts(res) {
             }
         }
     } catch (e) {
-        console.error("Posts fetch error:", e);
+        console.error("Posts fetch/parse error:", e);
     }
 
     const CAT_MAP = {
@@ -133,20 +147,20 @@ ${articles.filter(a => a.slug).map(a => {
     return sendXml(res, xml, 3600);
 }
 
-async function serveNews(res) {
+async function serveNews(res, headers) {
     const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
-    const { data: articles, error } = await _supabase
-        .from('news')
-        .select('slug,title,created_at,city,category')
-        .eq('is_published', true)
-        .gte('created_at', cutoff)
-        .order('created_at', { ascending: false });
-
-    if (error) {
-        console.error("News fetch error:", error);
+    const apiUrl = `${SUPABASE_URL}/rest/v1/news?is_published=is.true&created_at=gte.${encodeURIComponent(cutoff)}&select=slug,title,created_at,city,category&order=created_at.desc`;
+    const response = await fetch(apiUrl, { headers });
+    let articles = [];
+    try {
+        const text = await response.text();
+        if (text) articles = JSON.parse(text);
+    } catch (e) {
+        console.error("News JSON parse error", e);
     }
 
-    const validArticles = (articles || []).filter(a => a.slug && a.title);
+    if (!Array.isArray(articles)) articles = [];
+    const validArticles = articles.filter(a => a.slug && a.title);
 
     const CAT_MAP = {
         'war': 'viyna', 'politics': 'polityka', 'economy': 'ekonomika',
