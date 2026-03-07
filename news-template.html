@@ -912,9 +912,10 @@
                 ) + `?width=${width}&quality=${q}&format=webp`;
             }
 
-            // 2. External URLs (Proxy via wsrv.nl)
+            // 2. External URLs
+            // Return original URL
             if (url.startsWith('http')) {
-                return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=${width}&q=${q}&output=webp`;
+                return url;
             }
 
             return url;
