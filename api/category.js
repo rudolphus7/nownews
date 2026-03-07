@@ -348,5 +348,5 @@ function escapeHtml(str) {
     return String(str || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 function escapeJson(str) {
-    return String(str || '').replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n');
+    return String(str || '').replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r');
 }
