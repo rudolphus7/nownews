@@ -49,10 +49,17 @@
     <link rel="dns-prefetch" href="https://kgrxlznhimwuvwhjfzhv.supabase.co">
     <link rel="dns-prefetch" href="https://kgrxlznhimwuvwhjfzhv.supabase.in">
 
-    <link
+    <!-- Async Fonts & CSS -->
+    <link rel="preload"
         href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="/main.css">
+        as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="preload" href="/main.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
+            rel="stylesheet">
+        <link rel="stylesheet" href="/main.css">
+    </noscript>
 
     <!-- Deferred Scripts for Performance -->
     <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -118,10 +125,57 @@
             --dark: #0f172a;
         }
 
+        /* Critical CSS for Instant FCP */
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            margin: 0;
+            background-color: #f8fafc;
+            color: #0f172a;
             scroll-behavior: smooth;
-            letter-spacing: -0.015em;
+        }
+
+        .container {
+            width: 100%;
+            margin-left: auto;
+            margin-right: auto;
+            padding-left: 1rem;
+            padding-right: 1rem;
+            max-width: 80rem;
+        }
+
+        .bg-slate-900 {
+            background-color: #0f172a;
+        }
+
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(.4, 0, .6, 1) infinite;
+        }
+
+        @keyframes pulse {
+            50% {
+                opacity: .5;
+            }
+        }
+
+        /* Hero Skeleton dimensions to prevent CLS */
+        #hero-container {
+            margin-bottom: 2rem;
+            min-height: 450px;
+        }
+
+        @media (min-width: 768px) {
+            #hero-container {
+                margin-bottom: 5rem;
+                min-height: 650px;
+            }
+        }
+
+        .bg-slate-200 {
+            background-color: #e2e8f0;
+        }
+
+        .rounded-\[3rem\] {
+            border-radius: 3rem;
         }
 
         .hero-gradient {
@@ -132,16 +186,18 @@
             transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .news-list-item:hover .news-image-scale {
-            transform: scale(1.05);
-        }
-
         .line-clamp-2 {
             display: -webkit-box;
             -webkit-line-clamp: 2;
             line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
+        }
+
+        /* Reserve height for header to prevent CLS */
+        #site-header-placeholder {
+            min-height: 140px;
+            background: white;
         }
     </style>
 
@@ -434,27 +490,33 @@
             }
         }
 
+        // PRE-INIT: Early Supabase client for faster data fetching
+        _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // Start news fetch IMMEDIATELY while other things load
+        const initialNewsPromise = _supabase.from('news')
+            .select('*')
+            .eq('is_published', true)
+            .order('created_at', { ascending: false })
+            .limit(PAGE_SIZE + 1);
+
         async function init() {
-            // 1. Initialize Shared Header — await so CATEGORIES_UK/CITIES_UK are populated
+            // 1. Initialize Shared Header
             window.header = await window.initSiteHeader(_supabase);
 
-            // 2. Initial state from URL (hierarchical path has priority, fallback to query params)
+            // 2. Initial state from URL
             const cityFromPath = parseCityFromUrl();
             const categoryFromPath = parseCategoryFromUrl();
             const urlParams = new URLSearchParams(window.location.search);
 
-            // Priority: SSR > Path > Query
             currentFilters = {
                 category: categoryFromPath || urlParams.get('category'),
                 city: cityFromPath || urlParams.get('city')
             };
 
-            console.log('Initial Filters:', currentFilters);
-
-            // Update SEO meta tags and visual layout (H1, Hero visibility)
             updatePageSeo(currentFilters.city, currentFilters.category);
 
-            // Localhost 404 Fix: Intercept /news/ links and route them through news.html
+            // Handle Localhost 404
             if (isLocal) {
                 document.addEventListener('click', (e) => {
                     const link = e.target.closest('a');
@@ -468,12 +530,22 @@
                 });
             }
 
-            // Listen for filter changes from the header component
             window.addEventListener('news-filter-changed', async (e) => {
                 currentFilters = e.detail;
                 updatePageSeo(currentFilters.city, currentFilters.category);
                 await loadNews();
             });
+
+            // Use our PRE-FETCHED data if no filters applied
+            if (!currentFilters.category && !currentFilters.city) {
+                const { data, error } = await initialNewsPromise;
+                if (!error && data && data.length > 0) {
+                    renderHero(data[0]);
+                    renderGrid(data.slice(1));
+                    updateViewToggleUI();
+                    return;
+                }
+            }
 
             await loadNews();
             updateViewToggleUI();
@@ -613,12 +685,21 @@
 
         function renderHero(hero) {
             const heroLink = getNewsLink(hero);
-            const optimizedImage = optimizeImage(hero.image_url, 1200, 85);
-            const heroBait = `<span class="bait-highlight" onclick="window.location.href='${heroLink}'">Читати далі...</span>`;
+
+            // Image Optimization with Srcset
+            const imgMobile = optimizeImage(hero.image_url, 480, 75);
+            const imgTablet = optimizeImage(hero.image_url, 800, 80);
+            const imgDesktop = optimizeImage(hero.image_url, 1200, 85);
 
             document.getElementById('hero-container').innerHTML = `
                 <a href="${heroLink}" class="group relative block h-[450px] md:h-[650px] overflow-hidden rounded-[2.5rem] md:rounded-[3.5rem] bg-slate-900 shadow-2xl transition-all duration-700">
-                    <img src="${optimizedImage}" fetchpriority="high" class="news-image-scale absolute inset-0 w-full h-full object-cover opacity-60 grayscale-[0.2] transition-all duration-1000 group-hover:scale-105 group-hover:grayscale-0" alt="${hero.title}">
+                    <img 
+                        src="${imgDesktop}" 
+                        srcset="${imgMobile} 480w, ${imgTablet} 800w, ${imgDesktop} 1200w"
+                        sizes="(max-width: 600px) 480px, (max-width: 1024px) 800px, 1200px"
+                        fetchpriority="high" 
+                        class="news-image-scale absolute inset-0 w-full h-full object-cover opacity-60 grayscale-[0.2] transition-all duration-1000 group-hover:scale-105 group-hover:grayscale-0" 
+                        alt="${hero.title}">
                     <div class="hero-gradient absolute inset-0"></div>
                     
                     <div class="absolute inset-0 p-6 md:p-16 flex flex-col justify-end max-w-5xl">
@@ -737,9 +818,8 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-            init();
+        document.addEventListener('DOMContentLoaded', async () => {
+            init(); // Header init inside
             loadTrending();
             window.initSiteFooter(_supabase);
         });
