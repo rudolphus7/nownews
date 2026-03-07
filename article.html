@@ -402,11 +402,11 @@
 
                     <!-- Reactions -->
                     <div
-                        class="bg-slate-900 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-12 text-white mb-6 md:mb-20 overflow-hidden relative">
+                        class="bg-slate-900 rounded-[2rem] md:rounded-[2.5rem] p-4 sm:p-6 md:p-12 text-white mb-6 md:mb-20 overflow-hidden relative">
                         <div
                             class="absolute top-0 right-0 w-64 h-64 bg-orange-600 rounded-full blur-[100px] opacity-20 -mr-32 -mt-32">
                         </div>
-                        <h3 class="text-2xl font-black mb-8 relative">Як вам цей матеріал?</h3>
+                        <h3 class="text-xl sm:text-2xl font-black mb-8 relative">Як вам цей матеріал?</h3>
                         <div id="reactions-container" class="flex flex-wrap gap-4 relative">
                             <!-- Реакції будуть завантажені динамічно -->
                         </div>
@@ -414,8 +414,9 @@
 
                     <!-- Comments Section -->
                     <div id="comments-section"
-                        class="bg-white rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-12 shadow-xl border border-slate-100 mb-6 md:mb-20">
-                        <h3 class="text-2xl font-black text-slate-900 mb-8 flex items-center tracking-tighter italic">
+                        class="bg-white rounded-[2rem] md:rounded-[2.5rem] p-4 sm:p-6 md:p-12 shadow-xl border border-slate-100 mb-6 md:mb-20">
+                        <h3
+                            class="text-xl sm:text-2xl font-black text-slate-900 mb-6 sm:mb-8 flex items-center tracking-tighter italic">
                             <span class="w-2 h-6 bg-orange-600 rounded-full mr-3"></span>Коментарі
                             <span id="comments-count"
                                 class="ml-3 text-sm font-bold bg-slate-100 px-3 py-1 rounded-full text-slate-500">0</span>
@@ -928,8 +929,8 @@
             const container = document.getElementById('related-list');
             if (data && data.length > 0 && container) {
                 container.innerHTML = data.map(post => `
-                    <a href="${buildNewsUrl(post)}" class="group flex gap-4 items-center">
-                        <div class="w-20 h-20 rounded-2xl overflow-hidden flex-shrink-0 relative">
+                    <a href="${buildNewsUrl(post)}" class="group flex gap-3 sm:gap-4 items-center">
+                        <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-xl sm:rounded-2xl overflow-hidden flex-shrink-0 relative">
                             <img src="${optimizeImage(post.image_url, 200, 70)}" alt="${post.title}" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
                         </div>
                         <div class="flex-1">

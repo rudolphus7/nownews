@@ -337,8 +337,8 @@
             <div class="lg:w-2/3">
                 <div class="flex items-center justify-between mb-8 md:mb-12 border-b border-slate-200 pb-6">
                     <h2
-                        class="text-3xl md:text-4xl font-black text-slate-900 flex items-center tracking-tighter italic">
-                        <span class="w-1.5 h-8 md:w-3 md:h-12 bg-slate-900 mr-4 md:mr-6"></span>
+                        class="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 flex items-center tracking-tighter italic">
+                        <span class="w-1.5 h-6 sm:h-8 md:w-3 md:h-12 bg-slate-900 mr-3 sm:mr-4 md:mr-6"></span>
                         СТРІЧКА НОВИН
                     </h2>
                     <div class="flex space-x-2">
@@ -377,11 +377,12 @@
                     </div>
 
                     <!-- Newsletter Bait -->
-                    <div class="bg-slate-900 rounded-[2.5rem] p-10 text-white relative overflow-hidden shadow-2xl">
+                    <div
+                        class="bg-slate-900 rounded-[2rem] sm:rounded-[2.5rem] p-6 sm:p-10 text-white relative overflow-hidden shadow-2xl">
                         <div
                             class="absolute top-0 right-0 w-40 h-40 bg-orange-600 rounded-full blur-[80px] opacity-20 -mr-20 -mt-20">
                         </div>
-                        <h4 class="text-2xl font-black mb-4 relative z-10 italic">Все в одному листі</h4>
+                        <h4 class="text-xl sm:text-2xl font-black mb-4 relative z-10 italic">Все в одному листі</h4>
                         <p class="text-slate-400 text-sm mb-8 relative z-10">Кращі матеріали тижня на вашу пошту.</p>
                         <div class="flex flex-col space-y-3 relative z-10">
                             <input type="email" id="newsletter-email" placeholder="Ваш Email"
@@ -803,7 +804,7 @@
                 if (currentViewMode === 'compact') {
                     // Compact Style: Small image + Title + Category
                     return `
-                    <a href="${link}" class="news-list-item group flex items-center gap-4 border-b border-slate-50 pb-4 last:border-0 animate-in fade-in slide-in-from-bottom-2 duration-500 hover:bg-slate-50 -mx-4 px-4 rounded-2xl transition-all" style="animation-delay: ${i * 0.03}s">
+                    <a href="${link}" class="news-list-item group flex items-center gap-3 sm:gap-4 border-b border-slate-50 pb-4 last:border-0 animate-in fade-in slide-in-from-bottom-2 duration-500 hover:bg-slate-50 -mx-2 sm:-mx-4 px-2 sm:px-4 rounded-2xl transition-all" style="animation-delay: ${i * 0.03}s">
                         <div class="relative w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-slate-100">
                             <img src="${optimizeImage(post.image_url, 200, 70)}" loading="lazy" decoding="async" class="w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-transform duration-500 group-hover:scale-110" alt="${post.title}">
                         </div>
@@ -823,7 +824,7 @@
 
                 // Detailed Style (Grid Format)
                 return `
-                <a href="${link}" class="news-list-item group flex flex-col h-full border border-transparent hover:border-slate-100 p-4 -mx-4 md:m-0 rounded-[2rem] md:rounded-[2.5rem] bg-transparent md:bg-white hover:bg-white md:shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] hover:shadow-2xl hover:shadow-orange-100 transition-all duration-500 animate-in fade-in slide-in-from-bottom-4" style="animation-delay: ${i * 0.05}s">
+                <a href="${link}" class="news-list-item group flex flex-col h-full border border-transparent hover:border-slate-100 p-3 sm:p-4 -mx-2 sm:-mx-4 md:m-0 rounded-[1.5rem] sm:rounded-[2.5rem] bg-transparent md:bg-white hover:bg-white md:shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] hover:shadow-2xl hover:shadow-orange-100 transition-all duration-500 animate-in fade-in slide-in-from-bottom-4" style="animation-delay: ${i * 0.05}s">
                     <div class="relative w-full aspect-[4/3] rounded-[1.5rem] md:rounded-[2rem] overflow-hidden flex-shrink-0 bg-slate-100 shadow-md mb-5 md:mb-6">
                         <img src="${optimizeImage(post.image_url, 600, 80)}" loading="lazy" decoding="async" class="news-image-scale w-full h-full object-cover transition-all duration-700 grayscale-[0.1] group-hover:grayscale-0 group-hover:scale-105" alt="${post.title}">
                         <div class="absolute bottom-3 right-3 bg-black/60 backdrop-blur-md px-3 py-1 rounded-lg text-[9px] font-black text-white tracking-widest shadow-xl opacity-0 group-hover:opacity-100 transition-opacity">👁️ ${post.views || 0}</div>
@@ -869,8 +870,8 @@
                     // Ukrainian name: prefer freshly fetched catMap, then populated CATEGORIES_UK, then slug
                     const catName = catMap[post.category] || CATEGORIES_UK[post.category] || post.category;
                     return `
-                    <a href="${link}" class="trending-item group flex gap-5 border-b border-slate-100 pb-5 mb-5 last:border-0 last:mb-0 p-3 -mx-3 rounded-2xl hover:bg-white hover:shadow-xl transition-all duration-300">
-                        <div class="w-24 h-24 flex-shrink-0 rounded-2xl overflow-hidden relative bg-slate-100 shadow-sm">
+                    <a href="${link}" class="trending-item group flex gap-3 sm:gap-5 border-b border-slate-100 pb-5 mb-5 last:border-0 last:mb-0 p-2 sm:p-3 -mx-2 sm:-mx-3 rounded-2xl hover:bg-white hover:shadow-xl transition-all duration-300">
+                        <div class="w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 rounded-xl sm:rounded-2xl overflow-hidden relative bg-slate-100 shadow-sm">
                             <img src="${optimizeImage(post.image_url, 200, 70)}" loading="lazy" decoding="async" class="w-full h-full object-cover grayscale-[0.3] group-hover:grayscale-0 transition-all duration-700 group-hover:scale-110" alt="${post.title}">
                             <div class="absolute bottom-1 right-1 bg-black/60 backdrop-blur-sm px-2 py-0.5 rounded-lg text-[8px] font-black text-white shadow-xl">👁️ ${post.views || 0}</div>
                         </div>
