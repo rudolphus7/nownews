@@ -62,7 +62,8 @@
     </noscript>
 
     <!-- Deferred Scripts for Performance -->
-    <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+        onload="window.onSupabaseReady && window.onSupabaseReady()"></script>
     <link rel="preload" href="/components/header.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript>
         <link rel="stylesheet" href="/components/header.css">
@@ -490,15 +491,22 @@
             }
         }
 
-        // PRE-INIT: Early Supabase client for faster data fetching
-        _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        let initialNewsPromise;
 
-        // Start news fetch IMMEDIATELY while other things load
-        const initialNewsPromise = _supabase.from('news')
-            .select('*')
-            .eq('is_published', true)
-            .order('created_at', { ascending: false })
-            .limit(PAGE_SIZE + 1);
+        // PRE-INIT: Wait for library THEN start fetch for speed
+        window.onSupabaseReady = () => {
+            if (!_supabase && window.supabase) {
+                _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                initialNewsPromise = _supabase.from('news')
+                    .select('*')
+                    .eq('is_published', true)
+                    .order('created_at', { ascending: false })
+                    .limit(PAGE_SIZE + 1);
+            }
+        };
+
+        // If library already there (e.g. cached/fast), init immediately
+        if (window.supabase) window.onSupabaseReady();
 
         async function init() {
             // 1. Initialize Shared Header
