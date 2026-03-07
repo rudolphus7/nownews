@@ -1468,10 +1468,12 @@ document.addEventListener('DOMContentLoaded', () => {
         clearTimeout(readAlsoTimeout);
         const query = document.getElementById('read-also-search').value.trim();
         const resultsEl = document.getElementById('read-also-results');
+        const insertBtn = document.getElementById('btn-insert-read-also-selected');
 
-        if (!initial && query.length < 3 && query.length > 0) return; // Wait for at least 3 chars
+        if (!initial && query.length < 3 && query.length > 0) return;
 
         resultsEl.innerHTML = '<li class="p-6 text-center text-slate-400 italic">Шукаємо...</li>';
+        if (insertBtn) insertBtn.classList.add('hidden');
 
         readAlsoTimeout = setTimeout(async () => {
             if (!_supabase) return;
@@ -1481,7 +1483,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (query) {
                 supaQuery = supaQuery.ilike('title', `%${query}%`).limit(20);
             } else {
-                supaQuery = supaQuery.limit(20); // Default recent 20
+                supaQuery = supaQuery.limit(20);
             }
 
             const { data, error } = await supaQuery;
@@ -1499,30 +1501,48 @@ document.addEventListener('DOMContentLoaded', () => {
 
             resultsEl.innerHTML = data.map(art => {
                 const dateHtml = art.created_at ? `<span class="text-[9px] text-slate-400 font-bold uppercase tracking-widest bg-slate-100 px-2 py-0.5 rounded mr-2 mt-1 inline-block">${new Date(art.created_at).toLocaleDateString('uk-UA')}</span>` : '';
+                const titleAttr = art.title.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+
                 return `
-                    <li class="p-4 bg-white rounded-2xl border border-slate-100 hover:border-orange-200 transition-colors shadow-sm mb-2 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between group">
+                    <li class="p-4 bg-white rounded-2xl border border-slate-100 hover:border-orange-200 transition-colors shadow-sm mb-2 flex items-center gap-4 group">
+                        <input type="checkbox" class="read-also-checkbox w-5 h-5 rounded-lg border-slate-200 text-orange-600 focus:ring-orange-500/20 transition-all cursor-pointer" 
+                            data-slug="${art.slug}" data-city="${art.city || ''}" data-title="${titleAttr}"
+                            onchange="window.updateReadAlsoSelectionUI()">
+                        
                         <div class="flex-1 min-w-0">
                             <h4 class="text-sm font-black text-slate-800 leading-tight group-hover:text-orange-600 transition-colors line-clamp-2">${art.title}</h4>
                             ${dateHtml}
                         </div>
-                        <button type="button" onclick="window.insertReadAlso('${art.slug}', '${art.city || ''}', \`${art.title.replace(/'/g, "\\'").replace(/"/g, '&quot;')}\`)" 
-                            class="bg-orange-50 hover:bg-orange-600 text-orange-600 hover:text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap">
-                            Вставити
+                        
+                        <button type="button" onclick="window.insertReadAlso('${art.slug}', '${art.city || ''}', \`${titleAttr}\`)" 
+                            class="bg-orange-50 hover:bg-orange-600 text-orange-600 hover:text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap hidden sm:block">
+                            Швидка вставка
                         </button>
                     </li>
                 `;
             }).join('');
-        }, 500); // 500ms debounce
+        }, 500);
+    };
+
+    window.updateReadAlsoSelectionUI = () => {
+        const selected = document.querySelectorAll('.read-also-checkbox:checked');
+        const btn = document.getElementById('btn-insert-read-also-selected');
+        if (btn) {
+            if (selected.length > 0) {
+                btn.classList.remove('hidden');
+                btn.innerText = `Вставити вибрані (${selected.length})`;
+            } else {
+                btn.classList.add('hidden');
+            }
+        }
     };
 
     window.insertReadAlso = (slug, city, title) => {
         if (!quill) return;
 
-        // Build the URL
-        const cityPrefix = city && city !== 'null' && city !== 'undefined' ? `/${city}` : '';
+        const cityPrefix = city && city !== 'null' && city !== 'undefined' && city !== '' ? `/${city}` : '';
         const url = `https://bukva.news${cityPrefix}/news/${slug}`;
 
-        // Build the HTML snippet
         const htmlSnippet = `
             <p><br/></p>
             <p><strong><span style="color: rgb(230, 0, 0);">Читайте також:</span></strong></p>
@@ -1532,29 +1552,51 @@ document.addEventListener('DOMContentLoaded', () => {
             <p><br/></p>
         `;
 
-        // Attempt to insert at current selection, or at the end if no selection
         let range = quill.getSelection(true);
         if (range) {
             quill.clipboard.dangerouslyPasteHTML(range.index, htmlSnippet);
-            quill.setSelection(range.index + htmlSnippet.length, 0); // move cursor after
+            quill.setSelection(range.index + htmlSnippet.length, 0);
         } else {
             const length = quill.getLength();
             quill.clipboard.dangerouslyPasteHTML(length, htmlSnippet);
         }
 
         window.closeReadAlsoModal();
+    };
 
-        // Optional: Trigger a save or UI update here if needed (e.g., toast notification)
-        const btn = document.getElementById('btn-read-also');
-        if (btn) {
-            const oldText = btn.innerHTML;
-            btn.innerHTML = '✅ Вставлено!';
-            btn.classList.add('bg-green-100', 'text-green-600', 'border-green-200');
-            setTimeout(() => {
-                btn.innerHTML = oldText;
-                btn.classList.remove('bg-green-100', 'text-green-600', 'border-green-200');
-            }, 2000);
+    window.insertSelectedReadAlso = () => {
+        const selected = document.querySelectorAll('.read-also-checkbox:checked');
+        if (selected.length === 0 || !quill) return;
+
+        let listItems = '';
+        selected.forEach(cb => {
+            const slug = cb.dataset.slug;
+            const city = cb.dataset.city;
+            const title = cb.dataset.title;
+            const cityPrefix = city && city !== 'null' && city !== 'undefined' && city !== '' ? `/${city}` : '';
+            const url = `https://bukva.news${cityPrefix}/news/${slug}`;
+            listItems += `<li><a href="${url}" target="_blank" rel="noopener noreferrer">${title}</a></li>`;
+        });
+
+        const htmlSnippet = `
+            <p><br/></p>
+            <p><strong><span style="color: rgb(230, 0, 0);">Читайте також:</span></strong></p>
+            <ul>
+                ${listItems}
+            </ul>
+            <p><br/></p>
+        `;
+
+        let range = quill.getSelection(true);
+        if (range) {
+            quill.clipboard.dangerouslyPasteHTML(range.index, htmlSnippet);
+            quill.setSelection(range.index + htmlSnippet.length, 0);
+        } else {
+            const length = quill.getLength();
+            quill.clipboard.dangerouslyPasteHTML(length, htmlSnippet);
         }
+
+        window.closeReadAlsoModal();
     };
 
     // ═══════════════════════════════════════════════════════════════════════
