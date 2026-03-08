@@ -1882,6 +1882,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }).join('');
     }
 
+    window.resetAnalytics = async (articleId, type) => {
+        if (!confirm('Ви впевнені, що хочете видалити ВСЮ статистику для цієї статті? Цю дію неможливо скасувати.')) return;
+
+        try {
+            const eventType = type === 'text' ? 'text_news_view' : 'voice_news_listen';
+            const { error } = await _supabase
+                .from('analytics_events')
+                .delete()
+                .eq('target_id', articleId.toString())
+                .eq('event_type', eventType);
+
+            if (error) throw error;
+            alert('✅ Статистику успішно видалено!');
+            window.loadAnalytics();
+        } catch (err) {
+            console.error('Reset analytics error:', err);
+            alert('❌ Помилка при видаленні статистики.');
+        }
+    };
+
     async function renderAnalyticsTable(topData, tableId, type) {
         const tbody = document.getElementById(tableId);
         if (!tbody) return;
@@ -1898,8 +1918,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 ? `<td class="p-4 text-center font-bold text-emerald-600 text-sm">${item.avgScroll}%</td>`
                 : `<td class="p-4 text-center font-bold text-indigo-600 text-sm">${item.avgComp}%</td>`;
             return `
-                <tr class="border-b hover:bg-slate-50 transition">
-                    <td class="p-4 font-bold text-slate-800 text-xs">${titleMap[item.id] || 'Стаття (' + item.id.substring(0, 6) + '...)'}</td>
+                <tr class="border-b hover:bg-slate-50 transition group">
+                    <td class="p-4 font-bold text-slate-800 text-xs">
+                        <div class="flex items-center justify-between">
+                            <span>${titleMap[item.id] || 'Стаття (' + item.id.substring(0, 6) + '...)'}</span>
+                            <button onclick="window.resetAnalytics('${item.id}', '${type}')" 
+                                class="opacity-0 group-hover:opacity-100 text-[10px] bg-red-50 text-red-500 hover:bg-red-500 hover:text-white px-2 py-1 rounded-lg transition-all font-black uppercase tracking-tighter ml-2">
+                                Скинути
+                            </button>
+                        </div>
+                    </td>
                     <td class="p-4 text-center text-slate-500 font-mono font-bold text-sm bg-slate-50">${item.views}</td>
                     <td class="p-4 text-center text-orange-600 font-black text-sm">${item.avgTime}с</td>
                     ${extraCol}
