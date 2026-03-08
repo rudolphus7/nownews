@@ -44,10 +44,10 @@ class SiteFooter {
 
             <div class="container mx-auto px-4 pt-20 pb-10">
                 <!-- Main grid -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-8 lg:gap-12 mb-16">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-10 mb-16">
 
-                    <!-- Brand column (2 cols) -->
-                    <div class="lg:col-span-2 space-y-6">
+                    <!-- Brand column -->
+                    <div class="space-y-6">
                         <a href="/" class="flex items-center space-x-3 group w-fit">
                             <div class="relative shrink-0">
                                 <img src="/logo_footer.png" alt="BUKVA NEWS" class="w-12 h-12 rounded-2xl object-cover shadow-2xl shadow-orange-500/40 group-hover:rotate-3 transition-transform duration-500">
@@ -118,7 +118,7 @@ class SiteFooter {
                     </div>
 
                     <!-- Contacts column -->
-                    <div class="lg:col-span-2 xl:col-span-1">
+                    <div>
                         <h4 class="text-[10px] font-black uppercase tracking-[0.25em] text-orange-500 mb-6 flex items-center gap-2">
                             <span class="w-1 h-4 bg-orange-600 rounded-full inline-block"></span>
                             Контакти
