@@ -1828,11 +1828,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const el = document.getElementById(elementId);
         if (!el) return;
         const counts = { mobile: 0, desktop: 0, tablet: 0 };
+        const sessionMap = {}; // sessionId -> deviceType
         events.forEach(e => {
-            const d = (e.device_type || 'desktop').toLowerCase();
-            if (counts[d] !== undefined) counts[d]++; else counts.desktop++;
+            const sid = e.session_id;
+            const dev = (e.device_type || 'desktop').toLowerCase();
+            if (!sid) return;
+            if (!sessionMap[sid]) {
+                sessionMap[sid] = dev;
+                if (counts[dev] !== undefined) counts[dev]++; else counts.desktop++;
+            }
         });
-        const total = events.length || 1;
+        const total = Object.keys(sessionMap).length || 1;
         el.innerHTML = [
             { key: 'mobile', label: '📱 Мобільний', color: 'bg-orange-500' },
             { key: 'desktop', label: '💻 Десктоп', color: 'bg-indigo-500' },
@@ -1856,9 +1862,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const el = document.getElementById(elementId);
         if (!el) return;
         const cities = {};
+        const sessionMap = {}; // sessionId -> city
         events.forEach(e => {
+            const sid = e.session_id;
             const city = (e.geo_city || '').trim();
-            if (city) cities[city] = (cities[city] || 0) + 1;
+            if (city && !sessionMap[sid]) {
+                sessionMap[sid] = city;
+                cities[city] = (cities[city] || 0) + 1;
+            }
         });
         const sorted = Object.entries(cities).sort((a, b) => b[1] - a[1]).slice(0, 10);
         if (sorted.length === 0) {

@@ -70,36 +70,58 @@ window.BukvaAnalytics = {
         if (!articleId || !supabaseClient) return;
         this.stopTextTracking();
 
+        // 1. Wait for GEO_CITY if it's still fetching (max 2 seconds wait)
+        let waitCount = 0;
+        while (!GEO_CITY && waitCount < 20) {
+            await new Promise(r => setTimeout(r, 100));
+            waitCount++;
+        }
+
+        const trackerKey = `tracked_text_${articleId}`;
+        const alreadyTracked = sessionStorage.getItem(trackerKey);
+
         if (this.currentTextArticleId !== articleId.toString()) {
             this.currentTextArticleId = articleId.toString();
         }
 
-        // Always reset for a new start call
+        // Reset local duration for this instance
         this.activeTextEvent = null;
         this.textDuration = 0;
         this.scrollDepth = 0;
 
-        console.log('Analytics: TEXT tracking for', articleId, '| device:', DEVICE_TYPE, '| city:', GEO_CITY || '?');
+        console.log('Analytics: TEXT tracking for', articleId, '| alreadyTracked:', !!alreadyTracked);
 
         try {
             if (!this.activeTextEvent) {
-                const { data, error } = await supabaseClient
-                    .from('analytics_events')
-                    .insert([{
-                        session_id: this.sessionId,
-                        event_type: 'text_news_view',
-                        target_id: articleId.toString(),
-                        duration_seconds: 0,
-                        device_type: DEVICE_TYPE,
-                        geo_city: GEO_CITY,
-                        scroll_depth: 0,
-                        completion_pct: 0
-                    }])
-                    .select('id')
-                    .single();
+                // If already tracked in this session, we don't insert a new row 
+                // BUT we might want to still update the duration if the user came back?
+                // For now, let's strictly deduplicate views as per user request.
+                if (alreadyTracked) {
+                    this.activeTextEvent = alreadyTracked; // Resume or just do nothing?
+                    // If we resume, we might mess up "views" count if user just refreshed.
+                    // User said: "10 refreshes = 10 views". 
+                    // To fix this: if alreadyTracked is set, we DON'T insert.
+                    // We can either stop here or just continue to update the EXISTING event.
+                } else {
+                    const { data, error } = await supabaseClient
+                        .from('analytics_events')
+                        .insert([{
+                            session_id: this.sessionId,
+                            event_type: 'text_news_view',
+                            target_id: articleId.toString(),
+                            duration_seconds: 0,
+                            device_type: DEVICE_TYPE,
+                            geo_city: GEO_CITY || 'Unknown',
+                            scroll_depth: 0,
+                            completion_pct: 0
+                        }])
+                        .select('id')
+                        .single();
 
-                if (data && !error) {
-                    this.activeTextEvent = data.id;
+                    if (data && !error) {
+                        this.activeTextEvent = data.id;
+                        sessionStorage.setItem(trackerKey, data.id);
+                    }
                 }
             }
 
@@ -167,36 +189,51 @@ window.BukvaAnalytics = {
         if (!trackId || !supabaseClient) return;
         await this.stopVoiceTracking(false, supabaseClient);
 
+        // 1. Wait for GEO_CITY if it's still fetching (max 2 seconds wait)
+        let waitCount = 0;
+        while (!GEO_CITY && waitCount < 20) {
+            await new Promise(r => setTimeout(r, 100));
+            waitCount++;
+        }
+
+        const trackerKey = `tracked_voice_${trackId}`;
+        const alreadyTracked = sessionStorage.getItem(trackerKey);
+
         if (this.currentVoiceTrackId !== trackId.toString()) {
             this.currentVoiceTrackId = trackId.toString();
         }
 
-        // Always reset for a new start call
+        // Reset local duration
         this.activeVoiceEvent = null;
         this.voiceDuration = 0;
         this._currentAudioEl = audioElement || null;
 
-        console.log('Analytics: VOICE tracking for', trackId, '| device:', DEVICE_TYPE, '| city:', GEO_CITY || '?');
+        console.log('Analytics: VOICE tracking for', trackId, '| alreadyTracked:', !!alreadyTracked);
 
         try {
             if (!this.activeVoiceEvent) {
-                const { data, error } = await supabaseClient
-                    .from('analytics_events')
-                    .insert([{
-                        session_id: this.sessionId,
-                        event_type: 'voice_news_listen',
-                        target_id: trackId.toString(),
-                        duration_seconds: 0,
-                        device_type: DEVICE_TYPE,
-                        geo_city: GEO_CITY,
-                        scroll_depth: 0,
-                        completion_pct: 0
-                    }])
-                    .select('id')
-                    .single();
+                if (alreadyTracked) {
+                    this.activeVoiceEvent = alreadyTracked;
+                } else {
+                    const { data, error } = await supabaseClient
+                        .from('analytics_events')
+                        .insert([{
+                            session_id: this.sessionId,
+                            event_type: 'voice_news_listen',
+                            target_id: trackId.toString(),
+                            duration_seconds: 0,
+                            device_type: DEVICE_TYPE,
+                            geo_city: GEO_CITY || 'Unknown',
+                            scroll_depth: 0,
+                            completion_pct: 0
+                        }])
+                        .select('id')
+                        .single();
 
-                if (data && !error) {
-                    this.activeVoiceEvent = data.id;
+                    if (data && !error) {
+                        this.activeVoiceEvent = data.id;
+                        sessionStorage.setItem(trackerKey, data.id);
+                    }
                 }
             }
 
