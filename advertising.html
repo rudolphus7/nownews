@@ -71,9 +71,9 @@
                     <h3 class="text-2xl font-black text-slate-900 mb-4">Отримати медіа-кіт та прайс-лист</h3>
                     <p class="text-slate-600 mb-6">Для отримання детальної інформації щодо аудиторії, форматів та
                         вартості розміщення реклами звертайтеся до комерційного відділу:</p>
-                    <a href="mailto:info@bukvanews.com"
+                    <a href="mailto:bukva.news@gmail.com"
                         class="inline-block bg-orange-600 hover:bg-orange-500 text-white font-bold px-8 py-4 rounded-full transition-colors">Написати
-                        нам на info@bukvanews.com</a>
+                        нам на bukva.news@gmail.com</a>
                 </div>
             </div>
         </div>
@@ -83,7 +83,15 @@
     <script defer src="/components/footer.js"></script>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
+            const SUPABASE_URL = 'https://kgrxlznhimwuvwhjfzhv.supabase.co';
+            const SUPABASE_KEY = 'sb_publishable_L4_HhLhbj_m6wbEc3ZqhcQ_QNGOLWXU';
+            window.supabase = window.supabase || supabase;
+            const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+            if (window.initSiteHeader) await window.initSiteHeader(db);
+            if (window.initSiteFooter) await window.initSiteFooter(db);
+
             document.body.style.opacity = '1';
         });
     </script>

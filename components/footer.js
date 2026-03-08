@@ -126,11 +126,11 @@ class SiteFooter {
                         <ul class="space-y-4 text-sm">
                             <li>
                                 <span class="block text-[10px] text-slate-600 font-black uppercase tracking-widest mb-1">Email</span>
-                                <a href="mailto:info@bukvanews.com" class="text-slate-300 hover:text-orange-500 transition-colors font-medium">info@bukvanews.com</a>
+                                <a href="mailto:bukva.news@gmail.com" class="text-slate-300 hover:text-orange-500 transition-colors font-medium">bukva.news@gmail.com</a>
                             </li>
                             <li>
                                 <span class="block text-[10px] text-slate-600 font-black uppercase tracking-widest mb-1">Матеріали та пресрелізи</span>
-                                <a href="mailto:news@bukvanews.com" class="text-slate-300 hover:text-orange-500 transition-colors font-medium">news@bukvanews.com</a>
+                                <a href="mailto:bukva.news@gmail.com" class="text-slate-300 hover:text-orange-500 transition-colors font-medium">bukva.news@gmail.com</a>
                             </li>
                             <li class="pt-4">
                                 <a href="/live/" class="inline-flex items-center gap-2 bg-red-600/10 border border-red-600/20 hover:bg-red-600 hover:border-red-600 text-red-400 hover:text-white px-4 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300">

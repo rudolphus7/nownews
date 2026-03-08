@@ -55,7 +55,8 @@
                     сайті. Оціночні судження не підлягають спростуванню та доведенню їх правдивості.</p>
                 <p>Матеріали з позначкою <strong>"Реклама"</strong>, <strong>"Промо"</strong> або
                     <strong>"Пресреліз"</strong> публікуються на правах реклами. Відповідальність за достовірність
-                    інформації у рекламних матеріалах несе рекламодавець.</p>
+                    інформації у рекламних матеріалах несе рекламодавець.
+                </p>
 
                 <h2 class="text-2xl mt-8 mb-4">5. Інше</h2>
                 <p>У разі порушення авторських та суміжних прав редакція залишає за собою право звернутися до суду
@@ -68,7 +69,15 @@
     <script defer src="/components/footer.js"></script>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
+            const SUPABASE_URL = 'https://kgrxlznhimwuvwhjfzhv.supabase.co';
+            const SUPABASE_KEY = 'sb_publishable_L4_HhLhbj_m6wbEc3ZqhcQ_QNGOLWXU';
+            window.supabase = window.supabase || supabase;
+            const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+            if (window.initSiteHeader) await window.initSiteHeader(db);
+            if (window.initSiteFooter) await window.initSiteFooter(db);
+
             document.body.style.opacity = '1';
         });
     </script>

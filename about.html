@@ -82,7 +82,8 @@
                     <h3 class="text-xl font-bold text-slate-900 mb-4">Зв'яжіться з нами</h3>
                     <p class="mb-0">
                         Маєте цікаву новину, пропозицію чи зауваження? Напишіть нам на <a
-                            href="mailto:info@bukvanews.com" class="font-bold hover:underline">info@bukvanews.com</a>.
+                            href="mailto:bukva.news@gmail.com"
+                            class="font-bold hover:underline">bukva.news@gmail.com</a>.
                     </p>
                 </div>
             </div>
@@ -93,7 +94,15 @@
     <script defer src="/components/footer.js"></script>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
+            const SUPABASE_URL = 'https://kgrxlznhimwuvwhjfzhv.supabase.co';
+            const SUPABASE_KEY = 'sb_publishable_L4_HhLhbj_m6wbEc3ZqhcQ_QNGOLWXU';
+            window.supabase = window.supabase || supabase;
+            const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+            if (window.initSiteHeader) await window.initSiteHeader(db);
+            if (window.initSiteFooter) await window.initSiteFooter(db);
+
             document.body.style.opacity = '1';
         });
     </script>

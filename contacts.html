@@ -27,7 +27,8 @@
     <main class="min-h-screen pt-32 pb-20">
         <div class="container mx-auto px-4 max-w-4xl">
             <h1 class="text-4xl md:text-6xl font-black tracking-tight text-slate-900 mb-8 uppercase text-center">Наші
-                <span class="text-orange-600">Контакти</span></h1>
+                <span class="text-orange-600">Контакти</span>
+            </h1>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-12 mt-16">
                 <div class="space-y-8">
@@ -46,11 +47,11 @@
                             <h3 class="font-black text-slate-900 uppercase tracking-widest text-sm mb-1">Електронна
                                 пошта</h3>
                             <p class="text-slate-500 mb-1">Загальні питання та реклама:</p>
-                            <a href="mailto:info@bukvanews.com"
-                                class="text-orange-600 font-bold hover:underline">info@bukvanews.com</a>
+                            <a href="mailto:bukva.news@gmail.com"
+                                class="text-orange-600 font-bold hover:underline">bukva.news@gmail.com</a>
                             <p class="text-slate-500 mb-1 mt-2">Пресрелізи та матеріали для публікації:</p>
-                            <a href="mailto:news@bukvanews.com"
-                                class="text-orange-600 font-bold hover:underline">news@bukvanews.com</a>
+                            <a href="mailto:bukva.news@gmail.com"
+                                class="text-orange-600 font-bold hover:underline">bukva.news@gmail.com</a>
                         </div>
                     </div>
 
@@ -111,7 +112,15 @@
     <script defer src="/components/footer.js"></script>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
+            const SUPABASE_URL = 'https://kgrxlznhimwuvwhjfzhv.supabase.co';
+            const SUPABASE_KEY = 'sb_publishable_L4_HhLhbj_m6wbEc3ZqhcQ_QNGOLWXU';
+            window.supabase = window.supabase || supabase;
+            const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+            if (window.initSiteHeader) await window.initSiteHeader(db);
+            if (window.initSiteFooter) await window.initSiteFooter(db);
+
             document.body.style.opacity = '1';
         });
     </script>
