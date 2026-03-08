@@ -188,6 +188,14 @@
             "destination": "/index.html"
         },
         {
+            "source": "/feed/",
+            "destination": "/api/rss"
+        },
+        {
+            "source": "/rss/",
+            "destination": "/api/rss"
+        },
+        {
             "source": "/:slug/",
             "destination": "/api/news?slug=:slug"
         }
@@ -240,6 +248,10 @@
         "api/ai.js": {
             "memory": 256,
             "maxDuration": 30
+        },
+        "api/rss.js": {
+            "memory": 128,
+            "maxDuration": 10
         }
     }
 }

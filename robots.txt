@@ -13,3 +13,4 @@ Allow: /
 
 Sitemap: https://bukva.news/sitemap.xml
 Sitemap: https://bukva.news/sitemap-news.xml
+Sitemap: https://bukva.news/feed/

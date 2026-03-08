@@ -276,8 +276,11 @@ module.exports = async (req, res) => {
     <meta property="og:url" content="${escapeAttr(canonicalUrl)}">
     <meta property="og:locale" content="uk_UA">
     <meta property="fb:app_id" content="1617708079361633">
-    ${publishedDate ? `<meta property="article:published_time" content="${publishedDate}">` : ''}
+    <meta property="article:published_time" content="${publishedDate}">
+    ${news.updated_at ? `<meta property="article:modified_time" content="${new Date(news.updated_at).toISOString()}">` : ''}
     ${news.category ? `<meta property="article:section" content="${news.category}">` : ''}
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
@@ -301,7 +304,7 @@ module.exports = async (req, res) => {
             "height": 630
         },
         "datePublished": "${publishedDate}",
-        "dateModified": "${publishedDate}",
+        "dateModified": "${news.updated_at ? new Date(news.updated_at).toISOString() : publishedDate}",
         "author": {
             "@type": "Person",
             "name": "${escapeJson(author)}"
@@ -311,7 +314,7 @@ module.exports = async (req, res) => {
             "name": "${escapeJson(siteName)}",
             "logo": {
                 "@type": "ImageObject",
-                "url": "${SITE_URL}/favicon.ico",
+                "url": "${SITE_URL}/logo.png",
                 "width": 512,
                 "height": 512
             }
