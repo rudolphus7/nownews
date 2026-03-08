@@ -72,10 +72,12 @@ window.BukvaAnalytics = {
 
         if (this.currentTextArticleId !== articleId.toString()) {
             this.currentTextArticleId = articleId.toString();
-            this.activeTextEvent = null;
-            this.textDuration = 0;
-            this.scrollDepth = 0;
         }
+
+        // Always reset for a new start call
+        this.activeTextEvent = null;
+        this.textDuration = 0;
+        this.scrollDepth = 0;
 
         console.log('Analytics: TEXT tracking for', articleId, '| device:', DEVICE_TYPE, '| city:', GEO_CITY || '?');
 
@@ -167,9 +169,11 @@ window.BukvaAnalytics = {
 
         if (this.currentVoiceTrackId !== trackId.toString()) {
             this.currentVoiceTrackId = trackId.toString();
-            this.activeVoiceEvent = null;
-            this.voiceDuration = 0;
         }
+
+        // Always reset for a new start call
+        this.activeVoiceEvent = null;
+        this.voiceDuration = 0;
         this._currentAudioEl = audioElement || null;
 
         console.log('Analytics: VOICE tracking for', trackId, '| device:', DEVICE_TYPE, '| city:', GEO_CITY || '?');
