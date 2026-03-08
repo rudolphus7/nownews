@@ -37,6 +37,15 @@ module.exports = async (req, res) => {
 
     // 2. Fallback: try to guess from URL if no __target is provided
     const path = req.url.split('?')[0];
+    const fileName = path.split('/').pop();
+    if (handlers[fileName]) {
+        try {
+            return await handlers[fileName](req, res);
+        } catch (err) {
+            console.error(`Fallback Handler Error [${fileName}]:`, err);
+        }
+    }
+
     if (path.includes('/api/tts')) return await handlers['tts'](req, res);
     if (path.includes('/api/ai')) return await handlers['ai'](req, res);
     if (path.includes('/api/rss-proxy')) return await handlers['rss-proxy'](req, res);

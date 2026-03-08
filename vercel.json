@@ -124,6 +124,10 @@
     ],
     "rewrites": [
         {
+            "source": "/api/:handler",
+            "destination": "/api/index?__target=:handler"
+        },
+        {
             "source": "/category/:cat/:slug/",
             "destination": "/api/index?__target=news&slug=:slug"
         },
