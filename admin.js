@@ -1883,22 +1883,41 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     window.resetAnalytics = async (articleId, type) => {
-        if (!confirm('Ви впевнені, що хочете видалити ВСЮ статистику для цієї статті? Цю дію неможливо скасувати.')) return;
+        const choice = confirm('Виберіть дію:\n\nOK — Видалити ТІЛЬКИ показники (час, скрол, % дослуховування), але ЛИШИТИ перегляди.\nСкасувати — Видалити ВСЮ статистику (включаючи перегляди).');
+
+        let mode = 'metrics';
+        if (!choice) {
+            if (confirm('Видалити ВСЮ статистику для цієї статті (включаючи кількість переглядів)?')) {
+                mode = 'all';
+            } else {
+                return;
+            }
+        }
 
         try {
             const eventType = type === 'text' ? 'text_news_view' : 'voice_news_listen';
-            const { error } = await _supabase
-                .from('analytics_events')
-                .delete()
-                .eq('target_id', articleId.toString())
-                .eq('event_type', eventType);
 
-            if (error) throw error;
-            alert('✅ Статистику успішно видалено!');
+            if (mode === 'all') {
+                const { error } = await _supabase
+                    .from('analytics_events')
+                    .delete()
+                    .eq('target_id', articleId.toString())
+                    .eq('event_type', eventType);
+                if (error) throw error;
+            } else {
+                const { error } = await _supabase
+                    .from('analytics_events')
+                    .update({ duration_seconds: 0, scroll_depth: 0, completion_pct: 0 })
+                    .eq('target_id', articleId.toString())
+                    .eq('event_type', eventType);
+                if (error) throw error;
+            }
+
+            alert('✅ Статистику успішно оновлено!');
             window.loadAnalytics();
         } catch (err) {
             console.error('Reset analytics error:', err);
-            alert('❌ Помилка при видаленні статистики.');
+            alert('❌ Помилка при обробці статистики.');
         }
     };
 
