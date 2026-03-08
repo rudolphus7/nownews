@@ -125,31 +125,31 @@
     "rewrites": [
         {
             "source": "/category/:cat/:slug/",
-            "destination": "/api/news?slug=:slug"
+            "destination": "/api/index?__target=news&slug=:slug"
         },
         {
             "source": "/:city/:slug/",
-            "destination": "/api/news?slug=:slug"
+            "destination": "/api/index?__target=news&slug=:slug"
         },
         {
             "source": "/sitemap.xml",
-            "destination": "/api/sitemap"
+            "destination": "/api/index?__target=sitemap"
         },
         {
             "source": "/sitemap-pages.xml",
-            "destination": "/api/sitemap?type=pages"
+            "destination": "/api/index?__target=sitemap&type=pages"
         },
         {
             "source": "/sitemap-posts.xml",
-            "destination": "/api/sitemap?type=posts"
+            "destination": "/api/index?__target=sitemap&type=posts"
         },
         {
             "source": "/sitemap-news.xml",
-            "destination": "/api/sitemap?type=news"
+            "destination": "/api/index?__target=sitemap&type=news"
         },
         {
             "source": "/news/:slug/",
-            "destination": "/api/news?slug=:slug"
+            "destination": "/api/index?__target=news&slug=:slug"
         },
         {
             "source": "/news/",
@@ -159,7 +159,7 @@
                     "key": "slug"
                 }
             ],
-            "destination": "/api/news"
+            "destination": "/api/index?__target=news"
         },
         {
             "source": "/news/",
@@ -169,19 +169,19 @@
                     "key": "id"
                 }
             ],
-            "destination": "/api/news"
+            "destination": "/api/index?__target=news"
         },
         {
             "source": "/category/:slug/",
-            "destination": "/api/category?slug=:slug"
+            "destination": "/api/index?__target=category&slug=:slug"
         },
         {
             "source": "/:city(kalush|if|kolomyya|dolyna|bolekhiv|nadvirna|burshtyn|kosiv|yaremche)/",
-            "destination": "/api/city?city=:city"
+            "destination": "/api/index?__target=city&city=:city"
         },
         {
             "source": "/live/",
-            "destination": "/api/live"
+            "destination": "/api/index?__target=live"
         },
         {
             "source": "/news/",
@@ -189,15 +189,15 @@
         },
         {
             "source": "/feed/",
-            "destination": "/api/rss"
+            "destination": "/api/index?__target=rss"
         },
         {
             "source": "/rss/",
-            "destination": "/api/rss"
+            "destination": "/api/index?__target=rss"
         },
         {
             "source": "/:slug/",
-            "destination": "/api/news?slug=:slug"
+            "destination": "/api/index?__target=news&slug=:slug"
         }
     ],
     "headers": [
@@ -221,37 +221,9 @@
         }
     ],
     "functions": {
-        "api/admin-auth.js": {
-            "memory": 128,
-            "maxDuration": 10
-        },
-        "api/city.js": {
-            "memory": 128,
-            "maxDuration": 10
-        },
-        "api/category.js": {
-            "maxDuration": 10,
-            "memory": 128
-        },
-        "api/sitemap.js": {
-            "maxDuration": 60,
-            "memory": 1024
-        },
-        "api/tts.js": {
-            "memory": 256,
+        "api/index.js": {
+            "memory": 1024,
             "maxDuration": 60
-        },
-        "api/subscribe.js": {
-            "memory": 128,
-            "maxDuration": 10
-        },
-        "api/ai.js": {
-            "memory": 256,
-            "maxDuration": 30
-        },
-        "api/rss.js": {
-            "memory": 128,
-            "maxDuration": 10
         }
     }
 }
