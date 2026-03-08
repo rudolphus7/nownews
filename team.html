@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" href="/favicon.ico">
+    <title>Редакція та Команда | BUKVA NEWS</title>
+    <meta name="description"
+        content="Познайомтесь із командою журналістів та редакторів BUKVA NEWS, які щодня створюють для вас актуальні та перевірені новини.">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/main.css">
+
+    <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+        onload="window.onSupabaseReady && window.onSupabaseReady()"></script>
+    <link rel="stylesheet" href="/components/header.css">
+    <script defer src="/components/header.js"></script>
+</head>
+
+<body class="bg-white text-slate-800 font-sans antialiased selection:bg-orange-500 selection:text-white"
+    style="opacity: 0; transition: opacity 0.3s ease;">
+
+    <div id="site-header-placeholder"></div>
+
+    <main class="min-h-screen pt-32 pb-20">
+        <div class="container mx-auto px-4 max-w-5xl">
+            <h1 class="text-4xl md:text-6xl font-black tracking-tight text-slate-900 mb-8 uppercase text-center">Наша
+                <span class="text-orange-600">Команда</span></h1>
+            <p class="text-xl text-center text-slate-500 mb-16 max-w-2xl mx-auto font-medium">
+                Ми — команда професійних журналістів, редакторів та аналітиків, об'єднаних спільною метою: створювати
+                якісні, об'єктивні та оперативні новини.
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Team Member -->
+                <div
+                    class="bg-slate-50 rounded-[2rem] p-8 text-center border border-slate-100 hover:shadow-xl transition-shadow">
+                    <div
+                        class="w-32 h-32 mx-auto bg-slate-200 rounded-full mb-6 overflow-hidden border-4 border-white shadow-lg">
+                        <img src="/logo.png" alt="Головний редактор" class="w-full h-full object-cover">
+                    </div>
+                    <h3 class="text-2xl font-black text-slate-900 mb-2">Олександр Редактор</h2>
+                        <p class="text-orange-600 font-bold text-sm tracking-widest uppercase mb-4">Головний редактор
+                        </p>
+                        <p class="text-slate-500 text-sm">Відповідальна за редакційну політику та щоденний випуск
+                            найважливіших новин регіону.</p>
+                </div>
+
+                <!-- Team Member -->
+                <div
+                    class="bg-slate-50 rounded-[2rem] p-8 text-center border border-slate-100 hover:shadow-xl transition-shadow">
+                    <div
+                        class="w-32 h-32 mx-auto bg-slate-200 rounded-full mb-6 overflow-hidden border-4 border-white shadow-lg">
+                        <img src="/logo.png" alt="Спецкореспондент" class="w-full h-full object-cover">
+                    </div>
+                    <h3 class="text-2xl font-black text-slate-900 mb-2">Марія Журналіст</h2>
+                        <p class="text-orange-600 font-bold text-sm tracking-widest uppercase mb-4">
+                            Журналіст-розслідувач</p>
+                        <p class="text-slate-500 text-sm">Висвітлює гострі соціальні та антикорупційні теми, проводить
+                            глибокі розслідування.</p>
+                </div>
+
+                <!-- Team Member -->
+                <div
+                    class="bg-slate-50 rounded-[2rem] p-8 text-center border border-slate-100 hover:shadow-xl transition-shadow">
+                    <div
+                        class="w-32 h-32 mx-auto bg-slate-200 rounded-full mb-6 overflow-hidden border-4 border-white shadow-lg">
+                        <img src="/logo.png" alt="Новинний редактор" class="w-full h-full object-cover">
+                    </div>
+                    <h3 class="text-2xl font-black text-slate-900 mb-2">Петро Новинар</h2>
+                        <p class="text-orange-600 font-bold text-sm tracking-widest uppercase mb-4">Редактор стрічки</p>
+                        <p class="text-slate-500 text-sm">Слідкує за оперативністю публікацій та забезпечує читачів
+                            свіжими новинами 24/7.</p>
+                </div>
+            </div>
+
+            <div class="mt-20 p-10 bg-slate-950 text-white rounded-[3rem] text-center relative overflow-hidden">
+                <div
+                    class="absolute top-0 right-0 w-64 h-64 bg-orange-600 rounded-full blur-[100px] opacity-20 pointer-events-none">
+                </div>
+                <h3 class="text-3xl font-black mb-4 relative z-10">Хочете стати частиною команди?</h3>
+                <p class="text-slate-400 max-w-xl mx-auto mb-8 relative z-10">Ми завжди у пошуках талановитих авторів,
+                    операторів та аналітиків. Якщо ви поділяєте наші цінності — напишіть нам.</p>
+                <a href="mailto:info@bukvanews.com"
+                    class="inline-block bg-orange-600 hover:bg-orange-500 text-white font-bold px-8 py-4 rounded-full transition-colors relative z-10">Надіслати
+                    резюме</a>
+            </div>
+        </div>
+    </main>
+
+    <div id="site-footer-placeholder"></div>
+    <script defer src="/components/footer.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.body.style.opacity = '1';
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" href="/favicon.ico">
+    <title>Про нас | BUKVA NEWS</title>
+    <meta name="description"
+        content="Місія, історія та цінності незалежного видання BUKVA NEWS. Дізнайтесь більше про нашу редакційну політику.">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/main.css">
+
+    <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+        onload="window.onSupabaseReady && window.onSupabaseReady()"></script>
+    <link rel="stylesheet" href="/components/header.css">
+    <script defer src="/components/header.js"></script>
+</head>
+
+<body class="bg-white text-slate-800 font-sans antialiased selection:bg-orange-500 selection:text-white"
+    style="opacity: 0; transition: opacity 0.3s ease;">
+
+    <div id="site-header-placeholder"></div>
+
+    <main class="min-h-screen pt-32 pb-20">
+        <div class="container mx-auto px-4 max-w-4xl">
+            <h1 class="text-4xl md:text-6xl font-black tracking-tight text-slate-900 mb-8 uppercase">Про <span
+                    class="text-orange-600">нас</span></h1>
+
+            <div
+                class="prose prose-lg prose-slate max-w-none prose-headings:font-black prose-headings:tracking-tight prose-a:text-orange-600">
+                <p class="text-xl md:text-2xl font-medium text-slate-600 leading-relaxed mb-10">
+                    <strong>BUKVA NEWS</strong> — це головне незалежне медіа Івано-Франківщини та Прикарпаття. Ми
+                    створюємо чесну, оперативну та об'єктивну журналістику для тих, кому важлива правда.
+                </p>
+
+                <h2 class="text-3xl font-bold mt-12 mb-6 text-slate-900">Наша місія</h2>
+                <p>
+                    Ми прагнемо надавати нашим читачам своєчасну, точну та неупереджену інформацію про події в
+                    Івано-Франківську, Калуші, Коломиї, Надвірній та всій області. Наша мета — бути надійним джерелом
+                    новин, якому довіряють. Ми віримо, що вільна та незалежна преса є фундаментом демократичного
+                    суспільства.
+                </p>
+
+                <h2 class="text-3xl font-bold mt-12 mb-6 text-slate-900">Наші цінності</h2>
+                <ul class="list-none space-y-4 pl-0">
+                    <li class="flex items-start gap-3">
+                        <span class="text-orange-600 mt-1">✔</span>
+                        <div><strong>Незалежність:</strong> Ми не підпорядковуємося жодним політичним силам чи
+                            олігархічним групам. Наша редакційна політика базується виключно на інтересах наших читачів.
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="text-orange-600 mt-1">✔</span>
+                        <div><strong>Об'єктивність:</strong> Ми висвітлюємо події з різних точок зору, надаючи
+                            можливість висловитися всім сторонам конфлікту. Ми відокремлюємо факти від коментарів та
+                            оцінок.</div>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="text-orange-600 mt-1">✔</span>
+                        <div><strong>Оперативність:</strong> Ми намагаємося першими повідомляти про найважливіші події,
+                            зберігаючи при цьому високу якість та перевіреність інформації.</div>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="text-orange-600 mt-1">✔</span>
+                        <div><strong>Відповідальність:</strong> Ми несемо відповідальність за кожне опубліковане нами
+                            слово. У разі допущення помилки, ми оперативно її виправляємо та повідомляємо про це
+                            читачів.</div>
+                    </li>
+                </ul>
+
+                <h2 class="text-3xl font-bold mt-12 mb-6 text-slate-900">Історія</h2>
+                <p>
+                    Проєкт BUKVA NEWS був заснований командою професійних журналістів з метою створення якісного
+                    регіонального медіа нового формату. За час свого існування ми здобули довіру тисяч читачів та стали
+                    одним із найцитованіших видань Прикарпаття.
+                </p>
+
+                <div class="mt-16 p-8 bg-slate-50 rounded-3xl border border-slate-100">
+                    <h3 class="text-xl font-bold text-slate-900 mb-4">Зв'яжіться з нами</h3>
+                    <p class="mb-0">
+                        Маєте цікаву новину, пропозицію чи зауваження? Напишіть нам на <a
+                            href="mailto:info@bukvanews.com" class="font-bold hover:underline">info@bukvanews.com</a>.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="site-footer-placeholder"></div>
+    <script defer src="/components/footer.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.body.style.opacity = '1';
+        });
+    </script>
+</body>
+
+</html>

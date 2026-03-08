@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" href="/favicon.ico">
+    <title>Контакти | BUKVA NEWS</title>
+    <meta name="description"
+        content="Контактна інформація редакції BUKVA NEWS. Зв'яжіться з нами для співпраці, розміщення реклами або надання новин.">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/main.css">
+
+    <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+        onload="window.onSupabaseReady && window.onSupabaseReady()"></script>
+    <link rel="stylesheet" href="/components/header.css">
+    <script defer src="/components/header.js"></script>
+</head>
+
+<body class="bg-white text-slate-800 font-sans antialiased selection:bg-orange-500 selection:text-white"
+    style="opacity: 0; transition: opacity 0.3s ease;">
+
+    <div id="site-header-placeholder"></div>
+
+    <main class="min-h-screen pt-32 pb-20">
+        <div class="container mx-auto px-4 max-w-4xl">
+            <h1 class="text-4xl md:text-6xl font-black tracking-tight text-slate-900 mb-8 uppercase text-center">Наші
+                <span class="text-orange-600">Контакти</span></h1>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 mt-16">
+                <div class="space-y-8">
+                    <h2 class="text-3xl font-bold text-slate-900 border-b border-slate-100 pb-4">Завжди на зв'язку</h2>
+
+                    <div class="flex items-start gap-4">
+                        <div
+                            class="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center text-orange-600 flex-shrink-0">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
+                                </path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="font-black text-slate-900 uppercase tracking-widest text-sm mb-1">Електронна
+                                пошта</h3>
+                            <p class="text-slate-500 mb-1">Загальні питання та реклама:</p>
+                            <a href="mailto:info@bukvanews.com"
+                                class="text-orange-600 font-bold hover:underline">info@bukvanews.com</a>
+                            <p class="text-slate-500 mb-1 mt-2">Пресрелізи та матеріали для публікації:</p>
+                            <a href="mailto:news@bukvanews.com"
+                                class="text-orange-600 font-bold hover:underline">news@bukvanews.com</a>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-4">
+                        <div
+                            class="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center text-orange-600 flex-shrink-0">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z">
+                                </path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="font-black text-slate-900 uppercase tracking-widest text-sm mb-1">Адреса редакції
+                            </h3>
+                            <p class="text-slate-600">
+                                Україна, Івано-Франківська обл.,<br>
+                                м. Івано-Франківськ.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact Form Placeholder -->
+                <div class="bg-slate-50 p-8 rounded-[2rem] border border-slate-100">
+                    <h3 class="text-2xl font-black text-slate-900 mb-6">Напишіть нам</h3>
+                    <form class="space-y-4"
+                        onsubmit="event.preventDefault(); alert('Дякуємо! Ваше повідомлення надіслано.');">
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-1">Ваше ім'я</label>
+                            <input type="text"
+                                class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all"
+                                required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-1">Email</label>
+                            <input type="email"
+                                class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all"
+                                required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-1">Повідомлення</label>
+                            <textarea rows="4"
+                                class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all"
+                                required></textarea>
+                        </div>
+                        <button type="submit"
+                            class="w-full bg-orange-600 hover:bg-orange-500 text-white font-bold px-6 py-4 rounded-xl transition-colors">Відправити</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="site-footer-placeholder"></div>
+    <script defer src="/components/footer.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.body.style.opacity = '1';
+        });
+    </script>
+</body>
+
+</html>

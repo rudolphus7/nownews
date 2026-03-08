@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" href="/favicon.ico">
+    <title>Архів новин | BUKVA NEWS</title>
+    <meta name="description"
+        content="Архів найголовніших новин та подій Івано-Франківщини на сайті BUKVA NEWS. Пошук старих статей.">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/main.css">
+
+    <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+        onload="window.onSupabaseReady && window.onSupabaseReady()"></script>
+    <link rel="stylesheet" href="/components/header.css">
+    <script defer src="/components/header.js"></script>
+
+    <style>
+        /* Archive Search Enhancements */
+        .search-hit a {
+            display: block;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            background: #fff;
+            margin-bottom: 0.5rem;
+            transition: all 0.2s;
+            border: 1px solid #f1f5f9;
+        }
+
+        .search-hit a:hover {
+            border-color: #ea580c;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+        }
+
+        .search-hit-title {
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 0.25rem;
+            font-size: 1.125rem;
+        }
+
+        .search-hit-date {
+            font-size: 0.75rem;
+            color: #64748b;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 text-slate-800 font-sans antialiased selection:bg-orange-500 selection:text-white"
+    style="opacity: 0; transition: opacity 0.3s ease;">
+
+    <div id="site-header-placeholder"></div>
+
+    <main class="min-h-screen pt-32 pb-20">
+        <div class="container mx-auto px-4 max-w-4xl">
+            <h1 class="text-4xl md:text-5xl font-black tracking-tight text-slate-900 mb-6 uppercase text-center"><span
+                    class="text-orange-600">Архів</span> Новин</h1>
+            <p class="text-center text-slate-500 mb-12 max-w-2xl mx-auto">Скористайтеся пошуком, щоб знайти потрібні
+                новини та розслідування, які були опубліковані раніше.</p>
+
+            <div class="bg-white p-6 md:p-10 rounded-[2rem] shadow-sm border border-slate-100">
+                <div class="relative">
+                    <input type="text" id="archive-search-input" placeholder="Введіть ключове слово для пошуку..."
+                        class="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-2xl pl-12 pr-4 py-5 font-medium focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500 transition-all text-lg">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <svg class="h-6 w-6 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+                </div>
+
+                <div id="archive-results" class="mt-8 space-y-2">
+                    <div class="text-center py-10 text-slate-400 font-medium tracking-wide">
+                        Почніть вводити текст для пошуку серед тисяч опублікованих матеріалів.
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-12">
+                <a href="/"
+                    class="inline-flex items-center gap-2 font-bold text-slate-500 hover:text-orange-600 transition-colors uppercase tracking-widest text-sm">
+                    ← Повернутися на головну
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <div id="site-footer-placeholder"></div>
+    <script defer src="/components/footer.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.body.style.opacity = '1';
+        });
+
+        window.onSupabaseReady = () => {
+            const input = document.getElementById('archive-search-input');
+            const resultsBox = document.getElementById('archive-results');
+            let debounceTimer;
+
+            input.addEventListener('input', (e) => {
+                clearTimeout(debounceTimer);
+                const query = e.target.value.trim();
+
+                if (query.length < 3) {
+                    resultsBox.innerHTML = '<div class="text-center py-10 text-slate-400 font-medium tracking-wide">Введіть щонайменше 3 символи для пошуку.</div>';
+                    return;
+                }
+
+                resultsBox.innerHTML = '<div class="text-center py-10 text-orange-500 font-bold animate-pulse">Триває пошук...</div>';
+
+                debounceTimer = setTimeout(async () => {
+                    if (!window.supabase) return;
+
+                    const SUPABASE_URL = 'https://kgrxlznhimwuvwhjfzhv.supabase.co';
+                    const SUPABASE_KEY = 'sb_publishable_L4_HhLhbj_m6wbEc3ZqhcQ_QNGOLWXU';
+                    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+                    try {
+                        const { data, error } = await db
+                            .from('news')
+                            .select('title, slug, city, created_at')
+                            .eq('is_published', true)
+                            .ilike('title', `%${query}%`)
+                            .order('created_at', { ascending: false })
+                            .limit(20);
+
+                        if (error) throw error;
+
+                        if (data && data.length > 0) {
+                            resultsBox.innerHTML = data.map(item => {
+                                const date = new Date(item.created_at).toLocaleDateString('uk-UA');
+                                const url = item.city ? `/${item.city}/${item.slug}/` : `/news/?slug=${item.slug}`;
+                                return `
+                                    <div class="search-hit">
+                                        <a href="${url}">
+                                            <div class="search-hit-title">${item.title}</div>
+                                            <div class="search-hit-date">${date}</div>
+                                        </a>
+                                    </div>
+                                `;
+                            }).join('');
+                        } else {
+                            resultsBox.innerHTML = '<div class="text-center py-10 text-slate-500 font-medium">За вашим запитом нічого не знайдено.</div>';
+                        }
+                    } catch (err) {
+                        resultsBox.innerHTML = '<div class="text-center py-10 text-red-500 font-bold">Помилка пошуку.</div>';
+                    }
+                }, 500);
+            });
+        };
+    </script>
+</body>
+
+</html>

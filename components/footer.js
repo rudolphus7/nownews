@@ -44,7 +44,7 @@ class SiteFooter {
 
             <div class="container mx-auto px-4 pt-20 pb-10">
                 <!-- Main grid -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-12 mb-16">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-8 lg:gap-12 mb-16">
 
                     <!-- Brand column (2 cols) -->
                     <div class="lg:col-span-2 space-y-6">
@@ -103,8 +103,22 @@ class SiteFooter {
                         </ul>
                     </div>
 
-                    <!-- Contacts column -->
+                    <!-- Info column -->
                     <div>
+                        <h4 class="text-[10px] font-black uppercase tracking-[0.25em] text-orange-500 mb-6 flex items-center gap-2">
+                            <span class="w-1 h-4 bg-orange-600 rounded-full inline-block"></span>
+                            Про видання
+                        </h4>
+                        <ul class="space-y-3">
+                            <li><a href="/about/" class="text-slate-400 hover:text-white text-sm font-medium transition-colors hover:translate-x-1 inline-block duration-200">Про нас</a></li>
+                            <li><a href="/team/" class="text-slate-400 hover:text-white text-sm font-medium transition-colors hover:translate-x-1 inline-block duration-200">Команда</a></li>
+                            <li><a href="/advertising/" class="text-slate-400 hover:text-white text-sm font-medium transition-colors hover:translate-x-1 inline-block duration-200">Реклама</a></li>
+                            <li><a href="/archive/" class="text-slate-400 hover:text-white text-sm font-medium transition-colors hover:translate-x-1 inline-block duration-200">Архів новин</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Contacts column -->
+                    <div class="lg:col-span-2 xl:col-span-1">
                         <h4 class="text-[10px] font-black uppercase tracking-[0.25em] text-orange-500 mb-6 flex items-center gap-2">
                             <span class="w-1 h-4 bg-orange-600 rounded-full inline-block"></span>
                             Контакти
@@ -130,7 +144,13 @@ class SiteFooter {
 
                 <!-- Bottom bar -->
                 <div class="border-t border-white/5 pt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
-                    <p class="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em]">© 2026 BUKVA NEWS. Всі права захищені.</p>
+                    <div class="flex flex-col sm:flex-row items-center gap-4 sm:gap-8">
+                        <p class="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em]">© 2026 BUKVA NEWS. Всі права захищені.</p>
+                        <div class="flex gap-4">
+                            <a href="/privacy/" class="text-[10px] font-bold text-slate-600 hover:text-orange-500 uppercase tracking-widest transition-colors">Політика конфіденційності</a>
+                            <a href="/terms/" class="text-[10px] font-bold text-slate-600 hover:text-orange-500 uppercase tracking-widest transition-colors">Правила використання</a>
+                        </div>
+                    </div>
                     <p class="text-[10px] font-black text-slate-700 uppercase tracking-[0.2em]">Незалежність · Об'єктивність · Оперативність</p>
                 </div>
             </div>

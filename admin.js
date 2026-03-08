@@ -322,12 +322,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     articleUrl += `news/?slug=${slug}`;
                 }
 
-                const imageUrl = document.getElementById('ig_image_url')?.value || "";
+                const igImg = document.getElementById('ig_image_url')?.value.trim();
+                const mainImg = document.getElementById('image_url')?.value.trim();
+                const imageUrl = igImg || mainImg || "";
+
+                // Add cache-busting parameter to force Facebook scraper to bypass Vercel SSR cache
+                const fbArticleUrl = articleUrl + (articleUrl.includes('?') ? '&' : '?') + 't=' + Date.now();
 
                 const response = await fetch('/api/ai', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'post-facebook', message: text, articleUrl, imageUrl })
+                    body: JSON.stringify({ action: 'post-facebook', message: text, articleUrl: fbArticleUrl, imageUrl })
                 });
 
                 const data = await response.json();
@@ -440,6 +445,11 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('category').value = data.category;
         if (document.getElementById('city')) document.getElementById('city').value = data.city || "";
         document.getElementById('image_url').value = data.image_url;
+
+        // Clear social fields so they don't carry over from previous actions
+        if (document.getElementById('ig_image_url')) document.getElementById('ig_image_url').value = "";
+        if (document.getElementById('fb_post_text')) document.getElementById('fb_post_text').value = "";
+
         currentTags = data.tags || [];
         renderTags();
 
