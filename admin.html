@@ -822,9 +822,32 @@
                     <h2 class="text-3xl font-extrabold text-slate-800 tracking-tight">Розширена Аналітика</h2>
                     <p class="text-slate-500 mt-2 font-medium">Статистика по текстових та голосових новинах</p>
                 </div>
-                <div class="flex items-center gap-3 w-full sm:w-auto">
+                <div class="flex flex-col xl:flex-row items-center gap-3 w-full sm:w-auto">
+                    <div
+                        class="flex items-center gap-2 bg-white px-4 py-2 rounded-2xl border border-slate-100 shadow-sm">
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Період:</span>
+                        <select id="analytics-date-filter" onchange="window.handleAnalyticsDateFilterChange()"
+                            class="bg-transparent border-none text-[10px] font-black uppercase tracking-widest focus:ring-0 cursor-pointer text-slate-800">
+                            <option value="all">За ввесь час</option>
+                            <option value="today">Сьогодні</option>
+                            <option value="yesterday">Вчора</option>
+                            <option value="week">Останній тиждень</option>
+                            <option value="month">Останній місяць</option>
+                            <option value="custom-date">Довільна дата</option>
+                            <option value="custom-range">Довільний період</option>
+                        </select>
+                    </div>
+
+                    <div id="analytics-custom-date-container" class="hidden flex items-center gap-2">
+                        <input type="date" id="analytics-start-date"
+                            class="bg-white px-4 py-2 rounded-2xl border border-slate-100 shadow-sm text-[10px] font-bold outline-none focus:ring-2 focus:ring-orange-500/20">
+                        <span id="analytics-range-separator" class="text-slate-400 font-bold hidden">/</span>
+                        <input type="date" id="analytics-end-date"
+                            class="bg-white px-4 py-2 rounded-2xl border border-slate-100 shadow-sm text-[10px] font-bold hidden outline-none focus:ring-2 focus:ring-orange-500/20">
+                    </div>
+
                     <button onclick="window.loadAnalytics()"
-                        class="bg-slate-900 text-white px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-orange-600 shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2">
+                        class="bg-slate-900 text-white px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-orange-600 shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2 whitespace-nowrap">
                         <span>🔄</span> Оновити Дані
                     </button>
                 </div>
@@ -849,7 +872,7 @@
                         <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Унікальних
                             Читачів</div>
                         <div id="stat-text-users" class="text-4xl font-extrabold text-slate-800">...</div>
-                        <div class="text-xs text-green-500 font-bold mt-2">За весь час</div>
+                        <div id="stat-text-period-label" class="text-xs text-green-500 font-bold mt-2">За весь час</div>
                     </div>
                     <div
                         class="bg-white p-6 rounded-[2rem] shadow-xl border border-white flex flex-col justify-between">
@@ -924,7 +947,8 @@
                         <div class="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-1">Унікальних
                             Слухачів</div>
                         <div id="stat-voice-users" class="text-4xl font-extrabold text-indigo-900">...</div>
-                        <div class="text-xs text-green-600 font-bold mt-2">За весь час</div>
+                        <div id="stat-voice-period-label" class="text-xs text-green-600 font-bold mt-2">За весь час
+                        </div>
                     </div>
                     <div
                         class="bg-indigo-50 p-6 rounded-[2rem] shadow-xl border border-indigo-100 border-white flex flex-col justify-between">

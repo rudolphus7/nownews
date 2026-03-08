@@ -1614,8 +1614,41 @@ document.addEventListener('DOMContentLoaded', () => {
     // ═══════════════════════════════════════════════════════════════════════
     // ANALYTICS MANAGEMENT
     // ═══════════════════════════════════════════════════════════════════════
+    window.handleAnalyticsDateFilterChange = () => {
+        const filter = document.getElementById('analytics-date-filter').value;
+        const container = document.getElementById('analytics-custom-date-container');
+        const startInput = document.getElementById('analytics-start-date');
+        const endInput = document.getElementById('analytics-end-date');
+        const separator = document.getElementById('analytics-range-separator');
+
+        if (!container) return;
+
+        container.classList.add('hidden');
+        startInput.classList.add('hidden');
+        endInput.classList.add('hidden');
+        separator.classList.add('hidden');
+
+        if (filter === 'custom-date') {
+            container.classList.remove('hidden');
+            startInput.classList.remove('hidden');
+        } else if (filter === 'custom-range') {
+            container.classList.remove('hidden');
+            startInput.classList.remove('hidden');
+            endInput.classList.remove('hidden');
+            separator.classList.remove('hidden');
+        }
+
+        if (!filter.startsWith('custom-')) {
+            window.loadAnalytics();
+        }
+    };
+
     window.loadAnalytics = async () => {
         if (!_supabase) return;
+
+        const filter = document.getElementById('analytics-date-filter')?.value || 'all';
+        const startDateVal = document.getElementById('analytics-start-date')?.value;
+        const endDateVal = document.getElementById('analytics-end-date')?.value;
 
         ['stat-text-users', 'stat-text-time', 'stat-text-per-session',
             'stat-voice-users', 'stat-voice-time', 'stat-voice-per-session'].forEach(id => {
@@ -1627,7 +1660,52 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         try {
-            const { data: events, error } = await _supabase.from('analytics_events').select('*');
+            let query = _supabase.from('analytics_events').select('*');
+            let periodLabel = "За ввесь час";
+
+            const now = new Date();
+            const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+            if (filter === 'today') {
+                query = query.gte('created_at', startOfToday.toISOString());
+                periodLabel = "Сьогодні";
+            } else if (filter === 'yesterday') {
+                const startOfYesterday = new Date(startOfToday);
+                startOfYesterday.setDate(startOfYesterday.getDate() - 1);
+                query = query.gte('created_at', startOfYesterday.toISOString()).lt('created_at', startOfToday.toISOString());
+                periodLabel = "Вчора";
+            } else if (filter === 'week') {
+                const weekAgo = new Date(now);
+                weekAgo.setDate(weekAgo.getDate() - 7);
+                query = query.gte('created_at', weekAgo.toISOString());
+                periodLabel = "Останній тиждень";
+            } else if (filter === 'month') {
+                const monthAgo = new Date(now);
+                monthAgo.setDate(monthAgo.getDate() - 30);
+                query = query.gte('created_at', monthAgo.toISOString());
+                periodLabel = "Останній місяць";
+            } else if (filter === 'custom-date' && startDateVal) {
+                const d = new Date(startDateVal);
+                const start = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+                const end = new Date(start);
+                end.setDate(end.getDate() + 1);
+                query = query.gte('created_at', start.toISOString()).lt('created_at', end.toISOString());
+                periodLabel = d.toLocaleDateString('uk-UA');
+            } else if (filter === 'custom-range' && startDateVal && endDateVal) {
+                const start = new Date(startDateVal);
+                const end = new Date(endDateVal);
+                const endDay = new Date(end);
+                endDay.setDate(endDay.getDate() + 1); // include end day
+                query = query.gte('created_at', start.toISOString()).lt('created_at', endDay.toISOString());
+                periodLabel = `${new Date(startDateVal).toLocaleDateString('uk-UA')} — ${new Date(endDateVal).toLocaleDateString('uk-UA')}`;
+            }
+
+            const labelText = document.getElementById('stat-text-period-label');
+            const labelVoice = document.getElementById('stat-voice-period-label');
+            if (labelText) labelText.innerText = periodLabel;
+            if (labelVoice) labelVoice.innerText = periodLabel;
+
+            const { data: events, error } = await query;
             if (error) throw error;
 
             if (!events || events.length === 0) {
