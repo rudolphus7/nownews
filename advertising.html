@@ -8,79 +8,324 @@
     <link rel="apple-touch-icon" href="/favicon.ico">
     <title>Реклама та Співпраця | BUKVA NEWS</title>
     <meta name="description"
-        content="Реклама на сайті BUKVA NEWS. Дізнайтесь про умови співпраці, медіа-кіт та можливості розміщення банерної, нативної та PR реклами.">
+        content="Реклама на сайті BUKVA NEWS. Нативна реклама, банери, пресрелізи та преміальні аудіо-інтеграції (Sonic Branding).">
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/main.css">
 
-    <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
-        onload="window.onSupabaseReady && window.onSupabaseReady()"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="/components/header.css">
     <script defer src="/components/header.js"></script>
+
+    <style>
+        body {
+            background-color: #020617;
+        }
+
+        /* bg-slate-950 */
+
+        /* Premium UI Elements */
+        .glass-panel {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-panel:hover {
+            border-color: rgba(234, 88, 12, 0.4);
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5), 0 0 30px rgba(234, 88, 12, 0.15);
+        }
+
+        .text-gradient-orange {
+            background: linear-gradient(135deg, #f97316 0%, #c2410c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .text-gradient-white {
+            background: linear-gradient(180deg, #ffffff 0%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Abstract glowing blobs for background */
+        .glow-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            z-index: -1;
+            pointer-events: none;
+            opacity: 0.15;
+            animation: pulse-glow 8s ease-in-out infinite alternate;
+        }
+
+        .blob-1 {
+            top: -10%;
+            left: -10%;
+            width: 50vw;
+            height: 50vw;
+            background: #ea580c;
+            animation-delay: 0s;
+        }
+
+        .blob-2 {
+            bottom: -10%;
+            right: -10%;
+            width: 40vw;
+            height: 40vw;
+            background: #4f46e5;
+            animation-delay: -4s;
+        }
+
+        .blob-3 {
+            top: 40%;
+            left: 50%;
+            width: 30vw;
+            height: 30vw;
+            background: #c2410c;
+            transform: translate(-50%, -50%);
+            animation-duration: 12s;
+        }
+
+        @keyframes pulse-glow {
+            0% {
+                transform: scale(1) translate(0, 0);
+                opacity: 0.1;
+            }
+
+            50% {
+                transform: scale(1.1) translate(5%, 2%);
+                opacity: 0.2;
+            }
+
+            100% {
+                transform: scale(0.9) translate(-2%, -5%);
+                opacity: 0.15;
+            }
+        }
+
+        .cta-btn {
+            background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+            box-shadow: 0 0 20px rgba(234, 88, 12, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .cta-btn:hover {
+            box-shadow: 0 0 40px rgba(234, 88, 12, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+    </style>
 </head>
 
-<body class="bg-white text-slate-800 font-sans antialiased selection:bg-orange-500 selection:text-white"
-    style="opacity: 0; transition: opacity 0.3s ease;">
+<body class="text-slate-300 font-sans antialiased selection:bg-orange-500 selection:text-white"
+    style="opacity: 0; transition: opacity 0.5s ease; overflow-x: hidden;">
 
-    <div id="site-header-placeholder"></div>
+    <!-- Background Effects -->
+    <div class="glow-blob blob-1"></div>
+    <div class="glow-blob blob-2"></div>
+    <div class="glow-blob blob-3"></div>
 
-    <main class="min-h-screen pt-32 pb-20">
-        <div class="container mx-auto px-4 max-w-4xl">
-            <h1 class="text-4xl md:text-6xl font-black tracking-tight text-slate-900 mb-8 uppercase text-center">Реклама
-                та <span class="text-orange-600">Співпраця</span></h1>
+    <div id="site-header-placeholder" class="relative z-10"></div>
 
+    <main class="relative z-10 min-h-screen pt-20 pb-24">
+
+        <!-- Hero Section -->
+        <section class="container mx-auto px-4 max-w-5xl text-center py-16 md:py-24">
             <div
-                class="prose prose-lg prose-slate max-w-none prose-headings:font-black prose-headings:tracking-tight prose-a:text-orange-600 mt-12">
-                <p
-                    class="text-xl md:text-2xl font-medium text-slate-600 leading-relaxed max-w-3xl mx-auto text-center mb-16">
-                    Розміщення реклами на BUKVA NEWS — це ефективний спосіб донести інформацію про ваш бренд до широкої
-                    аудиторії Івано-Франківщини та всієї України.
-                </p>
+                class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-500 font-bold text-xs tracking-[0.2em] uppercase mb-8">
+                <span class="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></span>
+                Партнерство 2.0
+            </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-                    <div class="bg-slate-50 p-8 rounded-3xl border border-slate-100 text-center">
-                        <div class="text-4xl mb-4">📢</div>
-                        <h3 class="text-xl font-bold mb-2">Нативна реклама</h3>
-                        <p class="text-sm text-slate-500">Спецпроєкти, інтерв'ю, експертні колонки, які органічно
-                            вписуються в контент сайту.</p>
+            <h1 class="text-5xl md:text-7xl font-black tracking-tighter mb-6 leading-[1.1]">
+                <span class="text-gradient-white">Революція</span> вашого <br class="hidden md:block">
+                маркетингу на <span class="text-gradient-orange">Прикарпатті</span>
+            </h1>
+
+            <p class="text-lg md:text-xl font-medium text-slate-400 max-w-2xl mx-auto leading-relaxed mb-12">
+                Створюємо wow-ефект. Від класичної нативної реклами до інноваційного аудіо-спонсорства. Зробіть свій
+                бренд частиною головних новин регіону.
+            </p>
+
+            <a href="#formats"
+                class="inline-flex items-center gap-3 font-bold text-slate-400 hover:text-white transition-colors tracking-widest text-sm uppercase group">
+                Ознайомитись з форматами
+                <svg class="w-4 h-4 group-hover:translate-y-1 transition-transform" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+                </svg>
+            </a>
+        </section>
+
+        <!-- Sonic Branding Highlight (NEW) -->
+        <section id="formats" class="container mx-auto px-4 max-w-6xl py-12">
+            <div class="glass-panel rounded-[3rem] p-8 md:p-16 mb-16 relative overflow-hidden group">
+                <!-- Soundwave decorative bg -->
+                <div
+                    class="absolute right-0 top-1/2 -translate-y-1/2 w-1/2 h-full opacity-10 flex items-center justify-end gap-2 pr-12 pointer-events-none">
+                    <div class="w-3 h-24 bg-orange-500 rounded-full animate-[pulse_1s_ease-in-out_infinite_alternate]">
                     </div>
-                    <div class="bg-slate-50 p-8 rounded-3xl border border-slate-100 text-center">
-                        <div class="text-4xl mb-4">🖼️</div>
-                        <h3 class="text-xl font-bold mb-2">Банерна реклама</h3>
-                        <p class="text-sm text-slate-500">Розміщення медійних банерів на головній сторінці та в середині
-                            новинних матеріалів.</p>
+                    <div
+                        class="w-3 h-48 bg-orange-500 rounded-full animate-[pulse_1.5s_ease-in-out_infinite_alternate]">
                     </div>
-                    <div class="bg-slate-50 p-8 rounded-3xl border border-slate-100 text-center">
-                        <div class="text-4xl mb-4">📄</div>
-                        <h3 class="text-xl font-bold mb-2">Пресрелізи</h3>
-                        <p class="text-sm text-slate-500">Публікація офіційних заяв, пресрелізів та новин компаній
-                            (маркується плашкою "Промо").</p>
+                    <div
+                        class="w-3 h-32 bg-orange-500 rounded-full animate-[pulse_1.2s_ease-in-out_infinite_alternate]">
+                    </div>
+                    <div
+                        class="w-3 h-64 bg-orange-500 rounded-full animate-[pulse_1.8s_ease-in-out_infinite_alternate]">
+                    </div>
+                    <div
+                        class="w-3 h-40 bg-orange-500 rounded-full animate-[pulse_1.4s_ease-in-out_infinite_alternate]">
                     </div>
                 </div>
 
-                <h2 class="text-3xl font-bold mt-12 mb-6 text-slate-900">Правила розміщення реклами</h2>
-                <ul class="list-disc pl-6 space-y-2 mb-12 text-slate-600">
-                    <li>Всі рекламні матеріали публікуються з відповідним маркуванням ("Реклама", "Промо",
-                        "Спецпроєкт").</li>
-                    <li>Редакція залишає за собою право відмовити в розміщенні матеріалів, що суперечать законодавству
-                        України, редакційній етиці або можуть зашкодити репутації видання.</li>
-                    <li>Ми не розміщуємо приховану політичну рекламу ("джинсу").</li>
-                </ul>
+                <div class="relative z-10 max-w-2xl">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div
+                            class="w-12 h-12 rounded-xl bg-orange-600/20 flex items-center justify-center text-orange-500 border border-orange-500/30">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z">
+                                </path>
+                            </svg>
+                        </div>
+                        <span class="text-orange-500 font-black tracking-widest uppercase text-sm">Новий Тренд
+                            2026</span>
+                    </div>
+                    <h2 class="text-4xl md:text-5xl font-black text-white mb-6">Аудіо-інтеграції <br><span
+                            class="text-slate-500 text-3xl">(Sonic Branding)</span></h2>
+                    <p class="text-lg text-slate-400 mb-8 leading-relaxed">
+                        Голосовий контент — це абсолютний тренд, який дозволяє «споживати» новини за кермом, у спортзалі
+                        або під час приготування вечері. Зробіть так, щоб вашу рекламу <strong
+                            class="text-white">неможливо було проскролити</strong>.
+                    </p>
 
-                <div class="bg-orange-50 border border-orange-100 p-8 rounded-3xl text-center">
-                    <h3 class="text-2xl font-black text-slate-900 mb-4">Отримати медіа-кіт та прайс-лист</h3>
-                    <p class="text-slate-600 mb-6">Для отримання детальної інформації щодо аудиторії, форматів та
-                        вартості розміщення реклами звертайтеся до комерційного відділу:</p>
-                    <a href="mailto:bukva.news@gmail.com"
-                        class="inline-block bg-orange-600 hover:bg-orange-500 text-white font-bold px-8 py-4 rounded-full transition-colors">Написати
-                        нам на bukva.news@gmail.com</a>
+                    <div class="grid sm:grid-cols-2 gap-6">
+                        <div class="bg-black/20 border border-white/5 p-6 rounded-2xl">
+                            <h3 class="text-white font-bold text-lg mb-2 flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-orange-500"></span> Аудіо-спонсорство
+                            </h3>
+                            <p class="text-slate-500 text-sm">Коротке голосове згадування бренду на початку або в кінці
+                                новини ("Цей випуск озвучено за підтримки..."). Ефект "радіо в кишені".</p>
+                        </div>
+                        <div class="bg-black/20 border border-white/5 p-6 rounded-2xl">
+                            <h3 class="text-white font-bold text-lg mb-2 flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-orange-500"></span> Подкаст-вставки
+                            </h3>
+                            <p class="text-slate-500 text-sm">Більш розгорнуті рекламні повідомлення (до 15-20 секунд)
+                                всередині довгих аналітичних матеріалів та спецпроєктів.</p>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
+
+            <!-- Standard Formats Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+
+                <!-- Native -->
+                <div class="glass-panel p-8 rounded-3xl flex flex-col h-full">
+                    <div
+                        class="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center text-indigo-400 mb-6 border border-indigo-500/20">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z">
+                            </path>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-3">Нативна реклама</h3>
+                    <p class="text-slate-400 text-sm flex-grow">Спецпроєкти, глибокі інтерв'ю та експертні колонки, які
+                        органічно вписуються в контент сайту і викликають довіру читачів.</p>
+                </div>
+
+                <!-- Banners -->
+                <div class="glass-panel p-8 rounded-3xl flex flex-col h-full">
+                    <div
+                        class="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-500/20 to-red-500/20 flex items-center justify-center text-orange-400 mb-6 border border-orange-500/20">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
+                            </path>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-3">Медійні банери</h3>
+                    <p class="text-slate-400 text-sm flex-grow">Брендування сайту, класичні та нестандартні банери з
+                        високим показником клікабельності в найгарячіших точках сторінки.</p>
+                </div>
+
+                <!-- PR -->
+                <div class="glass-panel p-8 rounded-3xl flex flex-col h-full">
+                    <div
+                        class="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center text-emerald-400 mb-6 border border-emerald-500/20">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2.5 2.5 0 00-2.5-2.5H15">
+                            </path>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-3">Пресрелізи</h3>
+                    <p class="text-slate-400 text-sm flex-grow">Оперативна публікація офіційних заяв, новин компаній та
+                        промо-матеріалів для миттєвого охоплення аудиторії.</p>
+                </div>
+            </div>
+
+            <!-- White Label (NEW) -->
+            <div
+                class="glass-panel rounded-[2rem] p-8 md:p-12 border-l-4 border-l-indigo-500 flex flex-col md:flex-row items-center gap-8 justify-between">
+                <div>
+                    <div class="flex items-center gap-3 mb-2">
+                        <span class="text-indigo-400 font-bold uppercase tracking-widest text-xs">B2B Сервіс</span>
+                    </div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-white mb-3">White Label та Синдикація контенту</h2>
+                    <p class="text-slate-400 max-w-2xl">
+                        Ми пропонуємо продаж права на трансляцію та використання наших високоякісних озвучених новин
+                        іншим локальним порталам, радіостанціям або корпоративним медіа ресурсам.
+                    </p>
+                </div>
+                <div class="shrink-0">
+                    <a href="mailto:bukva.news@gmail.com"
+                        class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white font-bold border border-white/10 transition-colors">
+                        Дізнатись умови
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Rules -->
+            <div class="mt-16 text-center">
+                <p class="text-xs text-slate-600 uppercase tracking-widest font-black mb-4">Наші Принципи</p>
+                <div class="flex flex-wrap justify-center gap-4 text-sm text-slate-500">
+                    <span class="px-4 py-2 rounded-full bg-white/5 border border-white/5">Маркування згідно
+                        законодавства</span>
+                    <span class="px-4 py-2 rounded-full bg-white/5 border border-white/5">Жодної прихованої політичної
+                        «джинси»</span>
+                    <span class="px-4 py-2 rounded-full bg-white/5 border border-white/5">Відповідність етичним
+                        стандартам</span>
+                </div>
+            </div>
+
+            <!-- Final CTA -->
+            <div class="mt-24 text-center pb-12">
+                <a href="mailto:bukva.news@gmail.com"
+                    class="cta-btn inline-block text-white font-black text-xl px-12 py-6 rounded-full uppercase tracking-widest transition-all">
+                    Отримати прайс-лист
+                </a>
+                <p class="text-slate-500 mt-6 text-sm">Або напишіть нам на <a href="mailto:bukva.news@gmail.com"
+                        class="text-white hover:text-orange-500 transition-colors font-bold">bukva.news@gmail.com</a>
+                </p>
+            </div>
+
+        </section>
     </main>
 
-    <div id="site-footer-placeholder"></div>
-    <script defer src="/components/footer.js"></script>
+    <div id="site-footer-placeholder" class="relative z-10"></div>
 
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
