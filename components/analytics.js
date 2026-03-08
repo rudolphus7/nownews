@@ -32,18 +32,39 @@ const DEVICE_TYPE = detectDevice();
 
 // ── Geo City Detection (once per session, cached) ─────────────────────────────
 let GEO_CITY = '';
-try {
-    GEO_CITY = sessionStorage.getItem('bukva_geo_city') || '';
-    if (!GEO_CITY) {
-        fetch('https://ipapi.co/json/')
-            .then(r => r.json())
-            .then(d => {
-                GEO_CITY = d.city || d.region || '';
-                sessionStorage.setItem('bukva_geo_city', GEO_CITY);
-            })
-            .catch(() => { GEO_CITY = ''; });
-    }
-} catch (e) { GEO_CITY = ''; }
+const detectGeo = async () => {
+    try {
+        GEO_CITY = sessionStorage.getItem('bukva_geo_city') || '';
+        if (GEO_CITY) return;
+
+        // Try service 1: ip-api.com (HTTP-only usually, so might fail on HTTPS if not handled)
+        // Try service 2: ipapi.co
+        // Try service 3: ipwho.is (Good fallback)
+
+        const services = [
+            'https://ipapi.co/json/',
+            'https://ipwho.is/',
+            'https://get.geojs.io/v1/ip/geo.json'
+        ];
+
+        for (const url of services) {
+            try {
+                const r = await fetch(url, { signal: AbortSignal.timeout(2000) });
+                const d = await r.json();
+                const city = d.city || d.region || d.region_name || '';
+                if (city) {
+                    GEO_CITY = city;
+                    sessionStorage.setItem('bukva_geo_city', GEO_CITY);
+                    console.log('Analytics: Geo detected via', url, '->', GEO_CITY);
+                    break;
+                }
+            } catch (e) {
+                console.warn('Analytics: Geo service failed', url);
+            }
+        }
+    } catch (e) { console.error('Analytics: Geo detection error', e); }
+};
+detectGeo();
 
 // ── Main Analytics Object ─────────────────────────────────────────────────────
 window.BukvaAnalytics = {

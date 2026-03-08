@@ -1616,6 +1616,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ═══════════════════════════════════════════════════════════════════════
     window.handleAnalyticsDateFilterChange = () => {
         const filter = document.getElementById('analytics-date-filter').value;
+        console.log('Admin: Analytics filter changed to:', filter);
         const container = document.getElementById('analytics-custom-date-container');
         const startInput = document.getElementById('analytics-start-date');
         const endInput = document.getElementById('analytics-end-date');
@@ -1642,6 +1643,15 @@ document.addEventListener('DOMContentLoaded', () => {
             window.loadAnalytics();
         }
     };
+
+    // Ensure listeners are attached once DOM is ready
+    document.addEventListener('DOMContentLoaded', () => {
+        const filterEl = document.getElementById('analytics-date-filter');
+        if (filterEl) {
+            filterEl.addEventListener('change', window.handleAnalyticsDateFilterChange);
+            // On some mobile browsers 'change' might be slow, add focusout as fallback if needed
+        }
+    });
 
     window.loadAnalytics = async () => {
         if (!_supabase) return;
@@ -1720,7 +1730,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const voiceEvents = events.filter(e => e.event_type === 'voice_news_listen');
 
             // ── TEXT METRICS
-            const textSessions = new Set(textEvents.map(e => e.session_id)).size;
+            const textSessions = new Set(textEvents.map(e => String(e.session_id || ''))).size;
             const el_tu = document.getElementById('stat-text-users');
             const el_tt = document.getElementById('stat-text-time');
             const el_tp = document.getElementById('stat-text-per-session');
@@ -1762,7 +1772,7 @@ document.addEventListener('DOMContentLoaded', () => {
             await renderAnalyticsTable(topText, 'analytics-text-table', 'text');
 
             // ── VOICE METRICS
-            const voiceSessions = new Set(voiceEvents.map(e => e.session_id)).size;
+            const voiceSessions = new Set(voiceEvents.map(e => String(e.session_id || ''))).size;
             const el_vu = document.getElementById('stat-voice-users');
             const el_vt = document.getElementById('stat-voice-time');
             const el_vp = document.getElementById('stat-voice-per-session');
@@ -1830,7 +1840,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const counts = { mobile: 0, desktop: 0, tablet: 0 };
         const sessionMap = {}; // sessionId -> deviceType
         events.forEach(e => {
-            const sid = e.session_id;
+            const sid = e.session_id ? String(e.session_id) : null;
             const dev = (e.device_type || 'desktop').toLowerCase();
             if (!sid) return;
             if (!sessionMap[sid]) {
@@ -1864,8 +1874,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const cities = {};
         const sessionMap = {}; // sessionId -> city
         events.forEach(e => {
-            const sid = e.session_id;
+            const sid = e.session_id ? String(e.session_id) : null;
             const city = (e.geo_city || '').trim();
+            if (!sid) return;
             if (city && !sessionMap[sid]) {
                 sessionMap[sid] = city;
                 cities[city] = (cities[city] || 0) + 1;
