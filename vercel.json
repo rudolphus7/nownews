@@ -3,6 +3,11 @@
     "trailingSlash": true,
     "redirects": [
         {
+            "source": "/api/:path*",
+            "destination": "/api/:path*",
+            "permanent": false
+        },
+        {
             "source": "/",
             "has": [
                 {
@@ -123,6 +128,10 @@
         }
     ],
     "rewrites": [
+        {
+            "source": "/api/:handler/",
+            "destination": "/api/index?__target=:handler"
+        },
         {
             "source": "/api/:handler",
             "destination": "/api/index?__target=:handler"
