@@ -795,7 +795,12 @@
 
                 const viewedKey = `viewed_${data.id}`;
                 if (!sessionStorage.getItem(viewedKey)) {
-                    await _supabase.rpc('increment_views', { post_id: data.id });
+                    // Bot check before increment
+                    if (window.isBot && window.isBot()) {
+                        console.log('Analytics: Skipping view increment for bot');
+                    } else {
+                        await _supabase.rpc('increment_views', { post_id: data.id });
+                    }
                     sessionStorage.setItem(viewedKey, 'true');
                 }
                 return;
@@ -883,7 +888,12 @@
 
                 const viewedKey = `viewed_${data.id}`;
                 if (!sessionStorage.getItem(viewedKey)) {
-                    await _supabase.rpc('increment_views', { post_id: data.id });
+                    // Bot check before increment
+                    if (window.isBot && window.isBot()) {
+                        console.log('Analytics: Skipping view increment for bot');
+                    } else {
+                        await _supabase.rpc('increment_views', { post_id: data.id });
+                    }
                     sessionStorage.setItem(viewedKey, 'true');
 
                     const { data: updatedPost } = await _supabase.from('news').select('views').eq('id', data.id).single();
@@ -1825,6 +1835,7 @@
 
     <div id="site-footer-placeholder"></div>
     <script src="/components/footer.js"></script>
+    <script src="/components/bot-detection.js"></script>
     <script src="/components/analytics.js"></script>
 
 </body>

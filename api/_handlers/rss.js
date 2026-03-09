@@ -36,6 +36,7 @@ module.exports = async (req, res) => {
             <pubDate>${pubDate}</pubDate>
             <description><![CDATA[${description}]]></description>
             ${item.image_url ? `<enclosure url="${item.image_url}" length="0" type="image/jpeg" />` : ''}
+            ${item.image_url ? `<media:content url="${item.image_url}" medium="image" />` : ''}
             <category>${CAT_MAP[item.category] || item.category || 'Новини'}</category>
         </item>`;
         }).join('');

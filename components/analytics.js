@@ -89,6 +89,10 @@ window.BukvaAnalytics = {
     // ── TEXT TRACKING ────────────────────────────────────────────────────────
     startTextTracking: async function (articleId, supabaseClient) {
         if (!articleId || !supabaseClient) return;
+        if (window.isBot && window.isBot()) {
+            console.log('Analytics: Skipping text tracking for bot');
+            return;
+        }
         this.stopTextTracking();
 
         // 1. Wait for GEO_CITY if it's still fetching (max 2 seconds wait)
@@ -208,6 +212,10 @@ window.BukvaAnalytics = {
     // ── VOICE TRACKING ───────────────────────────────────────────────────────
     startVoiceTracking: async function (trackId, supabaseClient, audioElement) {
         if (!trackId || !supabaseClient) return;
+        if (window.isBot && window.isBot()) {
+            console.log('Analytics: Skipping voice tracking for bot');
+            return;
+        }
         await this.stopVoiceTracking(false, supabaseClient);
 
         // 1. Wait for GEO_CITY if it's still fetching (max 2 seconds wait)
