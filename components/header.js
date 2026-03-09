@@ -361,8 +361,8 @@ class SiteHeader {
         document.querySelectorAll('#site-header-placeholder a').forEach(link => {
             link.onclick = async (e) => {
                 const url = new URL(link.href, window.location.origin);
-                const isIndexPath = url.pathname === '/' || url.pathname === '/index.html' || url.pathname.endsWith('index.html');
-                const isCurrentIndexPath = window.location.pathname === '/' || window.location.pathname.endsWith('index.html');
+                const isIndexPath = url.pathname === '/' || url.pathname === '/index.html';
+                const isCurrentIndexPath = window.location.pathname === '/' || window.location.pathname === '/index.html';
 
                 // Check if this is a city path link using dynamically loaded cities
                 const cityMatch = url.pathname.match(/^\/([a-z0-9-]+)\/?$/);
