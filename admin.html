@@ -585,13 +585,28 @@
                         </h3>
                         <div class="space-y-4">
                             <label class="block text-xs font-bold text-slate-500">URL Головного фото</label>
-                            <input type="url" id="image_url"
-                                class="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none text-sm"
-                                placeholder="https://...">
+                            <div class="flex items-center gap-2">
+                                <input type="url" id="image_url"
+                                    class="flex-1 p-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none text-sm"
+                                    placeholder="https://...">
+                                <button type="button" onclick="document.getElementById('image_file_input').click()"
+                                    class="bg-slate-900 text-white p-3 rounded-xl hover:bg-orange-600 transition shadow-lg"
+                                    title="Завантажити з пристрою">
+                                    📁
+                                </button>
+                                <input type="file" id="image_file_input" class="hidden" accept="image/*"
+                                    onchange="window.handleImageUpload(this, 'image_url')">
+                            </div>
                             <div id="image-preview"
-                                class="w-full h-40 bg-slate-100 rounded-xl border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden">
-                                <span class="text-slate-400 text-xs text-center p-4">Прев'ю з'явиться після вставки
-                                    посилання</span>
+                                class="w-full h-40 bg-slate-100 rounded-xl border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden relative">
+                                <span class="text-slate-400 text-xs text-center p-4">Прев'ю з'явиться після вибору
+                                    фото</span>
+                                <div id="upload-progress-overlay"
+                                    class="absolute inset-0 bg-white/80 hidden items-center justify-center flex-col gap-2">
+                                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
+                                    <span class="text-[10px] font-black text-orange-600 uppercase">Оптимізація та
+                                        завантаження...</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -644,9 +659,19 @@
                                     <span class="text-[9px] text-purple-400 font-normal normal-case ml-1">(вертикальне
                                         4:5, мін. 320px)</span>
                                 </label>
-                                <input type="url" id="ig_image_url"
-                                    class="w-full bg-white border border-purple-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-purple-400 transition text-slate-800"
-                                    placeholder="https://... (окреме вертикальне фото для IG)">
+                                <div class="flex items-center gap-2">
+                                    <input type="url" id="ig_image_url"
+                                        class="flex-1 bg-white border border-purple-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-purple-400 transition text-slate-800"
+                                        placeholder="https://... (окреме вертикальне фото для IG)">
+                                    <button type="button"
+                                        onclick="document.getElementById('ig_image_file_input').click()"
+                                        class="bg-purple-600 text-white p-3 rounded-xl hover:bg-purple-700 transition shadow-lg"
+                                        title="Завантажити з пристрою">
+                                        📁
+                                    </button>
+                                    <input type="file" id="ig_image_file_input" class="hidden" accept="image/*"
+                                        onchange="window.handleImageUpload(this, 'ig_image_url')">
+                                </div>
                             </div>
 
                             <button type="button" id="btn-publish-fb"

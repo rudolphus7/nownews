@@ -2338,6 +2338,82 @@ document.addEventListener('DOMContentLoaded', () => {
         a.click();
     };
 
+    // --- IMAGE UPLOAD & OPTIMIZATION ---
+    window.handleImageUpload = async (input, targetId) => {
+        const file = input.files[0];
+        if (!file) return;
+
+        const overlay = document.getElementById('upload-progress-overlay');
+        const preview = document.getElementById('image-preview');
+        const targetInput = document.getElementById(targetId);
+
+        if (overlay) overlay.classList.remove('hidden');
+        if (overlay) overlay.classList.add('flex');
+
+        try {
+            // 1. Load image into Canvas for optimization
+            const img = new Image();
+            img.src = URL.createObjectURL(file);
+            await new Promise((resolve, reject) => {
+                img.onload = resolve;
+                img.onerror = reject;
+            });
+
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+
+            // Max width 1200px (standard for modern editorial)
+            const MAX_WIDTH = 1200;
+            if (width > MAX_WIDTH) {
+                height = Math.round((height * MAX_WIDTH) / width);
+                width = MAX_WIDTH;
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+
+            // 2. Convert to WebP (optimized)
+            const webpBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/webp', 0.8));
+
+            // 3. Upload to our API
+            const fileName = `${Date.now()}_${file.name.split('.')[0]}.webp`;
+            const response = await fetch('/api/upload-image', {
+                method: 'POST',
+                headers: {
+                    'x-file-name': fileName
+                },
+                body: webpBlob
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.url) {
+                // Success!
+                if (targetInput) {
+                    targetInput.value = data.url;
+                    // Trigger input event to update preview
+                    targetInput.dispatchEvent(new Event('input'));
+                }
+                console.log(`✅ Image uploaded: ${data.url} (${(data.size / 1024).toFixed(1)} KB)`);
+            } else {
+                throw new Error(data.error || 'Помилка завантаження');
+            }
+
+        } catch (err) {
+            console.error('Upload failed:', err);
+            alert('Помилка завантаження: ' + err.message);
+        } finally {
+            if (overlay) {
+                overlay.classList.add('hidden');
+                overlay.classList.remove('flex');
+            }
+            input.value = ''; // Reset input
+        }
+    };
+
     setTimeout(() => { if (_supabase) window.loadSettings(); }, 1000);
     window.loadStats();
 });

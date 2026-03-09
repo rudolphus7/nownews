@@ -16,7 +16,8 @@ const handlers = {
     'admin-auth': require('./_handlers/admin-auth'),
     'subscribe': require('./_handlers/subscribe'),
     'settings': require('./_handlers/settings'),
-    'rss-proxy': require('./_handlers/rss-proxy')
+    'rss-proxy': require('./_handlers/rss-proxy'),
+    'upload-image': require('./_handlers/upload-image')
 };
 
 module.exports = async (req, res) => {
