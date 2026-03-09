@@ -96,16 +96,24 @@ module.exports = async (req, res) => {
     const { text, articleId, chunkIndex, totalChunks } = req.body;
     if (!text || text.trim().length === 0) return res.status(400).json({ error: 'Text is required' });
 
-    const apiKey = GEMINI_API_KEY;
-    if (!apiKey) return res.status(500).json({ error: 'Gemini API key not configured on server' });
+    // 1. Keys to try
+    const keys = [
+        { key: process.env.GEMINI_API_KEY, label: 'primary' },
+        { key: process.env.GEMINI_API_KEY_BACKUP, label: 'backup' },
+        { key: process.env.GEMINI_API_KEY_3, label: 'backup2' }
+    ].filter(k => k.key);
 
-    // 1. Deterministic filename for caching
+    if (keys.length === 0) {
+        return res.status(500).json({ error: 'Gemini API keys not configured on server' });
+    }
+
+    // 2. Deterministic filename for caching
     let fileName = null;
     if (articleId) {
         fileName = (totalChunks > 1) ? `${articleId}_part_${chunkIndex}.wav` : `${articleId}.wav`;
     }
 
-    // 2. Cache Check: If file exists in storage, return it directly
+    // 3. Cache Check: If file exists in storage, return it directly
     if (fileName && req.query.skipCache !== 'true' && req.body.skipCache !== true) {
         const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/tts_audio/${fileName}`;
         try {
@@ -124,64 +132,81 @@ module.exports = async (req, res) => {
     }
 
     const model = 'gemini-2.5-flash-preview-tts';
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+    let lastError = null;
 
-    try {
-        console.log(`TTS API call: ${text.length} chars, articleId: ${articleId || 'none'}, part: ${chunkIndex || 0}`);
+    for (const { key, label } of keys) {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
 
-        // Derive deterministic seed from articleId to stabilize voice across chunks
-        const seedValue = articleId ? hashCode(articleId.toString()) : undefined;
+        try {
+            console.log(`TTS API call (key=${label}): ${text.length} chars, articleId: ${articleId || 'none'}`);
 
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{
-                    parts: [{
-                        text: `Прочитай цей текст голосом досвідченого диктора українських теленовин. Говори впевнено та енергійно, з живою інтонацією. Текст: ${text}`
-                    }]
-                }],
-                generationConfig: {
-                    responseModalities: ['AUDIO'],
-                    seed: seedValue,
-                    speechConfig: {
-                        voiceConfig: {
-                            prebuiltVoiceConfig: { voiceName: 'Charon' }
+            // Derive deterministic seed from articleId to stabilize voice across chunks
+            const seedValue = articleId ? hashCode(articleId.toString()) : undefined;
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [{
+                            text: `Прочитай цей текст голосом досвідченого диктора українських теленовин. Говори впевнено та енергійно, з живою інтонацією. Текст: ${text}`
+                        }]
+                    }],
+                    generationConfig: {
+                        responseModalities: ['AUDIO'],
+                        seed: seedValue,
+                        speechConfig: {
+                            voiceConfig: {
+                                prebuiltVoiceConfig: { voiceName: 'Charon' }
+                            }
                         }
                     }
-                }
-            })
-        });
-
-        const data = await response.json();
-
-        if (data.error) {
-            const msg = data.error.message || '';
-            console.error('Gemini API Error:', data.error.code, msg.slice(0, 100));
-            if (data.error.code === 429) {
-                return res.status(429).json({ error: 'rate_limit', retryAfterMs: parseRetryDelay(msg) });
-            }
-            return res.status(500).json({ error: data.error.message });
-        }
-
-        const audioBase64 = data.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-        if (!audioBase64) return res.status(500).json({ error: 'No audio data received' });
-
-        const pcmBuffer = Buffer.from(audioBase64, 'base64');
-        const wavBuffer = pcmToWav(pcmBuffer);
-
-        if (articleId && fileName) {
-            uploadToSupabase(wavBuffer, articleId, fileName).then(url => {
-                if (url) console.log(`Async upload finished: ${url}`);
+                })
             });
+
+            const data = await response.json();
+
+            if (data.error) {
+                const msg = data.error.message || '';
+                const code = data.error.code;
+                console.error(`Gemini TTS Error (key=${label}):`, code, msg.slice(0, 100));
+
+                if (code === 429) {
+                    lastError = { error: 'rate_limit', retryAfterMs: parseRetryDelay(msg) };
+                    continue; // Try next key
+                }
+
+                lastError = { error: msg };
+                continue; // Try next key for other errors too (validation, internal, etc)
+            }
+
+            const audioBase64 = data.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+            if (!audioBase64) {
+                lastError = { error: 'No audio data received from Gemini' };
+                continue;
+            }
+
+            // SUCCESS
+            const pcmBuffer = Buffer.from(audioBase64, 'base64');
+            const wavBuffer = pcmToWav(pcmBuffer);
+
+            if (articleId && fileName) {
+                uploadToSupabase(wavBuffer, articleId, fileName).then(url => {
+                    if (url) console.log(`Async upload finished: ${url}`);
+                });
+            }
+
+            res.setHeader('Content-Type', 'audio/wav');
+            res.setHeader('Cache-Control', 'public, max-age=31536000');
+            return res.status(200).send(wavBuffer);
+
+        } catch (err) {
+            console.error(`TTS server exception (key=${label}):`, err.message);
+            lastError = { error: err.message };
+            // Continue to next key
         }
-
-        res.setHeader('Content-Type', 'audio/wav');
-        res.setHeader('Cache-Control', 'public, max-age=31536000');
-        return res.status(200).send(wavBuffer);
-
-    } catch (err) {
-        console.error('TTS server error:', err.message);
-        return res.status(500).json({ error: 'Server error: ' + err.message });
     }
+
+    // If we reach here, all keys failed
+    return res.status(lastError?.error === 'rate_limit' ? 429 : 500).json(lastError || { error: 'Unknown AI error' });
 };
