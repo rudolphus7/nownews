@@ -48,13 +48,45 @@ window.handleImageUpload = async (input, targetId) => {
 
         canvas.width = width;
         canvas.height = height;
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d', { alpha: false });
         ctx.drawImage(img, 0, 0, width, height);
 
-        // 2. Convert to WebP (optimized)
+        // 2. Add Watermark (Branding)
+        try {
+            const logo = new Image();
+            logo.src = '/logo.png';
+            await new Promise((resolve, reject) => {
+                logo.onload = resolve;
+                logo.onerror = () => {
+                    console.warn('Logo not found, skipping watermark');
+                    resolve();
+                };
+            });
+
+            if (logo.complete && logo.naturalWidth > 0) {
+                // Calculate logo size (e.g., 15% of image width)
+                const logoScale = (width * 0.15) / logo.width;
+                const logoW = logo.width * logoScale;
+                const logoH = logo.height * logoScale;
+
+                // Position: bottom-right with 20px padding
+                const padding = 20;
+                const x = width - logoW - padding;
+                const y = height - logoH - padding;
+
+                ctx.save();
+                ctx.globalAlpha = 0.7; // Subtle transparency
+                ctx.drawImage(logo, x, y, logoW, logoH);
+                ctx.restore();
+            }
+        } catch (e) {
+            console.warn('Watermark failed:', e);
+        }
+
+        // 3. Convert to WebP (optimized)
         const webpBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/webp', 0.8));
 
-        // 3. Upload to our API
+        // 4. Upload to our API
         const fileName = `${Date.now()}_${file.name.split('.')[0]}.webp`;
         const response = await fetch('/api/upload-image', {
             method: 'POST',
