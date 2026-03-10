@@ -40,6 +40,52 @@ module.exports = async (req, res) => {
 
         if (!uploadRes.ok) {
             const errText = await uploadRes.text();
+
+            // If bucket not found, try to create it and retry upload once
+            if (uploadRes.status === 404 || errText.includes('Bucket not found')) {
+                console.log(`Bucket "news" not found. Attempting to create...`);
+
+                const createBucketRes = await fetch(`${SUPABASE_URL}/storage/v1/bucket`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        id: 'news',
+                        name: 'news',
+                        public: true,
+                        file_size_limit: 5242880, // 5MB
+                        allowed_mime_types: ['image/webp', 'image/jpeg', 'image/png']
+                    })
+                });
+
+                if (createBucketRes.ok || createBucketRes.status === 409) { // 409 means already exists (race condition)
+                    console.log(`Bucket "news" created or already exists. Retrying upload...`);
+                    // Retry upload
+                    const retryRes = await fetch(uploadUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+                            'Content-Type': 'image/webp',
+                            'x-upsert': 'true'
+                        },
+                        body: buffer
+                    });
+
+                    if (retryRes.ok) {
+                        const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/news/${fileName}`;
+                        return res.status(200).json({ success: true, url: publicUrl, size: buffer.length });
+                    }
+
+                    const retryErr = await retryRes.text();
+                    throw new Error(`Retry failed: ${retryRes.status} ${retryErr}`);
+                } else {
+                    const createErr = await createBucketRes.text();
+                    throw new Error(`Failed to create bucket "news": ${createBucketRes.status} ${createErr}`);
+                }
+            }
+
             throw new Error(`Storage upload failed: ${uploadRes.status} ${errText}`);
         }
 
