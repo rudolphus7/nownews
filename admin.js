@@ -224,7 +224,7 @@ const updateSEO = () => {
             const generatedSlug = SEOEngine.generateSlug(title);
             if (slugInput) slugInput.value = generatedSlug;
             const slugDisplay = document.getElementById('slug-display');
-            if (slugDisplay) slugDisplay.innerHTML = `<a href="/news/${generatedSlug}" target="_blank" class="text-orange-600 hover:underline">/news/${generatedSlug}</a>`;
+            if (slugDisplay) slugDisplay.innerHTML = `<a href="/${generatedSlug}" target="_blank" class="text-orange-600 hover:underline">/${generatedSlug}</a>`;
             if (metaTitleInput) {
                 metaTitleInput.value = SEOEngine.generateMetaTitle(title);
                 const titleCount = document.getElementById('title-count');
@@ -329,12 +329,13 @@ if (newsForm) {
             try {
                 const targetSlug = slugInput.value;
                 const targetCity = document.getElementById('city').value;
-                let canonicalUrl = `https://bukva.news/news/${targetSlug}/`; // Default fallback
+                const targetCategory = document.getElementById('category').value;
+                let canonicalUrl = `https://bukva.news/${targetSlug}/`; // Default fallback
 
                 if (targetCity) {
                     canonicalUrl = `https://bukva.news/novyny/${targetCity}/${targetSlug}/`;
-                } else {
-                    canonicalUrl = `https://bukva.news/novyny/${targetSlug}/`;
+                } else if (targetCategory && SEOEngine.CAT_MAP[targetCategory]) {
+                    canonicalUrl = `https://bukva.news/${SEOEngine.CAT_MAP[targetCategory]}/${targetSlug}/`;
                 }
 
                 console.log('🚀 Pinging Google Indexing for:', canonicalUrl);
@@ -409,11 +410,14 @@ if (btnGenerateFb && fbPostText) {
             // Determine absolute URL for CTA link
             const slug = slugInput?.value || "";
             const city = document.getElementById('city')?.value || "";
+            const category = document.getElementById('category')?.value || "";
             let articleUrl = "https://bukva.news/";
             if (city) {
                 articleUrl += `novyny/${city}/${slug}/`;
+            } else if (category && SEOEngine.CAT_MAP[category]) {
+                articleUrl += `${SEOEngine.CAT_MAP[category]}/${slug}/`;
             } else if (slug) {
-                articleUrl += `novyny/${slug}/`;
+                articleUrl += `${slug}/`;
             }
 
             // Get local key for fallback
@@ -462,11 +466,14 @@ if (btnPublishFb && fbPostText) {
         try {
             const slug = document.getElementById('slug')?.value || "";
             const city = document.getElementById('city')?.value || "";
+            const category = document.getElementById('category')?.value || "";
             let articleUrl = "https://bukva.news/";
             if (city) {
                 articleUrl += `novyny/${city}/${slug}/`;
+            } else if (category && SEOEngine.CAT_MAP[category]) {
+                articleUrl += `${SEOEngine.CAT_MAP[category]}/${slug}/`;
             } else if (slug) {
-                articleUrl += `novyny/${slug}/`;
+                articleUrl += `${slug}/`;
             }
 
             const igImg = document.getElementById('ig_image_url')?.value.trim();
@@ -586,7 +593,7 @@ window.editItem = async (id) => {
     document.getElementById('title').value = data.title;
     document.getElementById('slug').value = data.slug;
     const slugDisplay = document.getElementById('slug-display');
-    if (slugDisplay) slugDisplay.innerHTML = `<a href="/news/${data.slug}" target="_blank" class="text-orange-600 hover:underline">/news/${data.slug} ↗</a>`;
+    if (slugDisplay) slugDisplay.innerHTML = `<a href="/${data.slug}" target="_blank" class="text-orange-600 hover:underline">/${data.slug} ↗</a>`;
     document.getElementById('meta_title').value = data.meta_title;
     document.getElementById('meta_description').value = data.meta_description;
     document.getElementById('category').value = data.category;

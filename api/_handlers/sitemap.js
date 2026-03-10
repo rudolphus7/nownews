@@ -61,7 +61,7 @@ async function servePages(res, headers) {
         if (c.slug) urls.push({ loc: `${SITE_URL}/category/${CAT_MAP[c.slug] || c.slug}/`, priority: '0.7', changefreq: 'daily' });
     });
     cities.forEach(c => {
-        if (c.slug) urls.push({ loc: `${SITE_URL}/novyny/${c.slug}/`, priority: '0.7', changefreq: 'daily' });
+        if (c.slug) urls.push({ loc: `${SITE_URL}/${c.slug}/`, priority: '0.7', changefreq: 'daily' });
     });
 
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -132,7 +132,7 @@ ${articles.filter(a => a.slug).map(a => {
             if (a.updated_at) lastmod = new Date(a.updated_at).toISOString().split('T')[0];
             else if (a.created_at) lastmod = new Date(a.created_at).toISOString().split('T')[0];
         } catch (e) { }
-        let path = `/novyny/${a.slug}/`;
+        let path = `/${a.slug}/`;
         if (a.city) path = `/novyny/${a.city}/${a.slug}/`;
         else if (a.category && CAT_MAP[a.category]) path = `/${CAT_MAP[a.category]}/${a.slug}/`;
 
@@ -171,7 +171,7 @@ async function serveNews(res, headers) {
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">
 ${validArticles.map(a => {
-        let path = `/novyny/${a.slug}/`;
+        let path = `/${a.slug}/`;
         if (a.city) path = `/novyny/${a.city}/${a.slug}/`;
         else if (a.category && CAT_MAP[a.category]) path = `/${CAT_MAP[a.category]}/${a.slug}/`;
 

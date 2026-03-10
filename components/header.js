@@ -80,7 +80,7 @@ class SiteHeader {
 
         const catSlug = post.category ? (this.catEnToUk[post.category] || post.category) : null;
         if (catSlug) {
-            return `/category/${catSlug}/${slug}/`;
+            return `/${catSlug}/${slug}/`;
         }
 
         return `/${slug}/`;
