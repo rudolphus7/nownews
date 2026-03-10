@@ -138,7 +138,6 @@ class SiteHeader {
         if (!headerPlaceholder) return;
 
         // If it's already pre-rendered by SSR, don't overwrite it to avoid flickering
-        // We check if it has any substantial content (more than just whitespace)
         if (headerPlaceholder.innerHTML.trim().length > 0) {
             console.log("Header already pre-rendered, skipping placeholder injection.");
             return;
@@ -165,16 +164,16 @@ class SiteHeader {
                             <div class="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-orange-500 border-2 border-white rounded-full"></div>
                         </div>
                         <div class="leading-none text-left">
-                            <span class="text-3xl font-black uppercase tracking-tighter text-slate-900 block mt-1">BUKVA <span class="text-orange-600">NEWS</span></span>
+                            <span class="text-3xl font-black uppercase tracking-tighter text-slate-900 block mt-1 header-logo-text">BUKVA <span class="text-orange-600">NEWS</span></span>
                             <span class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 opacity-80">Незалежна Журналістика</span>
                         </div>
                     </a>
                     
-                    <nav id="desktop-nav" class="hidden md:flex items-center gap-6 text-[12px] font-black uppercase tracking-wider text-slate-600">
+                    <nav id="desktop-nav" class="items-center gap-6 text-[12px] font-black uppercase tracking-wider text-slate-600">
                         <!-- Categories injected here -->
                     </nav>
 
-                    <button id="mobile-menu-toggle" class="md:hidden flex flex-col gap-1.5 p-2">
+                    <button id="mobile-menu-toggle" class="flex flex-col gap-1.5 p-2" aria-label="Menu">
                         <span class="w-6 h-0.5 bg-slate-900 rounded-full transition-all duration-300"></span>
                         <span class="w-6 h-0.5 bg-slate-900 rounded-full transition-all duration-300"></span>
                         <span class="w-6 h-0.5 bg-slate-900 rounded-full transition-all duration-300"></span>
@@ -196,7 +195,7 @@ class SiteHeader {
             </header>
 
             <!-- Mobile Menu Overlay -->
-            <div id="mobile-menu-overlay" class="fixed inset-0 z-[200] bg-white/95 backdrop-blur-xl translate-x-full transition-transform duration-500 md:hidden overflow-y-auto">
+            <div id="mobile-menu-overlay" class="fixed inset-0 z-[200] bg-white/95 backdrop-blur-xl translate-x-full transition-transform duration-500 overflow-y-auto">
                 <div class="p-8">
                     <div class="flex justify-between items-center mb-12">
                         <a href="/" class="flex items-center space-x-3 group">
