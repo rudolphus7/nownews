@@ -189,6 +189,16 @@ module.exports = async (req, res) => {
             </div>
         </div>
 
+        <style>
+            #mobile-menu-toggle { display: none; flex-direction: column; gap: 6px; padding: 8px; background: transparent; border: none; cursor: pointer; }
+            #mobile-menu-toggle span { display: block; width: 24px; height: 2px; background-color: #0f172a; border-radius: 9999px; transition: all 0.3s; }
+            #desktop-nav { display: flex; align-items: center; gap: 24px; }
+            @media (max-width: 768px) {
+                #mobile-menu-toggle { display: flex !important; }
+                #desktop-nav { display: none !important; }
+                .header-logo-text { font-size: 1.25rem !important; }
+            }
+        </style>
         <header class="bg-white/95 backdrop-blur-xl sticky top-0 z-[100] border-b border-slate-100">
             <div class="container mx-auto px-4 py-4 flex justify-between items-center">
                 <a href="/" class="flex items-center space-x-3 group">
