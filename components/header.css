@@ -77,16 +77,21 @@
 
 #desktop-nav a {
     text-decoration: none;
-    color: #475569;
-    font-weight: 800;
+    color: #0f172a;
+    font-weight: 900;
     text-transform: uppercase;
-    font-size: 12px;
-    letter-spacing: 0.05em;
+    font-size: 13px;
+    letter-spacing: -0.02em;
     transition: color 0.3s;
 }
 
 #desktop-nav a:hover {
     color: #ea580c;
+}
+
+/* LIVE Button Text Fix */
+#desktop-nav a[href="/live/"] {
+    color: #ffffff !important;
 }
 
 @media (max-width: 768px) {

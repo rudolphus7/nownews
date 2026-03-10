@@ -209,12 +209,12 @@ module.exports = async (req, res) => {
     ).join('');
 
     const cityLinksHtml = cities.map(c =>
-        `<a href="/novyny/${c.slug}/" class="city-link hover:text-orange-600 transition-colors py-1" data-city="${c.slug}">${escapeHtml(c.name)}</a>`
+        `<a href="/${c.slug}/" class="city-link hover:text-orange-600 transition-colors py-1" data-city="${c.slug}">${c.name}</a>`
     ).join('');
 
     const mobileCityHtml = `<a href="/" class="bg-slate-50 p-4 rounded-2xl flex items-center justify-center text-center hover:bg-orange-50 hover:text-orange-600 transition h-full font-black text-xs uppercase leading-tight">ВСЯ ОБЛАСТЬ</a>` +
         cities.map(c =>
-            `<a href="/novyny/${c.slug}/" data-city="${c.slug}" class="bg-slate-50 p-4 rounded-2xl flex items-center justify-center text-center hover:bg-orange-50 hover:text-orange-600 transition h-full font-black text-xs uppercase leading-tight">${escapeHtml(c.name)}</a>`
+            `<a href="/${c.slug}/" data-city="${c.slug}" class="bg-slate-50 p-4 rounded-2xl flex items-center justify-center text-center hover:bg-orange-50 hover:text-orange-600 transition h-full font-black text-xs uppercase leading-tight">${c.name}</a>`
         ).join('');
 
     const headerHtml = `
@@ -261,7 +261,7 @@ module.exports = async (req, res) => {
                                 <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                                 <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-600"></span>
                             </span>
-                            <span class="font-black tracking-tighter text-[11px]">LIVE • ЕФІР</span>
+                            <span class="font-black tracking-tighter text-[11px] text-white">LIVE • ЕФІР</span>
                         </a>
                     </div>
                 </nav>
