@@ -15,6 +15,17 @@ function initSupabase() {
 initSupabase();
 
 // --- IMAGE UPLOAD & OPTIMIZATION ---
+// Pre-load logo once to avoid repeated network requests and timing issues on mobile
+const logoImage = new Image();
+logoImage.src = window.location.origin + '/logo.png';
+const logoLoadPromise = new Promise((resolve) => {
+    logoImage.onload = () => resolve(true);
+    logoImage.onerror = () => {
+        console.warn('Logo could not be pre-loaded');
+        resolve(false);
+    };
+});
+
 window.handleImageUpload = async (input, targetId) => {
     const file = input.files[0];
     if (!file) return;
@@ -23,21 +34,29 @@ window.handleImageUpload = async (input, targetId) => {
     const preview = document.getElementById('image-preview');
     const targetInput = document.getElementById(targetId);
 
-    if (overlay) overlay.classList.remove('hidden');
-    if (overlay) overlay.classList.add('flex');
+    if (overlay) {
+        overlay.classList.remove('hidden');
+        overlay.classList.add('flex');
+    }
 
     try {
-        // 1. Load image into Canvas for optimization
+        // 1. Load image and ensure it's decoded (crucial for mobile/Safari)
         const img = new Image();
         img.src = URL.createObjectURL(file);
+
         await new Promise((resolve, reject) => {
-            img.onload = resolve;
+            img.onload = async () => {
+                try {
+                    if (img.decode) await img.decode();
+                    resolve();
+                } catch (e) { resolve(); } // Fallback if decode fails
+            };
             img.onerror = reject;
         });
 
         const canvas = document.createElement('canvas');
-        let width = img.width;
-        let height = img.height;
+        let width = img.naturalWidth;
+        let height = img.naturalHeight;
 
         // Max width 1200px (standard for modern editorial)
         const MAX_WIDTH = 1200;
@@ -49,38 +68,34 @@ window.handleImageUpload = async (input, targetId) => {
         canvas.width = width;
         canvas.height = height;
         const ctx = canvas.getContext('2d', { alpha: false });
+
+        // Draw the main image
+        ctx.fillStyle = "#FFFFFF"; // Guard against transparent backgrounds
+        ctx.fillRect(0, 0, width, height);
         ctx.drawImage(img, 0, 0, width, height);
 
         // 2. Add Watermark (Branding)
         try {
-            const logo = new Image();
-            logo.src = '/logo.png';
-            await new Promise((resolve, reject) => {
-                logo.onload = resolve;
-                logo.onerror = () => {
-                    console.warn('Logo not found, skipping watermark');
-                    resolve();
-                };
-            });
+            await logoLoadPromise; // Wait if not already loaded
 
-            if (logo.complete && logo.naturalWidth > 0) {
+            if (logoImage.complete && logoImage.naturalWidth > 0) {
                 // Calculate logo size (e.g., 15% of image width)
-                const logoScale = (width * 0.15) / logo.width;
-                const logoW = logo.width * logoScale;
-                const logoH = logo.height * logoScale;
+                const logoScale = (width * 0.15) / logoImage.naturalWidth;
+                const logoW = logoImage.naturalWidth * logoScale;
+                const logoH = logoImage.naturalHeight * logoScale;
 
-                // Position: bottom-right with 20px padding
+                // Position: bottom-right with 20px padding (relative to resized image)
                 const padding = 20;
                 const x = width - logoW - padding;
                 const y = height - logoH - padding;
 
                 ctx.save();
                 ctx.globalAlpha = 0.7; // Subtle transparency
-                ctx.drawImage(logo, x, y, logoW, logoH);
+                ctx.drawImage(logoImage, x, y, logoW, logoH);
                 ctx.restore();
             }
         } catch (e) {
-            console.warn('Watermark failed:', e);
+            console.warn('Watermark overlay failed:', e);
         }
 
         // 3. Convert to WebP (optimized)
@@ -296,7 +311,13 @@ if (newsForm) {
             tags: currentTags,
             allowed_reactions: allowedReactions,
             link: newsForm.dataset.rssLink || "", // Preserve original RSS link
-            is_published: true
+            is_published: true,
+            author_name: (() => {
+                const active = document.querySelector('#journalist-selector .journalist-card.active');
+                const j = active ? active.dataset.journalist : 'olena';
+                const names = { olena: 'Олена Волощук', taras: 'Тарас Гаврилюк', alina: 'Аліна Пруненко' };
+                return names[j] || 'Олена Волощук';
+            })()
         };
 
         try {
@@ -976,10 +997,14 @@ async function rewriteWithAI() {
         try {
             const localKey = localStorage.getItem('gemini_api_key') || "";
 
+            // Get selected journalist
+            const activeCard = document.querySelector('#journalist-selector .journalist-card.active');
+            const selectedJournalist = activeCard ? activeCard.dataset.journalist : 'olena';
+
             const response = await fetch('/api/ai', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title: currentTitle, content: currentHtml, apiKey: localKey })
+                body: JSON.stringify({ title: currentTitle, content: currentHtml, apiKey: localKey, journalist: selectedJournalist })
             });
 
             const data = await response.json().catch(() => ({}));
@@ -1086,6 +1111,15 @@ async function rewriteWithAI() {
     }
 }
 window.rewriteWithAI = rewriteWithAI;
+
+// --- JOURNALIST SELECTOR ---
+window.selectJournalist = (clickedBtn) => {
+    document.querySelectorAll('#journalist-selector .journalist-card').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    clickedBtn.classList.add('active');
+};
+
 
 // --- AI CONFIG MANAGEMENT ---
 window.saveAIConfig = () => {
