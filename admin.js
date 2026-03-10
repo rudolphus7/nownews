@@ -326,6 +326,7 @@ if (newsForm) {
             if (result.error) throw result.error;
 
             // --- GOOGLE INDEXING PING ---
+            try {
                 const targetSlug = slugInput.value;
                 const targetCity = document.getElementById('city').value;
                 const targetCategory = document.getElementById('category').value;
@@ -412,9 +413,9 @@ if (btnGenerateFb && fbPostText) {
             const category = document.getElementById('category')?.value || "";
             let articleUrl = "https://bukva.news/";
             if (city) {
-                articleUrl += `novyny/${city}/${slug}/`;
-            } else if (category && SEOEngine.CAT_MAP[category]) {
-                articleUrl += `${SEOEngine.CAT_MAP[category]}/${slug}/`;
+                articleUrl += `${city}/${slug}/`;
+            } else if (category) {
+                articleUrl += `${category}/${slug}/`;
             } else if (slug) {
                 articleUrl += `${slug}/`;
             }
@@ -468,9 +469,9 @@ if (btnPublishFb && fbPostText) {
             const category = document.getElementById('category')?.value || "";
             let articleUrl = "https://bukva.news/";
             if (city) {
-                articleUrl += `novyny/${city}/${slug}/`;
-            } else if (category && SEOEngine.CAT_MAP[category]) {
-                articleUrl += `${SEOEngine.CAT_MAP[category]}/${slug}/`;
+                articleUrl += `${city}/${slug}/`;
+            } else if (category) {
+                articleUrl += `${category}/${slug}/`;
             } else if (slug) {
                 articleUrl += `${slug}/`;
             }
