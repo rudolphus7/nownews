@@ -332,9 +332,9 @@ if (newsForm) {
                 let canonicalUrl = `https://bukva.news/news/${targetSlug}/`; // Default fallback
 
                 if (targetCity) {
-                    canonicalUrl = `https://bukva.news/${targetCity}/${targetSlug}/`;
+                    canonicalUrl = `https://bukva.news/novyny/${targetCity}/${targetSlug}/`;
                 } else {
-                    canonicalUrl = `https://bukva.news/${targetSlug}/`;
+                    canonicalUrl = `https://bukva.news/novyny/${targetSlug}/`;
                 }
 
                 console.log('🚀 Pinging Google Indexing for:', canonicalUrl);
@@ -411,9 +411,9 @@ if (btnGenerateFb && fbPostText) {
             const city = document.getElementById('city')?.value || "";
             let articleUrl = "https://bukva.news/";
             if (city) {
-                articleUrl += `${city}/${slug}/`;
+                articleUrl += `novyny/${city}/${slug}/`;
             } else if (slug) {
-                articleUrl += `news/?slug=${slug}`;
+                articleUrl += `novyny/${slug}/`;
             }
 
             // Get local key for fallback
@@ -464,9 +464,9 @@ if (btnPublishFb && fbPostText) {
             const city = document.getElementById('city')?.value || "";
             let articleUrl = "https://bukva.news/";
             if (city) {
-                articleUrl += `${city}/${slug}/`;
+                articleUrl += `novyny/${city}/${slug}/`;
             } else if (slug) {
-                articleUrl += `news/?slug=${slug}`;
+                articleUrl += `novyny/${slug}/`;
             }
 
             const igImg = document.getElementById('ig_image_url')?.value.trim();
@@ -1701,8 +1701,8 @@ window.insertReadAlso = (slug, city, title) => {
     if (!quill) return;
 
     const url = city && city !== 'null' && city !== 'undefined' && city !== ''
-        ? `https://bukva.news/${city}/${slug}/`
-        : `https://bukva.news/news/${slug}/`;
+        ? `https://bukva.news/novyny/${city}/${slug}/`
+        : `https://bukva.news/novyny/${slug}/`;
 
     const htmlSnippet = `
             <p><br/></p>
@@ -1735,8 +1735,8 @@ window.insertSelectedReadAlso = () => {
         const city = cb.dataset.city;
         const title = cb.dataset.title;
         const url = city && city !== 'null' && city !== 'undefined' && city !== ''
-            ? `https://bukva.news/${city}/${slug}/`
-            : `https://bukva.news/news/${slug}/`;
+            ? `https://bukva.news/novyny/${city}/${slug}/`
+            : `https://bukva.news/novyny/${slug}/`;
         listItems += `<li><a href="${url}" target="_blank" rel="noopener noreferrer">${title}</a></li>`;
     });
 

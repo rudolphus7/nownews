@@ -75,7 +75,7 @@ class SiteHeader {
 
         // Hierarchical URLs: /city/slug/ or /category/cat/slug/
         if (post.city && (this.cities[post.city] || CITIES_FALLBACK[post.city])) {
-            return `/${post.city}/${slug}/`;
+            return `/novyny/${post.city}/${slug}/`;
         }
 
         const catSlug = post.category ? (this.catEnToUk[post.category] || post.category) : null;
@@ -307,14 +307,14 @@ class SiteHeader {
 
         // Cities now use path-based URLs: /:city/
         const html = cities.map(c => `
-            <a href="/${c.slug}/" class="city-link hover:text-orange-600 transition-colors py-1" data-city="${c.slug}">${c.name}</a>
+            <a href="/novyny/${c.slug}/" class="city-link hover:text-orange-600 transition-colors py-1" data-city="${c.slug}">${c.name}</a>
         `).join('');
 
         if (cityContainer) cityContainer.innerHTML = html;
         if (mobileCities) {
             mobileCities.innerHTML = `
                 <a href="/" class="bg-slate-50 p-4 rounded-2xl flex items-center justify-center text-center hover:bg-orange-50 hover:text-orange-600 transition h-full font-black text-xs uppercase leading-tight">ВСЯ ОБЛАСТЬ</a>
-                ${cities.map(c => `<a href="/${c.slug}/" data-city="${c.slug}" class="bg-slate-50 p-4 rounded-2xl flex items-center justify-center text-center hover:bg-orange-50 hover:text-orange-600 transition h-full font-black text-xs uppercase leading-tight">${c.name}</a>`).join('')}
+                ${cities.map(c => `<a href="/novyny/${c.slug}/" data-city="${c.slug}" class="bg-slate-50 p-4 rounded-2xl flex items-center justify-center text-center hover:bg-orange-50 hover:text-orange-600 transition h-full font-black text-xs uppercase leading-tight">${c.name}</a>`).join('')}
             `;
         }
     }

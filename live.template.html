@@ -1126,7 +1126,7 @@
         function scrollToPlayer() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
         function openFilters() { document.getElementById('filter-drawer').classList.add('open'); }
         function closeFilters() { document.getElementById('filter-drawer').classList.remove('open'); }
-        function getLink(t) { return t.city ? `/${t.city}/${t.slug}/` : t.category ? `/category/${t.category}/${t.slug}/` : `/${t.slug}/`; }
+        function getLink(t) { return t.city ? `/novyny/${t.city}/${t.slug}/` : t.category ? `/category/${t.category}/${t.slug}/` : `/${t.slug}/`; }
         function getShareLink(t) { return window.location.origin + window.location.pathname + '?track=' + t.id; }
         function fmt(s) {
             if (isNaN(s) || s < 0) return "0:00";

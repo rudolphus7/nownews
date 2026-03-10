@@ -22,7 +22,7 @@ module.exports = async (req, res) => {
         const rssItems = news.map(item => {
             const description = item.meta_description || (item.content || '').replace(/<[^>]*>/g, '').substring(0, 300) + '...';
             let path = `/news/${item.slug}/`;
-            if (item.city) path = `/${item.city}/${item.slug}/`;
+            if (item.city) path = `/novyny/${item.city}/${item.slug}/`;
             else if (item.category && CAT_MAP[item.category]) path = `/category/${CAT_MAP[item.category]}/${item.slug}/`;
 
             const link = `${SITE_URL}${path}`;

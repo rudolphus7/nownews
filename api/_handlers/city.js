@@ -72,7 +72,7 @@ module.exports = async (req, res) => {
     }
 
     const cityName = city.name;
-    const canonicalUrl = `${SITE_URL}/${citySlug}/`;
+    const canonicalUrl = `${SITE_URL}/novyny/${citySlug}/`;
     const title = `Новини ${cityName} — останні події | BUKVA NEWS`;
     const description = `Актуальні новини ${cityName}: місцеві події, факти, оперативна інформація. Слідкуйте за головними новинами першими на BUKVA NEWS.`;
     const siteName = 'BUKVA NEWS';
@@ -168,12 +168,12 @@ module.exports = async (req, res) => {
     ).join('');
 
     const cityLinksHtml = cities.map(c =>
-        `<a href="/${c.slug}/" class="city-link hover:text-orange-600 transition-colors py-1${c.slug === citySlug ? ' text-orange-600 font-black text-slate-900' : ''}" data-city="${c.slug}">${escapeHtml(c.name)}</a>`
+        `<a href="/novyny/${c.slug}/" class="city-link hover:text-orange-600 transition-colors py-1${c.slug === citySlug ? ' text-orange-600 font-black text-slate-900' : ''}" data-city="${c.slug}">${escapeHtml(c.name)}</a>`
     ).join('');
 
     const mobileCityHtml = `<a href="/" class="bg-slate-50 p-4 rounded-2xl flex items-center justify-center text-center hover:bg-orange-50 hover:text-orange-600 transition h-full font-black text-xs uppercase leading-tight">ВСЯ ОБЛАСТЬ</a>` +
         cities.map(c =>
-            `<a href="/${c.slug}/" data-city="${c.slug}" class="bg-slate-50 p-4 rounded-2xl flex items-center justify-center text-center hover:bg-orange-50 hover:text-orange-600 transition h-full font-black text-xs uppercase leading-tight${c.slug === citySlug ? ' bg-orange-50 text-orange-600' : ''}">${escapeHtml(c.name)}</a>`
+            `<a href="/novyny/${c.slug}/" data-city="${c.slug}" class="bg-slate-50 p-4 rounded-2xl flex items-center justify-center text-center hover:bg-orange-50 hover:text-orange-600 transition h-full font-black text-xs uppercase leading-tight${c.slug === citySlug ? ' bg-orange-50 text-orange-600' : ''}">${escapeHtml(c.name)}</a>`
         ).join('');
 
     const headerHtml = `

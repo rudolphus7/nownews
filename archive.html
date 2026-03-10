@@ -149,7 +149,7 @@
                         if (data && data.length > 0) {
                             resultsBox.innerHTML = data.map(item => {
                                 const date = new Date(item.created_at).toLocaleDateString('uk-UA');
-                                const url = item.city ? `/${item.city}/${item.slug}/` : `/news/?slug=${item.slug}`;
+                                const url = item.city ? `/novyny/${item.city}/${item.slug}/` : `/novyny/${item.slug}/`;
                                 return `
                                     <div class="search-hit">
                                         <a href="${url}">

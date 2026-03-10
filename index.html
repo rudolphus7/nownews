@@ -423,7 +423,7 @@
 
             // Hierarchical URLs: /city/slug/ or /category/cat/slug/
             if (post.city && CITIES_UK[post.city]) {
-                return `/${post.city}/${slug}/`;
+                return `/novyny/${post.city}/${slug}/`;
             }
             if (post.category && CATEGORY_EN_TO_UK_SLUG[post.category]) {
                 return `/category/${CATEGORY_EN_TO_UK_SLUG[post.category]}/${slug}/`;
@@ -441,7 +441,7 @@
                 return window.__SSR_CITY__;
             }
             const pathParts = window.location.pathname.replace(/^\/|\/$/g, '').split('/');
-            const citySlug = pathParts[0];
+            const citySlug = pathParts[1]; // /novyny/:city/... → index 1
             return (citySlug && CITIES_UK[citySlug]) ? citySlug : null;
         }
 
