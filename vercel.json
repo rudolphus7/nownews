@@ -134,6 +134,10 @@
     ],
     "rewrites": [
         {
+            "source": "/images/:path*",
+            "destination": "https://kgrxlznhimwuvwhjfzhv.supabase.co/storage/v1/object/public/news/:path*"
+        },
+        {
             "source": "/api/:handler/",
             "destination": "/api/index?__target=:handler"
         },

@@ -11,7 +11,12 @@ module.exports = async (req, res) => {
     if (req.method === 'OPTIONS') return res.status(200).end();
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-    const fileName = req.headers['x-file-name'] || `${Date.now()}.webp`;
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const folderPath = `${year}/${month}`;
+    const rawFileName = req.headers['x-file-name'] || `${Date.now()}.webp`;
+    const fullPath = `${folderPath}/${rawFileName}`;
 
     // Read the binary body
     const chunks = [];
@@ -22,10 +27,10 @@ module.exports = async (req, res) => {
 
     if (buffer.length === 0) return res.status(400).json({ error: 'Empty image data' });
 
-    console.log(`Uploading optimized image: ${fileName}, size: ${buffer.length} bytes`);
+    console.log(`Uploading optimized image: ${fullPath}, size: ${buffer.length} bytes`);
 
     try {
-        const uploadUrl = `${SUPABASE_URL}/storage/v1/object/news/${fileName}`;
+        const uploadUrl = `${SUPABASE_URL}/storage/v1/object/news/${fullPath}`;
 
         // 1. Upload to Supabase Storage (news bucket)
         const uploadRes = await fetch(uploadUrl, {
@@ -74,7 +79,7 @@ module.exports = async (req, res) => {
                     });
 
                     if (retryRes.ok) {
-                        const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/news/${fileName}`;
+                        const publicUrl = `https://bukva.news/images/${fullPath}`;
                         return res.status(200).json({ success: true, url: publicUrl, size: buffer.length });
                     }
 
@@ -89,7 +94,7 @@ module.exports = async (req, res) => {
             throw new Error(`Storage upload failed: ${uploadRes.status} ${errText}`);
         }
 
-        const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/news/${fileName}`;
+        const publicUrl = `https://bukva.news/images/${fullPath}`;
 
         return res.status(200).json({
             success: true,
