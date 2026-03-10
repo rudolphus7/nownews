@@ -285,12 +285,12 @@ class SiteHeader {
             </div>`;
 
         const html = categories.map(c => {
-            return `<a href="/category/${c.slug}/" class="nav-link hover:text-orange-600 transition-colors py-2 border-b-2 border-transparent font-black tracking-tight text-sm" data-category="${c.slug}">${c.name}</a>`;
+            return `<a href="/${c.slug}/" class="nav-link hover:text-orange-600 transition-colors py-2 border-b-2 border-transparent font-black tracking-tight text-sm" data-category="${c.slug}">${c.name}</a>`;
         }).join('');
 
         if (nav) nav.innerHTML = html + liveHtml;
         if (mobileNav) mobileNav.innerHTML = categories.map(c => {
-            return `<a href="/category/${c.slug}/" data-category="${c.slug}" class="py-2 active:text-orange-600 font-bold">${c.name}</a>`;
+            return `<a href="/${c.slug}/" data-category="${c.slug}" class="py-2 active:text-orange-600 font-bold">${c.name}</a>`;
         }).join('') + `<a href="/live/" class="pt-4 text-orange-600 font-black flex items-center gap-2"><span class="flex h-2 w-2 relative"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-red-600"></span></span>LIVE • ЕФІР</a>`;
     }
 

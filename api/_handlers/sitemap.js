@@ -58,7 +58,7 @@ async function servePages(res, headers) {
 
     const urls = [{ loc: `${SITE_URL}/`, priority: '1.0', changefreq: 'daily' }];
     categories.forEach(c => {
-        if (c.slug) urls.push({ loc: `${SITE_URL}/category/${CAT_MAP[c.slug] || c.slug}/`, priority: '0.7', changefreq: 'daily' });
+        if (c.slug) urls.push({ loc: `${SITE_URL}/${CAT_MAP[c.slug] || c.slug}/`, priority: '0.7', changefreq: 'daily' });
     });
     cities.forEach(c => {
         if (c.slug) urls.push({ loc: `${SITE_URL}/${c.slug}/`, priority: '0.7', changefreq: 'daily' });
