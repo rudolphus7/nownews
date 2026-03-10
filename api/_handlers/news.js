@@ -201,8 +201,12 @@ module.exports = async (req, res) => {
                 }
             }
             console.warn('No news article found for slug/id:', slug);
+            // Return proper 404 — not soft 404 — so Google Search Console shows correct status
+            const notFoundHtml = htmlContent
+                .replace(/<title>.*?<\/title>/s, '<title>\u0421\u0442\u043e\u0440\u0456\u043d\u043a\u0443 \u043d\u0435 \u0437\u043d\u0430\u0439\u0434\u0435\u043d\u043e | BUKVA NEWS</title>');
             res.setHeader('Content-Type', 'text/html; charset=utf-8');
-            return res.status(200).send(htmlContent);
+            res.setHeader('Cache-Control', 'no-store');
+            return res.status(404).send(notFoundHtml);
         }
 
         const news = articleData;
