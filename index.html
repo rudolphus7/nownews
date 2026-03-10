@@ -437,7 +437,7 @@
                 return `/novyny/${post.city}/${slug}/`;
             }
             if (post.category && CATEGORY_EN_TO_UK_SLUG[post.category]) {
-                return `/category/${CATEGORY_EN_TO_UK_SLUG[post.category]}/${slug}/`;
+                return `/${CATEGORY_EN_TO_UK_SLUG[post.category]}/${slug}/`;
             }
 
             return `/${slug}/`;
@@ -466,15 +466,14 @@
             if (window.__SSR_CATEGORY_SLUG__ && window.__SSR_CATEGORY_SLUG__ !== 'undefined') {
                 return window.__SSR_CATEGORY_SLUG__;
             }
-            const pathParts = window.location.pathname.replace(/^\/|\/$/g, '').split('/');
-            if (pathParts[0] === 'category' && pathParts[1]) {
-                // Try dynamic map from header first, then use slug directly (they match in DB)
-                const header = window.header;
-                if (header && header.catUkToEn && header.catUkToEn[pathParts[1]]) {
-                    return header.catUkToEn[pathParts[1]];
-                }
-                return pathParts[1];
+            const catSlug = pathParts[0];
+            const header = window.header;
+            if (header && header.catUkToEn && header.catUkToEn[catSlug]) {
+                return header.catUkToEn[catSlug];
             }
+            // If it's one of our known category slugs, return it
+            const knownCats = ['viyna', 'polityka', 'ekonomika', 'sport', 'kultura', 'tekhnolohii'];
+            if (knownCats.includes(catSlug)) return catSlug;
             return new URLSearchParams(window.location.search).get('category') || null;
         }
 
@@ -502,7 +501,7 @@
                 title = `${catName} | BUKVA NEWS`;
                 description = `Новини рубрики «${catName}»: усі головні події Івано-Франківщини.`;
                 const ukSlug = CATEGORY_EN_TO_UK_SLUG[category] || category;
-                canonical = `${SITE_URL}/category/${ukSlug}/`;
+                canonical = `${SITE_URL}/${ukSlug}/`;
             } else {
                 title = 'BUKVA NEWS | Головні новини Івано-Франківщини';
                 description = 'Головні новини Івано-Франківщини: політика, економіка, війна, культура і спорт.';
