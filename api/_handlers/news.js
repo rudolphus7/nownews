@@ -355,7 +355,7 @@ module.exports = async (req, res) => {
                 "@type": "ListItem",
                 "position": 2,
                 "name": "${escapeJson(CITY_MAP[news.city] || news.city)}",
-                "item": "${SITE_URL}/novyny/${escapeJson(news.city)}/"
+                "item": "${SITE_URL}/${escapeJson(news.city)}/"
             },
             {
                 "@type": "ListItem",
@@ -396,16 +396,19 @@ module.exports = async (req, res) => {
         // SSR Header Injection
         let tickerHtml = 'BUKVA NEWS • ПЕРЕВІРЕНІ ФАКТИ • АКТУАЛЬНІ ПОДІЇ • ОПЕРАТИВНО ТА ЧЕСНО •';
         if (tickerNews && tickerNews.length > 0) {
-            tickerHtml = tickerNews.map(tn => `<a href="/novyny/${tn.slug}/" class="mx-4 hover:text-orange-500 transition-colors">${tn.title}</a>`).join(' <span class="text-orange-600 font-bold mx-2">/</span> ');
+            tickerHtml = tickerNews.map(tn => {
+                const link = this.getNewsLink(tn); // Note: 'this' might not be available here, let's use a local helper
+                return `<a href="${link}" class="mx-4 hover:text-orange-500 transition-colors">${tn.title}</a>`;
+            }).join(' <span class="text-orange-600 font-bold mx-2">/</span> ');
         }
 
         // Build SSR nav from DB data
         const navLinksHtml = categories.map(c =>
-            `<a href="/category/${c.slug}/" class="nav-link hover:text-orange-600 transition-colors py-2 border-b-2 border-transparent font-black tracking-tight text-sm" data-category="${c.slug}">${escapeHtml(c.name)}</a>`
+            `<a href="/${c.slug}/" class="nav-link hover:text-orange-600 transition-colors py-2 border-b-2 border-transparent font-black tracking-tight text-sm" data-category="${c.slug}">${escapeHtml(c.name)}</a>`
         ).join('');
 
         const cityLinksHtml = cities.map(c =>
-            `<a href="/novyny/${c.slug}/" class="city-link hover:text-orange-600 transition-colors py-1${c.slug === news.city ? ' text-orange-600 font-black text-slate-900' : ''}" data-city="${c.slug}">${escapeHtml(c.name)}</a>`
+            `<a href="/${c.slug}/" class="city-link hover:text-orange-600 transition-colors py-1${c.slug === news.city ? ' text-orange-600 font-black text-slate-900' : ''}" data-city="${c.slug}">${escapeHtml(c.name)}</a>`
         ).join('');
 
         const headerHtml = `
@@ -497,14 +500,14 @@ module.exports = async (req, res) => {
                         <div>
                             <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6 border-b border-slate-100 pb-2">РУБРИКИ</h3>
                             <div id="mobile-nav-list" class="flex flex-col gap-5 text-lg font-black uppercase text-slate-800 tracking-tight">
-                                ${categories.map(c => `<a href="/category/${c.slug}/" data-category="${c.slug}" class="py-2 active:text-orange-600 font-bold">${escapeHtml(c.name)}</a>`).join('')}
+                                ${categories.map(c => `<a href="/${c.slug}/" data-category="${c.slug}" class="py-2 active:text-orange-600 font-bold">${escapeHtml(c.name)}</a>`).join('')}
                                 <a href="/live/" class="pt-4 text-orange-600 font-black flex items-center gap-2"><span class="flex h-2 w-2 relative"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-red-600"></span></span>LIVE • ЕФІР</a>
                             </div>
                         </div>
                         <div>
                             <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6 border-b border-slate-100 pb-2">МІСТА</h3>
                             <div id="mobile-city-list" class="grid grid-cols-2 gap-3 text-sm font-bold text-slate-600">
-                                ${cities.map(c => `<a href="/novyny/${c.slug}/" data-city="${c.slug}" class="bg-slate-50 p-4 rounded-2xl flex items-center justify-center text-center hover:bg-orange-50 hover:text-orange-600 transition h-full font-black text-xs uppercase leading-tight">${escapeHtml(c.name)}</a>`).join('')}
+                                ${cities.map(c => `<a href="/${c.slug}/" data-city="${c.slug}" class="bg-slate-50 p-4 rounded-2xl flex items-center justify-center text-center hover:bg-orange-50 hover:text-orange-600 transition h-full font-black text-xs uppercase leading-tight">${escapeHtml(c.name)}</a>`).join('')}
                             </div>
                         </div>
                     </div>

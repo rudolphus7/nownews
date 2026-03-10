@@ -73,7 +73,7 @@ module.exports = async (req, res) => {
     }
 
     const categoryName = category.name;
-    const canonicalUrl = `${SITE_URL}/category/${slug}/`;
+    const canonicalUrl = `${SITE_URL}/${slug}/`;
     const title = `${categoryName} | BUKVA NEWS — Новини Івано-Франківська`;
 
     // Unique meta descriptions and SEO text per category slug
@@ -201,11 +201,11 @@ module.exports = async (req, res) => {
 
     // Build SSR nav from DB data
     const navLinksHtml = categories.map(c =>
-        `<a href="/category/${c.slug}/" class="nav-link hover:text-orange-600 transition-colors py-2 border-b-2 border-transparent font-black tracking-tight text-sm${c.slug === slug ? ' text-orange-600 border-orange-600' : ''}" data-category="${c.slug}">${escapeHtml(c.name)}</a>`
+        `<a href="/${c.slug}/" class="nav-link hover:text-orange-600 transition-colors py-2 border-b-2 border-transparent font-black tracking-tight text-sm${c.slug === slug ? ' text-orange-600 border-orange-600' : ''}" data-category="${c.slug}">${escapeHtml(c.name)}</a>`
     ).join('');
 
     const mobileCatHtml = categories.map(c =>
-        `<a href="/category/${c.slug}/" data-category="${c.slug}" class="py-2 active:text-orange-600 font-bold">${escapeHtml(c.name)}</a>`
+        `<a href="/${c.slug}/" data-category="${c.slug}" class="py-2 active:text-orange-600 font-bold">${escapeHtml(c.name)}</a>`
     ).join('');
 
     const cityLinksHtml = cities.map(c =>

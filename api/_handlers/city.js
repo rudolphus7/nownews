@@ -72,7 +72,7 @@ module.exports = async (req, res) => {
     }
 
     const cityName = city.name;
-    const canonicalUrl = `${SITE_URL}/novyny/${citySlug}/`;
+    const canonicalUrl = `${SITE_URL}/${citySlug}/`;
     const title = `Новини ${cityName} — останні події | BUKVA NEWS`;
     const description = `Актуальні новини ${cityName}: місцеві події, факти, оперативна інформація. Слідкуйте за головними новинами першими на BUKVA NEWS.`;
     const siteName = 'BUKVA NEWS';
@@ -160,11 +160,11 @@ module.exports = async (req, res) => {
 
     // Build SSR nav from DB data
     const navLinksHtml = categories.map(c =>
-        `<a href="/category/${c.slug}/" class="nav-link hover:text-orange-600 transition-colors py-2 border-b-2 border-transparent font-black tracking-tight text-sm" data-category="${c.slug}">${escapeHtml(c.name)}</a>`
+        `<a href="/${c.slug}/" class="nav-link hover:text-orange-600 transition-colors py-2 border-b-2 border-transparent font-black tracking-tight text-sm" data-category="${c.slug}">${escapeHtml(c.name)}</a>`
     ).join('');
 
     const mobileCatHtml = categories.map(c =>
-        `<a href="/category/${c.slug}/" data-category="${c.slug}" class="py-2 active:text-orange-600 font-bold">${escapeHtml(c.name)}</a>`
+        `<a href="/${c.slug}/" data-category="${c.slug}" class="py-2 active:text-orange-600 font-bold">${escapeHtml(c.name)}</a>`
     ).join('');
 
     const cityLinksHtml = cities.map(c =>
