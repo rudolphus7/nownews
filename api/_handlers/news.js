@@ -209,6 +209,17 @@ module.exports = async (req, res) => {
             return res.status(404).send(notFoundHtml);
         }
 
+        const CAT_SLUG_MAP = {
+            politics: 'polityka', war: 'viyna', economy: 'ekonomika',
+            sport: 'sport', kultura: 'kultura', tech: 'tekhnolohii',
+            frankivsk: 'frankivsk', oblast: 'oblast'
+        };
+
+        const CITY_MAP = {};
+        cities.forEach(c => {
+            CITY_MAP[c.slug] = c.name;
+        });
+
         const getNewsLink = (post) => {
             const slug = post.slug || '';
             if (post.city && CITY_MAP[post.city]) {
@@ -228,21 +239,6 @@ module.exports = async (req, res) => {
             CAT_MAP[c.slug] = c.name;
             CAT_EN_TO_UK_SLUG[c.slug] = c.slug;
         });
-
-        const CITY_MAP = {};
-        cities.forEach(c => {
-            CITY_MAP[c.slug] = c.name;
-        });
-
-        // Canonical URL logic — Google News SEO cluster structure
-        // City articles:    /novyny/:city/:slug/
-        // Category articles: /:category/:slug/
-        // General articles:  /novyny/:slug/
-        const CAT_SLUG_MAP = {
-            polityka: 'polityka', viyna: 'viyna', ekonomika: 'ekonomika',
-            sport: 'sport', kultura: 'kultura', tekhnolohii: 'tekhnolohii',
-            frankivsk: 'frankivsk', oblast: 'oblast'
-        };
         let preferredPath = '';
         if (news.city && CITY_MAP[news.city]) {
             preferredPath = `/novyny/${news.city}/${news.slug}/`;

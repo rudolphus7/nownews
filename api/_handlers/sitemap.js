@@ -132,9 +132,15 @@ ${articles.filter(a => a.slug).map(a => {
             if (a.updated_at) lastmod = new Date(a.updated_at).toISOString().split('T')[0];
             else if (a.created_at) lastmod = new Date(a.created_at).toISOString().split('T')[0];
         } catch (e) { }
-        let path = `/${a.slug}/`;
-        if (a.city) path = `/novyny/${a.city}/${a.slug}/`;
-        else if (a.category && CAT_MAP[a.category]) path = `/${CAT_MAP[a.category]}/${a.slug}/`;
+        let path;
+        if (a.city) {
+            path = `/novyny/${a.city}/${a.slug}/`;
+        } else if (a.category) {
+            const categorySlug = CAT_MAP[a.category] || a.category;
+            path = `/${categorySlug}/${a.slug}/`;
+        } else {
+            path = `/novyny/${a.slug}/`; // Fallback if no city or category
+        }
 
         return `  <url>
     <loc>${escapeXml(`${SITE_URL}${path}`)}</loc>
@@ -171,9 +177,15 @@ async function serveNews(res, headers) {
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">
 ${validArticles.map(a => {
-        let path = `/${a.slug}/`;
-        if (a.city) path = `/novyny/${a.city}/${a.slug}/`;
-        else if (a.category && CAT_MAP[a.category]) path = `/${CAT_MAP[a.category]}/${a.slug}/`;
+        let path;
+        if (a.city) {
+            path = `/novyny/${a.city}/${a.slug}/`;
+        } else if (a.category) {
+            const cat = CAT_MAP[a.category] || a.category;
+            path = `/${cat}/${a.slug}/`;
+        } else {
+            path = `/novyny/${a.slug}/`;
+        }
 
         return `  <url>
     <loc>${escapeXml(`${SITE_URL}${path}`)}</loc>

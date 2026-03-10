@@ -242,12 +242,19 @@ class SiteHeader {
             this.catUkToEn = {};
             this.catEnToUk = {};
 
+            const CAT_NAME_MAP = {
+                'war': 'viyna', 'politics': 'polityka', 'economy': 'ekonomika',
+                'sport': 'sport', 'culture': 'kultura', 'tech': 'tekhnolohii',
+                'frankivsk': 'frankivsk', 'oblast': 'oblast'
+            };
+
             categoriesData.forEach(c => {
-                this.categories[c.slug] = c.name;
-                this.catUkToEn[c.slug] = c.slug;
-                this.catEnToUk[c.slug] = c.slug;
-                CATEGORIES_UK[c.slug] = c.name;
-                CATEGORY_EN_TO_UK_SLUG[c.slug] = c.slug;
+                const ukSlug = CAT_NAME_MAP[c.slug] || c.slug;
+                this.categories[ukSlug] = c.name;
+                this.catUkToEn[ukSlug] = c.slug;
+                this.catEnToUk[c.slug] = ukSlug;
+                CATEGORIES_UK[ukSlug] = c.name;
+                CATEGORY_EN_TO_UK_SLUG[c.slug] = ukSlug;
             });
             this.renderNav(categoriesData);
         }
