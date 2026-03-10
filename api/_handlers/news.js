@@ -209,6 +209,17 @@ module.exports = async (req, res) => {
             return res.status(404).send(notFoundHtml);
         }
 
+        const getNewsLink = (post) => {
+            const slug = post.slug || '';
+            if (post.city && CITY_MAP[post.city]) {
+                return `/novyny/${post.city}/${slug}/`;
+            }
+            if (post.category && CAT_SLUG_MAP[post.category]) {
+                return `/${CAT_SLUG_MAP[post.category]}/${slug}/`;
+            }
+            return `/novyny/${slug}/`;
+        };
+
         const news = articleData;
 
         const CAT_MAP = {};
@@ -397,7 +408,7 @@ module.exports = async (req, res) => {
         let tickerHtml = 'BUKVA NEWS • ПЕРЕВІРЕНІ ФАКТИ • АКТУАЛЬНІ ПОДІЇ • ОПЕРАТИВНО ТА ЧЕСНО •';
         if (tickerNews && tickerNews.length > 0) {
             tickerHtml = tickerNews.map(tn => {
-                const link = this.getNewsLink(tn); // Note: 'this' might not be available here, let's use a local helper
+                const link = getNewsLink(tn);
                 return `<a href="${link}" class="mx-4 hover:text-orange-500 transition-colors">${tn.title}</a>`;
             }).join(' <span class="text-orange-600 font-bold mx-2">/</span> ');
         }

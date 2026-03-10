@@ -48,9 +48,8 @@ class SiteHeader {
                 cityFromPath = window.__SSR_CITY__;
             }
 
-            let categoryFromPath = null;
-            if (pathParts[0] === 'category' && pathParts[1]) {
-                categoryFromPath = this.catUkToEn[pathParts[1]] || pathParts[1];
+            if (this.catUkToEn[pathParts[0]]) {
+                categoryFromPath = this.catUkToEn[pathParts[0]];
             }
 
             // Check SSR-injected category (from api/category.js)
@@ -369,9 +368,33 @@ class SiteHeader {
                 const isCityPath = !!citySlug;
 
                 if (isCityPath && isCurrentIndexPath) {
-                    // City navigation via path — let Vercel handle SSR rewrite
+                    e.preventDefault();
+                    this.currentFilters = {
+                        category: null,
+                        city: citySlug
+                    };
+                    window.history.pushState(this.currentFilters, '', link.href);
+                    this.updateActiveHighlights();
+                    window.dispatchEvent(new CustomEvent('news-filter-changed', { detail: this.currentFilters }));
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                     return;
-                } else if (isIndexPath && isCurrentIndexPath) {
+                }
+                const pathParts = url.pathname.split('/').filter(Boolean); // Get non-empty parts
+                const isCatPath = !!(pathParts[0] && this.catUkToEn[pathParts[0]]);
+                if (isCatPath && isCurrentIndexPath) {
+                    e.preventDefault();
+                    const catSlug = this.catUkToEn[pathParts[0]];
+                    this.currentFilters = {
+                        category: catSlug,
+                        city: null
+                    };
+                    window.history.pushState(this.currentFilters, '', link.href);
+                    this.updateActiveHighlights();
+                    window.dispatchEvent(new CustomEvent('news-filter-changed', { detail: this.currentFilters }));
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    return;
+                }
+                else if (isIndexPath && isCurrentIndexPath) {
                     e.preventDefault();
                     const params = new URLSearchParams(url.search);
                     this.currentFilters = {
