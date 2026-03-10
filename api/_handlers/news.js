@@ -219,14 +219,22 @@ module.exports = async (req, res) => {
             CITY_MAP[c.slug] = c.name;
         });
 
-        // Canonical URL logic — preference order: city > category > fallback
+        // Canonical URL logic — Google News SEO cluster structure
+        // City articles:    /novyny/:city/:slug/
+        // Category articles: /:category/:slug/
+        // General articles:  /novyny/:slug/
+        const CAT_SLUG_MAP = {
+            polityka: 'polityka', viyna: 'viyna', ekonomika: 'ekonomika',
+            sport: 'sport', kultura: 'kultura', tekhnolohii: 'tekhnolohii',
+            frankivsk: 'frankivsk', oblast: 'oblast'
+        };
         let preferredPath = '';
         if (news.city && CITY_MAP[news.city]) {
-            preferredPath = `/${news.city}/${news.slug}/`;
-        } else if (news.category && CAT_EN_TO_UK_SLUG[news.category]) {
-            preferredPath = `/category/${CAT_EN_TO_UK_SLUG[news.category]}/${news.slug}/`;
+            preferredPath = `/novyny/${news.city}/${news.slug}/`;
+        } else if (news.category && CAT_SLUG_MAP[news.category]) {
+            preferredPath = `/${CAT_SLUG_MAP[news.category]}/${news.slug}/`;
         } else {
-            preferredPath = `/news/${news.slug}/`;
+            preferredPath = `/novyny/${news.slug}/`;
         }
 
         const canonicalUrl = `${SITE_URL}${preferredPath}`;
@@ -343,7 +351,7 @@ module.exports = async (req, res) => {
                 "@type": "ListItem",
                 "position": 2,
                 "name": "${escapeJson(CITY_MAP[news.city] || news.city)}",
-                "item": "${SITE_URL}/${escapeJson(news.city)}/"
+                "item": "${SITE_URL}/novyny/${escapeJson(news.city)}/"
             },
             {
                 "@type": "ListItem",
@@ -384,7 +392,7 @@ module.exports = async (req, res) => {
         // SSR Header Injection
         let tickerHtml = 'BUKVA NEWS • ПЕРЕВІРЕНІ ФАКТИ • АКТУАЛЬНІ ПОДІЇ • ОПЕРАТИВНО ТА ЧЕСНО •';
         if (tickerNews && tickerNews.length > 0) {
-            tickerHtml = tickerNews.map(tn => `<a href="/news/${tn.slug}/" class="mx-4 hover:text-orange-500 transition-colors">${tn.title}</a>`).join(' <span class="text-orange-600 font-bold mx-2">/</span> ');
+            tickerHtml = tickerNews.map(tn => `<a href="/novyny/${tn.slug}/" class="mx-4 hover:text-orange-500 transition-colors">${tn.title}</a>`).join(' <span class="text-orange-600 font-bold mx-2">/</span> ');
         }
 
         // Build SSR nav from DB data
@@ -393,7 +401,7 @@ module.exports = async (req, res) => {
         ).join('');
 
         const cityLinksHtml = cities.map(c =>
-            `<a href="/${c.slug}/" class="city-link hover:text-orange-600 transition-colors py-1${c.slug === news.city ? ' text-orange-600 font-black text-slate-900' : ''}" data-city="${c.slug}">${escapeHtml(c.name)}</a>`
+            `<a href="/novyny/${c.slug}/" class="city-link hover:text-orange-600 transition-colors py-1${c.slug === news.city ? ' text-orange-600 font-black text-slate-900' : ''}" data-city="${c.slug}">${escapeHtml(c.name)}</a>`
         ).join('');
 
         const headerHtml = `
@@ -482,7 +490,7 @@ module.exports = async (req, res) => {
                         <div>
                             <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6 border-b border-slate-100 pb-2">МІСТА</h3>
                             <div id="mobile-city-list" class="grid grid-cols-2 gap-3 text-sm font-bold text-slate-600">
-                                ${cities.map(c => `<a href="/${c.slug}/" data-city="${c.slug}" class="bg-slate-50 p-4 rounded-2xl flex items-center justify-center text-center hover:bg-orange-50 hover:text-orange-600 transition h-full font-black text-xs uppercase leading-tight">${escapeHtml(c.name)}</a>`).join('')}
+                                ${cities.map(c => `<a href="/novyny/${c.slug}/" data-city="${c.slug}" class="bg-slate-50 p-4 rounded-2xl flex items-center justify-center text-center hover:bg-orange-50 hover:text-orange-600 transition h-full font-black text-xs uppercase leading-tight">${escapeHtml(c.name)}</a>`).join('')}
                             </div>
                         </div>
                     </div>

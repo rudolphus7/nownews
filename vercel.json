@@ -3,6 +3,21 @@
     "trailingSlash": true,
     "redirects": [
         {
+            "source": "/news/:slug/",
+            "destination": "/novyny/:slug/",
+            "permanent": true
+        },
+        {
+            "source": "/category/:cat/:slug/",
+            "destination": "/:cat/:slug/",
+            "permanent": true
+        },
+        {
+            "source": "/:city(kalush|if|kolomyya|dolyna|bolekhiv|nadvirna|burshtyn|kosiv|yaremche)/:slug/",
+            "destination": "/novyny/:city/:slug/",
+            "permanent": true
+        },
+        {
             "source": "/api/:path*",
             "destination": "/api/:path*",
             "permanent": false
@@ -136,6 +151,46 @@
         {
             "source": "/images/:path*",
             "destination": "https://kgrxlznhimwuvwhjfzhv.supabase.co/storage/v1/object/public/news/:path*"
+        },
+        {
+            "source": "/novyny/:city/:slug/",
+            "destination": "/api/index?__target=news&slug=:slug"
+        },
+        {
+            "source": "/novyny/:slug/",
+            "destination": "/api/index?__target=news&slug=:slug"
+        },
+        {
+            "source": "/polityka/:slug/",
+            "destination": "/api/index?__target=news&slug=:slug"
+        },
+        {
+            "source": "/viyna/:slug/",
+            "destination": "/api/index?__target=news&slug=:slug"
+        },
+        {
+            "source": "/ekonomika/:slug/",
+            "destination": "/api/index?__target=news&slug=:slug"
+        },
+        {
+            "source": "/sport/:slug/",
+            "destination": "/api/index?__target=news&slug=:slug"
+        },
+        {
+            "source": "/kultura/:slug/",
+            "destination": "/api/index?__target=news&slug=:slug"
+        },
+        {
+            "source": "/tekhnolohii/:slug/",
+            "destination": "/api/index?__target=news&slug=:slug"
+        },
+        {
+            "source": "/frankivsk/:slug/",
+            "destination": "/api/index?__target=news&slug=:slug"
+        },
+        {
+            "source": "/oblast/:slug/",
+            "destination": "/api/index?__target=news&slug=:slug"
         },
         {
             "source": "/api/:handler/",
