@@ -310,14 +310,9 @@ if (newsForm) {
             image_url: imageUrlInput.value,
             tags: currentTags,
             allowed_reactions: allowedReactions,
-            link: newsForm.dataset.rssLink || "", // Preserve original RSS link
+            link: newsForm.dataset.rssLink || "",
             is_published: true,
-            author_name: (() => {
-                const active = document.querySelector('#journalist-selector .journalist-card.active');
-                const j = active ? active.dataset.journalist : 'olena';
-                const names = { olena: 'Олена Волощук', taras: 'Тарас Гаврилюк', alina: 'Аліна Пруненко' };
-                return names[j] || 'Олена Волощук';
-            })()
+            author_name: 'Редакція BUKVA NEWS'
         };
 
         try {
@@ -997,14 +992,13 @@ async function rewriteWithAI() {
         try {
             const localKey = localStorage.getItem('gemini_api_key') || "";
 
-            // Get selected journalist
-            const activeCard = document.querySelector('#journalist-selector .journalist-card.active');
-            const selectedJournalist = activeCard ? activeCard.dataset.journalist : 'olena';
+            // Read optional note for fine-tuning
+            const note = document.getElementById('journalist-note')?.value?.trim() || '';
 
             const response = await fetch('/api/ai', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title: currentTitle, content: currentHtml, apiKey: localKey, journalist: selectedJournalist })
+                body: JSON.stringify({ title: currentTitle, content: currentHtml, apiKey: localKey, note })
             });
 
             const data = await response.json().catch(() => ({}));
@@ -1111,15 +1105,6 @@ async function rewriteWithAI() {
     }
 }
 window.rewriteWithAI = rewriteWithAI;
-
-// --- JOURNALIST SELECTOR ---
-window.selectJournalist = (clickedBtn) => {
-    document.querySelectorAll('#journalist-selector .journalist-card').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    clickedBtn.classList.add('active');
-};
-
 
 // --- AI CONFIG MANAGEMENT ---
 window.saveAIConfig = () => {
