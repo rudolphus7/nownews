@@ -326,16 +326,15 @@ if (newsForm) {
             if (result.error) throw result.error;
 
             // --- GOOGLE INDEXING PING ---
-            try {
                 const targetSlug = slugInput.value;
                 const targetCity = document.getElementById('city').value;
                 const targetCategory = document.getElementById('category').value;
                 let canonicalUrl = `https://bukva.news/${targetSlug}/`; // Default fallback
 
                 if (targetCity) {
-                    canonicalUrl = `https://bukva.news/novyny/${targetCity}/${targetSlug}/`;
-                } else if (targetCategory && SEOEngine.CAT_MAP[targetCategory]) {
-                    canonicalUrl = `https://bukva.news/${SEOEngine.CAT_MAP[targetCategory]}/${targetSlug}/`;
+                    canonicalUrl = `https://bukva.news/${targetCity}/${targetSlug}/`;
+                } else if (targetCategory) {
+                    canonicalUrl = `https://bukva.news/${targetCategory}/${targetSlug}/`;
                 }
 
                 console.log('🚀 Pinging Google Indexing for:', canonicalUrl);
@@ -569,12 +568,12 @@ window.loadNews = async () => {
 
 function autoTagArticle(content, title) {
     const text = (title + ' ' + content).toLowerCase();
-    if (text.includes('зсу') || text.includes('фронт') || text.includes('обстріл') || text.includes('війна')) return 'war';
-    if (text.includes('депутат') || text.includes('мер ') || text.includes('рада') || text.includes('вибори')) return 'politics';
-    if (text.includes('курс') || text.includes('банк') || text.includes('бюджет') || text.includes('ціни')) return 'economy';
+    if (text.includes('зсу') || text.includes('фронт') || text.includes('обстріл') || text.includes('війна')) return 'viyna';
+    if (text.includes('депутат') || text.includes('мер ') || text.includes('рада') || text.includes('вибори')) return 'polityka';
+    if (text.includes('курс') || text.includes('банк') || text.includes('бюджет') || text.includes('ціни')) return 'ekonomika';
     if (text.includes('матч') || text.includes('футбол') || text.includes('спорт') || text.includes('команда')) return 'sport';
-    if (text.includes('виставка') || text.includes('фільм') || text.includes('театр') || text.includes('музей')) return 'culture';
-    if (text.includes('штучний') || text.includes('смартфон') || text.includes('it') || text.includes('додаток')) return 'tech';
+    if (text.includes('виставка') || text.includes('фільм') || text.includes('театр') || text.includes('музей')) return 'kultura';
+    if (text.includes('штучний') || text.includes('смартфон') || text.includes('it') || text.includes('додаток')) return 'tekhnolohii';
     return 'frankivsk'; // Default
 }
 
@@ -1708,7 +1707,7 @@ window.insertReadAlso = (slug, city, title) => {
     if (!quill) return;
 
     const url = city && city !== 'null' && city !== 'undefined' && city !== ''
-        ? `https://bukva.news/novyny/${city}/${slug}/`
+        ? `https://bukva.news/${city}/${slug}/`
         : `https://bukva.news/novyny/${slug}/`;
 
     const htmlSnippet = `
@@ -1742,7 +1741,7 @@ window.insertSelectedReadAlso = () => {
         const city = cb.dataset.city;
         const title = cb.dataset.title;
         const url = city && city !== 'null' && city !== 'undefined' && city !== ''
-            ? `https://bukva.news/novyny/${city}/${slug}/`
+            ? `https://bukva.news/${city}/${slug}/`
             : `https://bukva.news/novyny/${slug}/`;
         listItems += `<li><a href="${url}" target="_blank" rel="noopener noreferrer">${title}</a></li>`;
     });

@@ -199,18 +199,14 @@ module.exports = async (req, res) => {
         window.__SSR_CITIES__ = ${JSON.stringify(cities)};
     </script>`;
 
-    const CAT_MAP = { 'war': 'viyna', 'politics': 'polityka', 'economy': 'ekonomika', 'sport': 'sport', 'culture': 'kultura', 'tech': 'tekhnolohii', 'frankivsk': 'frankivsk', 'oblast': 'oblast' };
-
     // Build SSR nav from DB data
-    const navLinksHtml = categories.map(c => {
-        const ukSlug = CAT_MAP[c.slug] || c.slug;
-        return `<a href="/${ukSlug}/" class="nav-link hover:text-orange-600 transition-colors py-2 border-b-2 border-transparent font-black tracking-tight text-sm${c.slug === slug ? ' text-orange-600 border-orange-600' : ''}" data-category="${c.slug}">${escapeHtml(c.name)}</a>`;
-    }).join('');
+    const navLinksHtml = categories.map(c => 
+        `<a href="/${c.slug}/" class="nav-link hover:text-orange-600 transition-colors py-2 border-b-2 border-transparent font-black tracking-tight text-sm${c.slug === slug ? ' text-orange-600 border-orange-600' : ''}" data-category="${c.slug}">${escapeHtml(c.name)}</a>`
+    ).join('');
 
-    const mobileCatHtml = categories.map(c => {
-        const ukSlug = CAT_MAP[c.slug] || c.slug;
-        return `<a href="/${ukSlug}/" data-category="${c.slug}" class="py-2 active:text-orange-600 font-bold">${escapeHtml(c.name)}</a>`;
-    }).join('');
+    const mobileCatHtml = categories.map(c => 
+        `<a href="/${c.slug}/" data-category="${c.slug}" class="py-2 active:text-orange-600 font-bold">${escapeHtml(c.name)}</a>`
+    ).join('');
 
     const cityLinksHtml = cities.map(c =>
         `<a href="/${c.slug}/" class="city-link hover:text-orange-600 transition-colors py-1" data-city="${c.slug}">${c.name}</a>`

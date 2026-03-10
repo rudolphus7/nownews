@@ -209,12 +209,6 @@ module.exports = async (req, res) => {
             return res.status(404).send(notFoundHtml);
         }
 
-        const CAT_SLUG_MAP = {
-            politics: 'polityka', war: 'viyna', economy: 'ekonomika',
-            sport: 'sport', kultura: 'kultura', tech: 'tekhnolohii',
-            frankivsk: 'frankivsk', oblast: 'oblast'
-        };
-
         const CITY_MAP = {};
         cities.forEach(c => {
             CITY_MAP[c.slug] = c.name;
@@ -225,8 +219,8 @@ module.exports = async (req, res) => {
             if (post.city && CITY_MAP[post.city]) {
                 return `/novyny/${post.city}/${slug}/`;
             }
-            if (post.category && CAT_SLUG_MAP[post.category]) {
-                return `/${CAT_SLUG_MAP[post.category]}/${slug}/`;
+            if (post.category) {
+                return `/${post.category}/${slug}/`;
             }
             return `/novyny/${slug}/`;
         };
@@ -234,16 +228,14 @@ module.exports = async (req, res) => {
         const news = articleData;
 
         const CAT_MAP = {};
-        const CAT_EN_TO_UK_SLUG = {};
         categories.forEach(c => {
             CAT_MAP[c.slug] = c.name;
-            CAT_EN_TO_UK_SLUG[c.slug] = c.slug;
         });
         let preferredPath = '';
         if (news.city && CITY_MAP[news.city]) {
             preferredPath = `/novyny/${news.city}/${news.slug}/`;
-        } else if (news.category && CAT_SLUG_MAP[news.category]) {
-            preferredPath = `/${CAT_SLUG_MAP[news.category]}/${news.slug}/`;
+        } else if (news.category) {
+            preferredPath = `/${news.category}/${news.slug}/`;
         } else {
             preferredPath = `/novyny/${news.slug}/`;
         }

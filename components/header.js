@@ -39,23 +39,14 @@ class SiteHeader {
         try {
             const params = new URLSearchParams(window.location.search);
             const pathParts = window.location.pathname.replace(/^\/|\/$/g, '').split('/');
+            const firstSegment = pathParts[0];
 
-            // Check if first path segment is a known city slug
-            let cityFromPath = pathParts[0] && this.cities[pathParts[0]] ? pathParts[0] : null;
+            let cityFromPath = firstSegment && (this.cities[firstSegment] || window.CITIES_UK?.[firstSegment]) ? firstSegment : null;
+            let categoryFromPath = firstSegment && (this.categories[firstSegment] || window.CATEGORIES_UK?.[firstSegment]) ? firstSegment : null;
 
-            // Check SSR-injected city (from api/city.js)
-            if (!cityFromPath && window.__SSR_CITY__) {
-                cityFromPath = window.__SSR_CITY__;
-            }
-
-            if (this.catUkToEn[pathParts[0]]) {
-                categoryFromPath = this.catUkToEn[pathParts[0]];
-            }
-
-            // Check SSR-injected category (from api/category.js)
-            if (!categoryFromPath && window.__SSR_CATEGORY_SLUG__) {
-                categoryFromPath = window.__SSR_CATEGORY_SLUG__;
-            }
+            // SSR Overrides
+            if (!cityFromPath && window.__SSR_CITY__) cityFromPath = window.__SSR_CITY__;
+            if (!categoryFromPath && window.__SSR_CATEGORY_SLUG__) categoryFromPath = window.__SSR_CATEGORY_SLUG__;
 
             return {
                 category: categoryFromPath || params.get('category'),
