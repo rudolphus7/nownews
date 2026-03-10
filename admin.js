@@ -309,6 +309,30 @@ if (newsForm) {
 
             if (result.error) throw result.error;
 
+            // --- GOOGLE INDEXING PING ---
+            try {
+                const targetSlug = slugInput.value;
+                const targetCity = document.getElementById('city').value;
+                let canonicalUrl = `https://bukva.news/news/${targetSlug}/`; // Default fallback
+
+                if (targetCity) {
+                    canonicalUrl = `https://bukva.news/${targetCity}/${targetSlug}/`;
+                } else {
+                    canonicalUrl = `https://bukva.news/${targetSlug}/`;
+                }
+
+                console.log('🚀 Pinging Google Indexing for:', canonicalUrl);
+                fetch('/api/index-ping', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: canonicalUrl, type: currentEditingId ? 'URL_UPDATED' : 'URL_UPDATED' })
+                }).catch(e => console.error('Indexing ping background error:', e));
+
+            } catch (idxErr) {
+                console.error('Failed to trigger indexing ping:', idxErr);
+            }
+            // ----------------------------
+
             alert(currentEditingId ? "✅ Зміни збережено!" : "🚀 Новину опубліковано!");
 
             // AUTO-DISMISS RSS IF NEEDED
