@@ -137,7 +137,7 @@ const JOURNALIST_PROMPT = `Ти — редактор новинного відд
 1. Перший рядок — тільки заголовок (без #, *, лапок, тире).
 2. HTML-тіло: абзаци у <p>, підзаголовки у <h2>, акценти у <strong>.
 3. Нічого від себе — тільки заголовок і стаття.
-4. ВАЖЛИВО: весь текст статті (без заголовка) — не більше 1900 символів.
+4. ВАЖЛИВО: весь текст статті (без заголовка) — не більше 3500 символів. Пиши повністю — не обривай речення та абзаци на півслові.
 `;
 
 module.exports = async (req, res) => {
@@ -265,14 +265,21 @@ ${note.trim()}
 ${cleanText}`;
 
     try {
-        const { ok, data } = await tryGemini(prompt, 4096, 1.0, apiKey);
+        const { ok, data } = await tryGemini(prompt, 6000, 1.0, apiKey);
 
         if (!ok || !data.candidates) {
             const errMsg = data?.error?.message || 'Всі моделі ШІ недоступні.';
             return res.status(500).json({ error: errMsg });
         }
 
-        const aiText = data.candidates[0].content.parts[0].text;
+        const candidate = data.candidates[0];
+        const finishReason = candidate.finishReason || 'UNKNOWN';
+        if (finishReason === 'MAX_TOKENS') {
+            console.warn('⚠️ AI article truncated by MAX_TOKENS! Consider increasing maxOutputTokens.');
+        } else {
+            console.log(`✅ AI finish reason: ${finishReason}`);
+        }
+        const aiText = candidate.content.parts[0].text;
         const lines = aiText.split('\n').filter(l => l.trim().length > 0);
 
         let rewrittenTitle = title;
