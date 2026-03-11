@@ -841,6 +841,12 @@
         }
 
         function fillUI(data) {
+            const reader = document.getElementById('news-reader');
+            if (reader) {
+                if (data.tts_audio_url) reader.classList.remove('hidden');
+                else reader.classList.add('hidden');
+            }
+
             document.getElementById('news-title').innerText = data.title;
             document.getElementById('breadcrumb-category').innerText = CATEGORIES_UK[data.category] || data.category;
             document.getElementById('news-date').innerText = new Date(data.created_at).toLocaleDateString('uk-UA', { day: 'numeric', month: 'long', year: 'numeric' });
