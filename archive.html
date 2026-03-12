@@ -138,7 +138,7 @@
                     try {
                         const { data, error } = await db
                             .from('news')
-                            .select('title, slug, city, created_at')
+                            .select('title, slug, city, created_at, is_ads')
                             .eq('is_published', true)
                             .ilike('title', `%${query}%`)
                             .order('created_at', { ascending: false })
@@ -152,7 +152,8 @@
                                 const url = item.city ? `/novyny/${item.city}/${item.slug}/` : `/novyny/${item.slug}/`;
                                 return `
                                     <div class="search-hit">
-                                        <a href="${url}">
+                                        <a href="${url}" class="${item.is_ads ? 'is-ads-post !p-4' : ''}">
+                                            ${item.is_ads ? '<div class="ads-badge mb-2">🔥 РЕКЛАМА</div>' : ''}
                                             <div class="search-hit-title">${item.title}</div>
                                             <div class="search-hit-date">${date}</div>
                                         </a>

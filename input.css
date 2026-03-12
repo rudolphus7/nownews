@@ -53,48 +53,47 @@
     .lg\:gap-16 { gap: 4rem !important; }
 }
 
-/* PROMOTED POSTS (ADs) STYLING */
+/* PROMOTED POSTS (ADs) STYLING - PREMIUM STATIC DESIGN */
 .is-ads-post {
     position: relative;
     border: 2px solid transparent !important;
-    background: linear-gradient(white, white) padding-box, 
-                linear-gradient(to right, #ea580c, #f97316) border-box !important;
-    box-shadow: 0 10px 30px -10px rgba(234, 88, 12, 0.2) !important;
+    /* Static Gradient Border */
+    background: linear-gradient(#fffbf7, #fffbf7) padding-box, 
+                linear-gradient(135deg, #ea580c 0%, #f97316 50%, #9a3412 100%) border-box !important;
+    /* Signature Elevation Shadow */
+    box-shadow: 0 25px 50px -12px rgba(234, 88, 12, 0.15) !important;
+    background-color: #fffbf7 !important; /* Premium Warm Tint */
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 .is-ads-post:hover {
-    box-shadow: 0 20px 40px -12px rgba(234, 88, 12, 0.3) !important;
-    transform: translateY(-4px);
+    box-shadow: 0 35px 60px -15px rgba(234, 88, 12, 0.25) !important;
+    transform: translateY(-6px) scale(1.01);
 }
 
 .ads-badge {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    background: #ea580c;
+    background: rgba(234, 88, 12, 0.9);
+    backdrop-filter: blur(8px); /* Glassmorphism effect */
     color: white;
-    padding: 0.35rem 0.75rem;
-    border-radius: 9999px;
+    padding: 0.4rem 0.8rem;
+    border-radius: 12px;
     font-size: 10px;
     font-weight: 900;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 20px -4px rgba(234, 88, 12, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
-.ads-glow {
-    position: absolute;
-    inset: -1px;
-    background: linear-gradient(45deg, #ea580c, #f97316, #ea580c);
-    filter: blur(8px);
-    opacity: 0.15;
-    z-index: -1;
-    border-radius: inherit;
-    animation: ads-shimmer 3s ease-in-out infinite alternate;
+/* Premium Side-Label for Article View */
+.ads-article-badge {
+    border-left: 4px solid #ea580c;
+    background: linear-gradient(to right, rgba(234, 88, 12, 0.05), transparent);
+    padding: 1.5rem;
+    border-radius: 0 1.5rem 1.5rem 0;
+    margin-bottom: 2rem;
 }
 
-@keyframes ads-shimmer {
-    0% { opacity: 0.1; }
-    100% { opacity: 0.25; }
-}

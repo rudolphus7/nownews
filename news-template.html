@@ -852,12 +852,8 @@
                                 try {
                                     await _supabase.rpc('increment_views', { post_id: data.id });
                                     localStorage.setItem(viewedKey, 'true');
-                                    console.log('Analytics: View incremented (Fetch) for', data.id);
-
-                                    const { data: updatedPost } = await _supabase.from('news').select('views').eq('id', data.id).single();
-                                    if (updatedPost && document.getElementById('view-count')) {
-                                        document.getElementById('view-count').innerText = updatedPost.views || 0;
-                                    }
+                                    console.log('Analytics: View incremented for', data.id);
+                                    // Removed secondary fetch as real-time subscription handles UI update
                                 } catch (e) {
                                     console.error('Analytics: View increment error', e);
                                 }
@@ -945,7 +941,7 @@
             // Meta Badges
             let metaHtml = '';
             if (data.is_ads) {
-                metaHtml += `<div class="ads-badge mb-4 md:mb-6 animate-bounce">🔥 РЕКЛАМНИЙ ПОСТ</div><div class="block w-full h-0"></div>`;
+                metaHtml += `<div class="ads-article-badge mb-6"><span class="ads-badge">🔥 РЕКЛАМНИЙ ПОСТ</span></div>`;
             }
             if (data.city) metaHtml += `<div class="inline-flex items-center gap-2 bg-orange-50 text-orange-600 px-4 py-2 rounded-2xl text-[11px] font-black uppercase tracking-widest border border-orange-100 shadow-sm leading-none">${CITIES_UK[data.city] || data.city}</div>`;
             metaHtml += `<div class="inline-flex items-center bg-indigo-50 text-indigo-600 px-4 py-2 rounded-2xl text-[11px] font-black uppercase tracking-widest border border-indigo-100 shadow-sm leading-none">${CATEGORIES_UK[data.category] || data.category}</div>`;
@@ -1061,6 +1057,11 @@
                                 elem.innerText = data[dbField] || 0;
                             }
                         });
+                        // Also update views in real-time
+                        const viewElem = document.getElementById('view-count');
+                        if (viewElem && data.views !== undefined) {
+                            viewElem.innerText = data.views || 0;
+                        }
                     }
                 })
                 .subscribe();
