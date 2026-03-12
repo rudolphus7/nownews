@@ -821,6 +821,7 @@
 
                         <div class="relative w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-slate-100">
                             <img src="${optimizeImage(post.image_url, 200, 70)}" loading="lazy" decoding="async" class="w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-transform duration-500 group-hover:scale-110" alt="${post.title}">
+                            ${post.is_ads ? '<div class="absolute bottom-0 left-0 right-0 bg-orange-600 text-[7px] text-white font-black text-center py-0.5 uppercase">РЕКЛАМА</div>' : ''}
                         </div>
                         <div class="flex-1 min-w-0">
                              <div class="flex items-center gap-2 mb-1">
@@ -839,7 +840,7 @@
 
                 // Detailed Style (Grid Format)
                 return `
-                <a href="${link}" class="news-list-item group flex flex-col h-full border border-transparent hover:border-slate-100 p-3 sm:p-4 -mx-2 sm:-mx-4 md:m-0 rounded-[1.5rem] sm:rounded-[2.5rem] bg-transparent md:bg-white hover:bg-white md:shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] hover:shadow-2xl hover:shadow-orange-100 transition-all duration-500 animate-in fade-in slide-in-from-bottom-4 ${post.is_ads ? 'is-ads-post' : ''}" style="animation-delay: ${i * 0.05}s">
+                <a href="${link}" class="news-list-item group flex flex-col h-full border border-transparent hover:border-slate-100 p-3 sm:p-4 -mx-2 sm:-mx-4 md:mx-0 md:my-4 rounded-[2rem] sm:rounded-[3rem] bg-transparent md:bg-white hover:bg-white md:shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] hover:shadow-2xl hover:shadow-orange-100 transition-all duration-500 animate-in fade-in slide-in-from-bottom-4 ${post.is_ads ? 'is-ads-post !p-6' : ''}" style="animation-delay: ${i * 0.05}s">
 
                     <div class="relative w-full aspect-[4/3] rounded-[1.5rem] md:rounded-[2rem] overflow-hidden flex-shrink-0 bg-slate-100 shadow-md mb-5 md:mb-6">
                         <img src="${optimizeImage(post.image_url, 600, 80)}" loading="lazy" decoding="async" class="news-image-scale w-full h-full object-cover transition-all duration-700 grayscale-[0.1] group-hover:grayscale-0 group-hover:scale-105" alt="${post.title}">
