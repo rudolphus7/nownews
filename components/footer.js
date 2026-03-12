@@ -112,7 +112,9 @@ class SiteFooter {
                         <ul class="space-y-3">
                             <li><a href="/about/" class="text-slate-400 hover:text-white text-sm font-medium transition-colors hover:translate-x-1 inline-block duration-200">Про нас</a></li>
                             <li><a href="/team/" class="text-slate-400 hover:text-white text-sm font-medium transition-colors hover:translate-x-1 inline-block duration-200">Команда</a></li>
+                            <li><a href="/editorial-policy.html" class="text-slate-400 hover:text-white text-sm font-medium transition-colors hover:translate-x-1 inline-block duration-200">Редакційна політика</a></li>
                             <li><a href="/advertising/" class="text-slate-400 hover:text-white text-sm font-medium transition-colors hover:translate-x-1 inline-block duration-200">Реклама</a></li>
+                            <li><a href="/contacts.html" class="text-slate-400 hover:text-white text-sm font-medium transition-colors hover:translate-x-1 inline-block duration-200">Контакти</a></li>
                             <li><a href="/archive/" class="text-slate-400 hover:text-white text-sm font-medium transition-colors hover:translate-x-1 inline-block duration-200">Архів новин</a></li>
                         </ul>
                     </div>
@@ -129,8 +131,8 @@ class SiteFooter {
                                 <a href="mailto:bukva.news@gmail.com" class="text-slate-300 hover:text-orange-500 transition-colors font-medium">bukva.news@gmail.com</a>
                             </li>
                             <li>
-                                <span class="block text-[10px] text-slate-600 font-black uppercase tracking-widest mb-1">Матеріали та пресрелізи</span>
-                                <a href="mailto:bukva.news@gmail.com" class="text-slate-300 hover:text-orange-500 transition-colors font-medium">bukva.news@gmail.com</a>
+                                <span class="block text-[10px] text-slate-600 font-black uppercase tracking-widest mb-1">Телефон</span>
+                                <a href="tel:+380953574389" class="text-slate-300 hover:text-orange-500 transition-colors font-medium">+38 095 357 4389</a>
                             </li>
                             <li class="pt-4">
                                 <a href="/live/" class="inline-flex items-center gap-2 bg-red-600/10 border border-red-600/20 hover:bg-red-600 hover:border-red-600 text-red-400 hover:text-white px-4 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300">
