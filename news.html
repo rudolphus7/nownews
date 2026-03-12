@@ -731,14 +731,25 @@
                 }
 
                 const viewedKey = `viewed_${data.id}`;
-                if (!sessionStorage.getItem(viewedKey)) {
+                if (!localStorage.getItem(viewedKey)) {
                     // Bot check before increment
                     if (window.isBot && window.isBot()) {
                         console.log('Analytics: Skipping view increment for bot');
                     } else {
-                        await _supabase.rpc('increment_views', { post_id: data.id });
+                        // Standardized 5-second delay for human presence
+                        setTimeout(async () => {
+                            // Verify user is still on this post and tab is active
+                            if (currentPost && currentPost.id === data.id && document.visibilityState === 'visible') {
+                                try {
+                                    await _supabase.rpc('increment_views', { post_id: data.id });
+                                    localStorage.setItem(viewedKey, 'true');
+                                    console.log('Analytics: View incremented (SSR) for', data.id);
+                                } catch (e) {
+                                    console.error('Analytics: View increment error', e);
+                                }
+                            }
+                        }, 5000);
                     }
-                    sessionStorage.setItem(viewedKey, 'true');
                 }
                 return;
             }
@@ -821,13 +832,29 @@
                 }
 
                 const viewedKey = `viewed_${data.id}`;
-                if (!sessionStorage.getItem(viewedKey)) {
-                    await _supabase.rpc('increment_views', { post_id: data.id });
-                    sessionStorage.setItem(viewedKey, 'true');
+                if (!localStorage.getItem(viewedKey)) {
+                    // Bot check before increment
+                    if (window.isBot && window.isBot()) {
+                        console.log('Analytics: Skipping view increment for bot');
+                    } else {
+                        // Give it 2 seconds of human presence before counting a view
+                        setTimeout(async () => {
+                            // Check if still on the same post and visible
+                            if (currentPost && currentPost.id === data.id && document.visibilityState === 'visible') {
+                                try {
+                                    await _supabase.rpc('increment_views', { post_id: data.id });
+                                    localStorage.setItem(viewedKey, 'true');
+                                    console.log('Analytics: View incremented (Fetch) for', data.id);
 
-                    const { data: updatedPost } = await _supabase.from('news').select('views').eq('id', data.id).single();
-                    if (updatedPost && document.getElementById('view-count')) {
-                        document.getElementById('view-count').innerText = updatedPost.views || 0;
+                                    const { data: updatedPost } = await _supabase.from('news').select('views').eq('id', data.id).single();
+                                    if (updatedPost && document.getElementById('view-count')) {
+                                        document.getElementById('view-count').innerText = updatedPost.views || 0;
+                                    }
+                                } catch (e) {
+                                    console.error('Analytics: View increment error', e);
+                                }
+                            }
+                        }, 2000);
                     }
                 }
             } catch (err) {

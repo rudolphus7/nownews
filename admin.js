@@ -542,7 +542,7 @@ window.loadNews = async () => {
                     ${CATEGORIES_UK[item.category] || item.category}
                 </span>
             </td>
-            <td class="p-4 text-center font-mono text-[11px] font-black text-slate-400">
+            <td class="p-4 text-center font-mono text-[11px] font-black text-slate-400" title="Унікальні перегляди (люди, не боти)">
                 👁️ ${item.views || 0}
             </td>
             <td class="p-4 text-center min-w-[80px]">
@@ -1814,7 +1814,7 @@ window.loadAnalytics = async () => {
     const startDateVal = document.getElementById('analytics-start-date')?.value;
     const endDateVal = document.getElementById('analytics-end-date')?.value;
 
-    ['stat-text-users', 'stat-text-time', 'stat-text-per-session',
+    ['stat-text-users', 'stat-text-time', 'stat-text-per-session', 'stat-text-global-views',
         'stat-voice-users', 'stat-voice-time', 'stat-voice-per-session'].forEach(id => {
             const el = document.getElementById(id); if (el) el.innerText = '...';
         });
@@ -1824,7 +1824,7 @@ window.loadAnalytics = async () => {
     });
 
     try {
-        let query = _supabase.from('analytics_events').select('*');
+        let query = _supabase.from('analytics_events').select('*').limit(5000).order('created_at', { ascending: false });
         let periodLabel = "За ввесь час";
 
         const now = new Date();
@@ -1889,6 +1889,17 @@ window.loadAnalytics = async () => {
         const el_tt = document.getElementById('stat-text-time');
         const el_tp = document.getElementById('stat-text-per-session');
         if (el_tu) el_tu.innerText = textSessions;
+
+        // Global Views Metric
+        try {
+            const { data: gvData } = await _supabase.from('news').select('views');
+            if (gvData) {
+                const totalGv = gvData.reduce((a, c) => a + (c.views || 0), 0);
+                const elGv = document.getElementById('stat-text-global-views');
+                if (elGv) elGv.innerText = totalGv.toLocaleString('uk-UA');
+            }
+        } catch (e) { console.warn("Global views fetch failed", e); }
+
         if (textEvents.length > 0) {
             const totalT = textEvents.reduce((a, c) => a + (c.duration_seconds || 0), 0);
             if (el_tt) el_tt.innerText = Math.round(totalT / textEvents.length) + ' сек.';

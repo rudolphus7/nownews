@@ -741,14 +741,25 @@
 
                 // Інкремент переглядів все одно потрібен
                 const viewedKey = `viewed_${data.id}`;
-                if (!_safeSessGet(viewedKey)) {
+                if (!_safeStorageGet(viewedKey)) {
                     // Bot check before increment
                     if (window.isBot && window.isBot()) {
                         console.log('Analytics: Skipping view increment for bot');
                     } else {
-                        await _supabase.rpc('increment_views', { post_id: data.id });
+                        // Standardized 5-second delay for human presence
+                        setTimeout(async () => {
+                            // Verify user is still on this post and tab is active
+                            if (currentPost && currentPost.id === data.id && document.visibilityState === 'visible') {
+                                try {
+                                    await _supabase.rpc('increment_views', { post_id: data.id });
+                                    _safeStorageSet(viewedKey, 'true');
+                                    console.log('Analytics: View incremented for', data.id);
+                                } catch (e) {
+                                    console.error('Analytics: View increment error', e);
+                                }
+                            }
+                        }, 5000);
                     }
-                    _safeSessSet(viewedKey, 'true');
                 }
                 return;
             }

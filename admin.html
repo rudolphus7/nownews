@@ -970,16 +970,18 @@
             <div id="analytics-text-view" class="space-y-8">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div class="bg-white p-6 rounded-[2rem] shadow-xl border border-white">
-                        <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Унікальних
-                            Читачів</div>
+                        <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1" title="Унікальні сесії за вибраний період">Унікальних Читачів</div>
                         <div id="stat-text-users" class="text-4xl font-extrabold text-slate-800">...</div>
                         <div id="stat-text-period-label" class="text-xs text-green-500 font-bold mt-2">За весь час</div>
                     </div>
-                    <div
-                        class="bg-white p-6 rounded-[2rem] shadow-xl border border-white flex flex-col justify-between">
+                    <div class="bg-slate-900 p-6 rounded-[2rem] shadow-xl border border-slate-800 text-white">
+                        <div class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1" title="Всього унікальних переглядів усіх статей (persistent)">Глобальні Перегляди</div>
+                        <div id="stat-text-global-views" class="text-4xl font-extrabold text-orange-500">...</div>
+                        <div class="text-[9px] text-slate-400 font-bold mt-2 uppercase tracking-tighter">Очищено від ботів та дублів</div>
+                    </div>
+                    <div class="bg-white p-6 rounded-[2rem] shadow-xl border border-white flex flex-col justify-between">
                         <div>
-                            <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Середній
-                                Час Читання</div>
+                            <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Середній Час Читання</div>
                             <div id="stat-text-time" class="text-4xl font-extrabold text-slate-800">...</div>
                             <div class="text-xs text-orange-500 font-bold mt-2">На одну новину</div>
                         </div>
@@ -1025,7 +1027,7 @@
                                             <th class="p-4 rounded-l-xl">Стаття</th>
                                             <th class="p-4 text-center">Переглядів</th>
                                             <th class="p-4 text-center">Сер. час (сек)</th>
-                                            <th class="p-4 text-center rounded-r-xl">Сер. дочитування</th>
+                                            <th class="p-4 text-center rounded-r-xl" title="Середній відсоток дочитування статті (люди, не боти)">Сер. дочитування</th>
                                         </tr>
                                     </thead>
                                     <tbody id="analytics-text-table" class="divide-y divide-slate-100">

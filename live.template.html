@@ -1059,6 +1059,27 @@
             if (play) audio.play().then(() => setPlayState(true)).catch(err => console.log('Autoplay blocked'));
             else setPlayState(false);
             renderFeed();
+
+            // --- Standardized View Increment ---
+            const viewedKey = `viewed_${t.id}`;
+            if (!localStorage.getItem(viewedKey)) {
+                if (window.isBot && window.isBot()) {
+                    console.log('Analytics: Skipping view increment for bot (Live)');
+                } else {
+                    setTimeout(async () => {
+                        // Check if we are still on the same track
+                        if (tracks[currentIndex] && tracks[currentIndex].id === t.id) {
+                            try {
+                                await _supabase.rpc('increment_views', { post_id: t.id });
+                                localStorage.setItem(viewedKey, 'true');
+                                console.log('Analytics: View incremented (Live) for', t.id);
+                            } catch (e) {
+                                console.error('Analytics: View increment error (Live)', e);
+                            }
+                        }
+                    }, 5000);
+                }
+            }
         }
 
         function togglePlay() {
@@ -1144,6 +1165,7 @@
             init();
         });
     </script>
+    <script defer src="/components/bot-detection.js"></script>
     <script defer src="/components/analytics.js"></script>
 </body>
 

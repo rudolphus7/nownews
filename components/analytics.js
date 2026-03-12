@@ -1,46 +1,52 @@
 /**
- * BUKVA NEWS Analytics Module v2
+ * BUKVA NEWS Analytics Module v2.1
  * Tracks: text reading, voice listening, device type, geo city, scroll depth, audio completion
+ * Optimized for accuracy: Bot-filtering, deduplication, and visibility awareness.
  */
 
-// ── Session Management ───────────────────────────────────────────────────────
-function getOrCreateSessionId() {
-    try {
-        let sessionId = localStorage.getItem('bukva_session_id');
-        if (!sessionId) {
-            sessionId = (typeof crypto !== 'undefined' && crypto.randomUUID)
-                ? crypto.randomUUID()
-                : 'session_' + Math.random().toString(36).substring(2, 15);
-            localStorage.setItem('bukva_session_id', sessionId);
+(function() {
+    // ── Session & Identity ───────────────────────────────────────────────────
+    function getOrCreateSessionId() {
+        try {
+            let sessionId = localStorage.getItem('bukva_session_id');
+            if (!sessionId) {
+                sessionId = (typeof crypto !== 'undefined' && crypto.randomUUID)
+                    ? crypto.randomUUID()
+                    : 'session_' + Math.random().toString(36).substring(2, 15);
+                localStorage.setItem('bukva_session_id', sessionId);
+            }
+            return sessionId;
+        } catch (e) {
+            return 'session_temp_' + Date.now();
         }
-        return sessionId;
-    } catch (e) {
-        return 'session_temp_' + Date.now();
     }
-}
-const SESSION_ID = getOrCreateSessionId();
 
-// ── Device Detection ─────────────────────────────────────────────────────────
-function detectDevice() {
-    const ua = navigator.userAgent;
-    if (/tablet|ipad|playbook|silk/i.test(ua)) return 'tablet';
-    if (/mobile|iphone|ipod|android|blackberry|mini|windows\sce|palm/i.test(ua)) return 'mobile';
-    if (window.innerWidth <= 768) return 'mobile';
-    return 'desktop';
-}
-const DEVICE_TYPE = detectDevice();
+    const SESSION_ID = getOrCreateSessionId();
+    const DEVICE_TYPE = (function() {
+        const ua = navigator.userAgent;
+        if (/tablet|ipad|playbook|silk/i.test(ua)) return 'tablet';
+        if (/mobile|iphone|ipod|android|blackberry|mini|windows\sce|palm/i.test(ua)) return 'mobile';
+        if (window.innerWidth <= 768) return 'mobile';
+        return 'desktop';
+    })();
 
-// ── Geo City Detection (once per session, cached) ─────────────────────────────
-let GEO_CITY = '';
-const detectGeo = async () => {
-    try {
-        GEO_CITY = sessionStorage.getItem('bukva_geo_city') || '';
-        if (GEO_CITY) return;
+    // ── Pre-flight Checks ─────────────────────────────────────────────────────
+    const isBot = () => {
+        if (window.isBot && typeof window.isBot === 'function') {
+            return window.isBot();
+        }
+        // Fallback simple check if bot-detection.js isn't ready
+        return /bot|googlebot|crawler|spider|robot|crawling/i.test(navigator.userAgent) || navigator.webdriver;
+    };
 
-        // Try service 1: ip-api.com (HTTP-only usually, so might fail on HTTPS if not handled)
-        // Try service 2: ipapi.co
-        // Try service 3: ipwho.is (Good fallback)
+    // ── Geo-Location Service ──────────────────────────────────────────────────
+    let GEO_CITY = sessionStorage.getItem('bukva_geo_city') || '';
+    let isDetectingGeo = false;
 
+    const detectGeo = async () => {
+        if (GEO_CITY || isDetectingGeo) return;
+        isDetectingGeo = true;
+        
         const services = [
             'https://ipapi.co/json/',
             'https://ipwho.is/',
@@ -49,89 +55,82 @@ const detectGeo = async () => {
 
         for (const url of services) {
             try {
-                const r = await fetch(url, { signal: AbortSignal.timeout(2000) });
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 2000);
+                
+                const r = await fetch(url, { signal: controller.signal });
+                clearTimeout(timeoutId);
+                
                 const d = await r.json();
                 const city = d.city || d.region || d.region_name || '';
                 if (city) {
                     GEO_CITY = city;
                     sessionStorage.setItem('bukva_geo_city', GEO_CITY);
-                    console.log('Analytics: Geo detected via', url, '->', GEO_CITY);
+                    console.log('Analytics: Geo detected ->', GEO_CITY);
                     break;
                 }
             } catch (e) {
-                console.warn('Analytics: Geo service failed', url);
+                // Silently try next service
             }
         }
-    } catch (e) { console.error('Analytics: Geo detection error', e); }
-};
-detectGeo();
+        isDetectingGeo = false;
+    };
 
-// ── Main Analytics Object ─────────────────────────────────────────────────────
-window.BukvaAnalytics = {
-    sessionId: SESSION_ID,
-    deviceType: DEVICE_TYPE,
+    // Start detection immediately
+    detectGeo();
 
-    // Text State
-    currentTextArticleId: null,
-    activeTextEvent: null,
-    textDuration: 0,
-    textInterval: null,
-    scrollDepth: 0,
-    _scrollHandler: null,
+    // ── Main Controller ───────────────────────────────────────────────────────
+    window.BukvaAnalytics = {
+        sessionId: SESSION_ID,
+        deviceType: DEVICE_TYPE,
 
-    // Voice State
-    currentVoiceTrackId: null,
-    activeVoiceEvent: null,
-    voiceDuration: 0,
-    voiceInterval: null,
-    _currentAudioEl: null,
+        // Monitoring State
+        currentTextId: null,
+        activeTextRow: null,
+        textDuration: 0,
+        textTimer: null,
+        maxScroll: 0,
+        _scrollFn: null,
 
-    // ── TEXT TRACKING ────────────────────────────────────────────────────────
-    startTextTracking: async function (articleId, supabaseClient) {
-        if (!articleId || !supabaseClient) return;
-        if (window.isBot && window.isBot()) {
-            console.log('Analytics: Skipping text tracking for bot');
-            return;
-        }
-        this.stopTextTracking();
+        currentVoiceId: null,
+        activeVoiceRow: null,
+        voiceDuration: 0,
+        voiceTimer: null,
+        _audioEl: null,
 
-        // 1. Wait for GEO_CITY if it's still fetching (max 2 seconds wait)
-        let waitCount = 0;
-        while (!GEO_CITY && waitCount < 20) {
-            await new Promise(r => setTimeout(r, 100));
-            waitCount++;
-        }
+        // ── TEXT TRACKING ─────────────────────────────────────────────────────
+        startTextTracking: async function (articleId, supabase) {
+            if (!articleId || !supabase || isBot()) return;
+            
+            // Avoid re-tracking the same article in the same session instance
+            if (this.currentTextId === articleId.toString()) return;
+            
+            this.stopTextTracking();
+            this.currentTextId = articleId.toString();
 
-        const trackerKey = `tracked_text_${articleId}`;
-        const alreadyTracked = sessionStorage.getItem(trackerKey);
+            // Wait briefly for geo if not ready (non-blocking after 1s)
+            if (!GEO_CITY) {
+                let attempts = 0;
+                while (!GEO_CITY && attempts < 10) {
+                    await new Promise(r => setTimeout(r, 100));
+                    attempts++;
+                }
+            }
 
-        if (this.currentTextArticleId !== articleId.toString()) {
-            this.currentTextArticleId = articleId.toString();
-        }
+            const storageKey = `tracked_text_${articleId}`;
+            const existingId = localStorage.getItem(storageKey);
 
-        // Reset local duration for this instance
-        this.activeTextEvent = null;
-        this.textDuration = 0;
-        this.scrollDepth = 0;
-
-        console.log('Analytics: TEXT tracking for', articleId, '| alreadyTracked:', !!alreadyTracked);
-
-        try {
-            if (!this.activeTextEvent) {
-                // If already tracked in this session, we don't insert a new row 
-                // BUT we might want to still update the duration if the user came back?
-                // For now, let's strictly deduplicate views as per user request.
-                if (alreadyTracked) {
-                    this.activeTextEvent = alreadyTracked; // Resume or just do nothing?
-                    // If we resume, we might mess up "views" count if user just refreshed.
-                    // User said: "10 refreshes = 10 views". 
-                    // To fix this: if alreadyTracked is set, we DON'T insert.
-                    // We can either stop here or just continue to update the EXISTING event.
+            try {
+                if (existingId) {
+                    // We already have a row for this article in this browser's life
+                    // We can choose to update the existing row or just stop.
+                    // To keep "Unique Views" accurate, we don't insert a new one.
+                    this.activeTextRow = existingId;
                 } else {
-                    const { data, error } = await supabaseClient
+                    const { data, error } = await supabase
                         .from('analytics_events')
                         .insert([{
-                            session_id: this.sessionId,
+                            session_id: SESSION_ID,
                             event_type: 'text_news_view',
                             target_id: articleId.toString(),
                             duration_seconds: 0,
@@ -144,110 +143,90 @@ window.BukvaAnalytics = {
                         .single();
 
                     if (data && !error) {
-                        this.activeTextEvent = data.id;
-                        sessionStorage.setItem(trackerKey, data.id);
+                        this.activeTextRow = data.id;
+                        localStorage.setItem(storageKey, data.id);
                     }
                 }
+
+                if (this.activeTextRow) {
+                    this._initScrollWatcher();
+                    this.textTimer = setInterval(() => this._pulseText(supabase), 5000);
+                }
+            } catch (err) {
+                console.warn('Analytics: Text entry failed', err);
             }
+        },
 
-            if (this.activeTextEvent) {
-                // Scroll depth watcher
-                this._startScrollTracking(supabaseClient);
+        _pulseText: async function(supabase) {
+            if (document.visibilityState !== 'visible' || !this.activeTextRow) return;
+            this.textDuration += 5;
+            try {
+                await supabase
+                    .from('analytics_events')
+                    .update({ 
+                        duration_seconds: this.textDuration, 
+                        scroll_depth: this.maxScroll 
+                    })
+                    .eq('id', this.activeTextRow);
+            } catch (e) {}
+        },
 
-                // Duration updater every 5 seconds (only when tab visible)
-                this.textInterval = setInterval(async () => {
-                    if (document.visibilityState !== 'visible') return;
-                    this.textDuration += 5;
-                    await supabaseClient
-                        .from('analytics_events')
-                        .update({ duration_seconds: this.textDuration, scroll_depth: this.scrollDepth })
-                        .eq('id', this.activeTextEvent);
-                }, 5000);
-            }
-        } catch (e) {
-            console.error('Analytics error (text):', e);
-        }
-    },
-
-    _startScrollTracking: function (supabaseClient) {
-        if (this._scrollHandler) window.removeEventListener('scroll', this._scrollHandler);
-        this._scrollHandler = () => {
-            const scrollTop = window.scrollY || document.documentElement.scrollTop;
-
-            // Fix: Target the actual article content if it exists, otherwise fallback to document
-            const targetEl = document.getElementById('news-content') || document.getElementById('news-text') || document.documentElement;
-            const rect = targetEl.getBoundingClientRect();
-            const winHeight = window.innerHeight;
-
-            let pct = 0;
-            if (targetEl === document.documentElement) {
-                const docHeight = document.documentElement.scrollHeight - winHeight;
-                if (docHeight > 0) pct = Math.round((scrollTop / docHeight) * 100);
-            } else {
-                // If we have a target element, 100% is when the BOTTOM of the element enters the viewport
-                // or when we've scrolled past it.
-                const elementTop = rect.top + scrollTop;
-                const elementHeight = rect.height;
-                const scrollPosition = scrollTop + winHeight;
-                const offsetTop = elementTop;
-
-                // percentage = (how much of the element we've seen) / (element height)
-                // but we want 100% when the bottom of the article is visible.
-                const seenHeight = Math.max(0, scrollPosition - offsetTop);
-                pct = Math.round((seenHeight / elementHeight) * 100);
-            }
-
-            if (pct > this.scrollDepth) {
-                this.scrollDepth = Math.min(pct, 100);
-            }
-        };
-        window.addEventListener('scroll', this._scrollHandler, { passive: true });
-    },
-
-    stopTextTracking: function () {
-        if (this.textInterval) { clearInterval(this.textInterval); this.textInterval = null; }
-        if (this._scrollHandler) { window.removeEventListener('scroll', this._scrollHandler); this._scrollHandler = null; }
-    },
-
-    // ── VOICE TRACKING ───────────────────────────────────────────────────────
-    startVoiceTracking: async function (trackId, supabaseClient, audioElement) {
-        if (!trackId || !supabaseClient) return;
-        if (window.isBot && window.isBot()) {
-            console.log('Analytics: Skipping voice tracking for bot');
-            return;
-        }
-        await this.stopVoiceTracking(false, supabaseClient);
-
-        // 1. Wait for GEO_CITY if it's still fetching (max 2 seconds wait)
-        let waitCount = 0;
-        while (!GEO_CITY && waitCount < 20) {
-            await new Promise(r => setTimeout(r, 100));
-            waitCount++;
-        }
-
-        const trackerKey = `tracked_voice_${trackId}`;
-        const alreadyTracked = sessionStorage.getItem(trackerKey);
-
-        if (this.currentVoiceTrackId !== trackId.toString()) {
-            this.currentVoiceTrackId = trackId.toString();
-        }
-
-        // Reset local duration
-        this.activeVoiceEvent = null;
-        this.voiceDuration = 0;
-        this._currentAudioEl = audioElement || null;
-
-        console.log('Analytics: VOICE tracking for', trackId, '| alreadyTracked:', !!alreadyTracked);
-
-        try {
-            if (!this.activeVoiceEvent) {
-                if (alreadyTracked) {
-                    this.activeVoiceEvent = alreadyTracked;
+        _initScrollWatcher: function() {
+            if (this._scrollFn) window.removeEventListener('scroll', this._scrollFn);
+            
+            this._scrollFn = () => {
+                const doc = document.documentElement;
+                const winH = window.innerHeight;
+                const scrollT = window.scrollY || doc.scrollTop;
+                
+                // Target article content for better accuracy
+                const content = document.getElementById('news-content') || document.getElementById('news-text') || doc;
+                const rect = content.getBoundingClientRect();
+                
+                let pct = 0;
+                if (content === doc) {
+                    const total = doc.scrollHeight - winH;
+                    if (total > 0) pct = Math.round((scrollT / total) * 100);
                 } else {
-                    const { data, error } = await supabaseClient
+                    const top = rect.top + scrollT;
+                    const height = rect.height;
+                    const pos = scrollT + winH;
+                    pct = Math.round(((pos - top) / height) * 100);
+                }
+
+                this.maxScroll = Math.max(this.maxScroll, Math.min(Math.round(pct), 100));
+            };
+            window.addEventListener('scroll', this._scrollFn, { passive: true });
+        },
+
+        stopTextTracking: function() {
+            if (this.textTimer) { clearInterval(this.textTimer); this.textTimer = null; }
+            if (this._scrollFn) { window.removeEventListener('scroll', this._scrollFn); this._scrollFn = null; }
+            this.currentTextId = null;
+            this.activeTextRow = null;
+            this.textDuration = 0;
+            this.maxScroll = 0;
+        },
+
+        // ── VOICE TRACKING ────────────────────────────────────────────────────
+        startVoiceTracking: async function (trackId, supabase, audioEl) {
+            if (!trackId || !supabase || isBot()) return;
+            
+            this.stopVoiceTracking(false, supabase);
+            this.currentVoiceId = trackId.toString();
+            this._audioEl = audioEl || null;
+
+            const storageKey = `tracked_voice_${trackId}`;
+            const existingId = localStorage.getItem(storageKey);
+
+            try {
+                if (existingId) {
+                    this.activeVoiceRow = existingId;
+                } else {
+                    const { data, error } = await supabase
                         .from('analytics_events')
                         .insert([{
-                            session_id: this.sessionId,
+                            session_id: SESSION_ID,
                             event_type: 'voice_news_listen',
                             target_id: trackId.toString(),
                             duration_seconds: 0,
@@ -260,58 +239,64 @@ window.BukvaAnalytics = {
                         .single();
 
                     if (data && !error) {
-                        this.activeVoiceEvent = data.id;
-                        sessionStorage.setItem(trackerKey, data.id);
+                        this.activeVoiceRow = data.id;
+                        localStorage.setItem(storageKey, data.id);
                     }
                 }
-            }
 
-            if (this.activeVoiceEvent) {
-                this.voiceInterval = setInterval(async () => {
-                    this.voiceDuration += 3;
-                    await supabaseClient
-                        .from('analytics_events')
-                        .update({ duration_seconds: this.voiceDuration })
-                        .eq('id', this.activeVoiceEvent);
-                }, 3000);
+                if (this.activeVoiceRow) {
+                    this.voiceTimer = setInterval(() => this._pulseVoice(supabase), 3000);
+                }
+            } catch (err) {
+                console.warn('Analytics: Voice entry failed', err);
             }
-        } catch (e) {
-            console.error('Analytics error (voice):', e);
-        }
-    },
+        },
 
-    /**
-     * Stop voice tracking and record completion %
-     * @param {boolean} completed - true if audio ended naturally (played to end)
-     * @param {object} supabaseClient
-     */
-    stopVoiceTracking: async function (completed, supabaseClient) {
-        if (this.voiceInterval) { clearInterval(this.voiceInterval); this.voiceInterval = null; }
-
-        // Record completion
-        if (this.activeVoiceEvent && supabaseClient) {
-            let pct = 0;
-            if (completed === true) {
-                pct = 100;
-            } else if (this._currentAudioEl && this._currentAudioEl.duration > 0) {
-                pct = Math.round((this._currentAudioEl.currentTime / this._currentAudioEl.duration) * 100);
-                pct = Math.min(pct, 100);
-            }
+        _pulseVoice: async function(supabase) {
+            if (!this.activeVoiceRow) return;
+            this.voiceDuration += 3;
             try {
-                await supabaseClient
+                await supabase
                     .from('analytics_events')
-                    .update({ completion_pct: pct })
-                    .eq('id', this.activeVoiceEvent);
-            } catch (e) { /* silent */ }
+                    .update({ duration_seconds: this.voiceDuration })
+                    .eq('id', this.activeVoiceRow);
+            } catch (e) {}
+        },
+
+        stopVoiceTracking: async function (isEnd, supabase) {
+            if (this.voiceTimer) { clearInterval(this.voiceTimer); this.voiceTimer = null; }
+
+            if (this.activeVoiceRow && supabase) {
+                let completion = 0;
+                if (isEnd === true) {
+                    completion = 100;
+                } else if (this._audioEl && this._audioEl.duration > 0) {
+                    completion = Math.round((this._audioEl.currentTime / this._audioEl.duration) * 100);
+                }
+                
+                try {
+                    await supabase
+                        .from('analytics_events')
+                        .update({ completion_pct: Math.min(completion, 100) })
+                        .eq('id', this.activeVoiceRow);
+                } catch (e) {}
+            }
+
+            this.currentVoiceId = null;
+            this.activeVoiceRow = null;
+            this.voiceDuration = 0;
+            this._audioEl = null;
         }
+    };
 
-        this.activeVoiceEvent = null; // Important: Clear the ID
-        this._currentAudioEl = null;
-    }
-};
+    // Global cleanup
+    window.addEventListener('beforeunload', () => {
+        if (window.BukvaAnalytics) {
+            window.BukvaAnalytics.stopTextTracking();
+            // We can't reliably update completion_pct in beforeunload due to networking limits,
+            // but the last pulse will have recorded the duration.
+        }
+    });
 
-// Stop all tracking when leaving
-window.addEventListener('beforeunload', () => {
-    window.BukvaAnalytics.stopTextTracking();
-    window.BukvaAnalytics.stopVoiceTracking(false, null);
-});
+})();
+
