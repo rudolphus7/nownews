@@ -748,7 +748,7 @@
                                     console.error('Analytics: View increment error', e);
                                 }
                             }
-                        }, 5000);
+                        }, 3000);
                     }
                 }
                 return;
@@ -942,6 +942,9 @@
 
             // Meta Badges
             let metaHtml = '';
+            if (data.is_ads) {
+                metaHtml += `<div class="ads-badge mb-4 md:mb-6 animate-bounce">🔥 РЕКЛАМНИЙ ПОСТ</div><div class="block w-full h-0"></div>`;
+            }
             if (data.city) metaHtml += `<div class="inline-flex items-center gap-2 bg-orange-50 text-orange-600 px-4 py-2 rounded-2xl text-[11px] font-black uppercase tracking-widest border border-orange-100 shadow-sm leading-none">${CITIES_UK[data.city] || data.city}</div>`;
             metaHtml += `<div class="inline-flex items-center bg-indigo-50 text-indigo-600 px-4 py-2 rounded-2xl text-[11px] font-black uppercase tracking-widest border border-indigo-100 shadow-sm leading-none">${CATEGORIES_UK[data.category] || data.category}</div>`;
             if (data.tags) data.tags.forEach(t => {
@@ -958,15 +961,16 @@
         }
 
         async function loadRelated(category, currentId) {
-            const { data } = await _supabase.from('news').select('title, slug, id, image_url, views').eq('category', category).neq('id', currentId).limit(3);
+            const { data } = await _supabase.from('news').select('title, slug, id, image_url, views, is_ads').eq('category', category).neq('id', currentId).limit(3);
             const container = document.getElementById('related-list');
             if (data && data.length > 0 && container) {
                 container.innerHTML = data.map(post => `
                     <a href="${buildNewsUrl(post)}" class="group flex gap-4 items-center">
-                        <div class="w-20 h-20 rounded-2xl overflow-hidden flex-shrink-0 relative">
+                        <div class="w-20 h-20 rounded-2xl overflow-hidden flex-shrink-0 relative ${post.is_ads ? 'is-ads-post !p-0 !m-0 !shadow-none' : ''}">
                             <img src="${optimizeImage(post.image_url, 200, 70)}" alt="${post.title}" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
                         </div>
                         <div class="flex-1">
+                            ${post.is_ads ? '<span class="text-[9px] font-black text-orange-600 uppercase tracking-widest block mb-1">🔥 РЕКЛАМА</span>' : ''}
                             <h4 class="text-xs font-bold leading-tight group-hover:text-orange-600 transition-colors line-clamp-3">${post.title}</h4>
                             <div class="text-[9px] text-slate-400 font-black mt-2 uppercase tracking-widest">👁️ ${post.views || 0} ПЕРЕГЛЯДІВ</div>
                         </div>

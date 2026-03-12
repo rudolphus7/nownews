@@ -310,6 +310,7 @@ if (newsForm) {
             image_url: imageUrlInput.value,
             tags: currentTags,
             allowed_reactions: allowedReactions,
+            is_ads: document.getElementById('is_ads').checked,
             link: newsForm.dataset.rssLink || "",
             is_published: true,
             author_name: 'Редакція BUKVA NEWS'
@@ -362,6 +363,7 @@ if (newsForm) {
             currentTags = [];
             newsForm.reset();
             if (document.getElementById('city')) document.getElementById('city').value = "";
+            if (document.getElementById('is_ads')) document.getElementById('is_ads').checked = false;
             delete newsForm.dataset.rssLink;
             if (quill) {
                 try {
@@ -625,6 +627,11 @@ window.editItem = async (id) => {
         cb.checked = allowed.includes(cb.value);
         cb.dispatchEvent(new Event('change')); // Trigger UI update
     });
+
+    // Оновити чекбокс реклами
+    if (document.getElementById('is_ads')) {
+        document.getElementById('is_ads').checked = !!data.is_ads;
+    }
 
     // Змінюємо текст кнопки
     document.getElementById('btn-submit').innerText = 'Зберегти зміни';
