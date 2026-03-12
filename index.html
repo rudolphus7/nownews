@@ -772,11 +772,16 @@
             const imgTablet = optimizeImage(hero.image_url, 800, 80);
             const imgDesktop = optimizeImage(hero.image_url, 1200, 85);
 
+            const isOptimizable = hero.image_url && hero.image_url.includes('/storage/v1/object/public/');
+            const srcsetAttr = isOptimizable 
+                ? `srcset="${imgMobile} 480w, ${imgTablet} 800w, ${imgDesktop} 1200w"` 
+                : '';
+
             document.getElementById('hero-container').innerHTML = `
                 <a href="${heroLink}" class="group relative block h-[450px] md:h-[650px] overflow-hidden rounded-[2.5rem] md:rounded-[3.5rem] bg-slate-900 shadow-2xl transition-all duration-700">
                     <img 
                         src="${imgDesktop}" 
-                        srcset="${imgMobile} 480w, ${imgTablet} 800w, ${imgDesktop} 1200w"
+                        ${srcsetAttr}
                         sizes="(max-width: 768px) 100vw, 1200px"
                         fetchpriority="high" 
                         class="news-image-scale absolute inset-0 w-full h-full object-cover opacity-60 grayscale-[0.2] transition-all duration-1000 group-hover:scale-105 group-hover:grayscale-0" 
