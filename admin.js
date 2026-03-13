@@ -75,27 +75,30 @@ window.handleImageUpload = async (input, targetId) => {
         ctx.drawImage(img, 0, 0, width, height);
 
         // 2. Add Watermark (Branding)
-        try {
-            await logoLoadPromise; // Wait if not already loaded
+        const useWatermark = document.getElementById('use_watermark')?.checked ?? true;
+        if (useWatermark) {
+            try {
+                await logoLoadPromise; // Wait if not already loaded
 
-            if (logoImage.complete && logoImage.naturalWidth > 0) {
-                // Calculate logo size (e.g., 15% of image width)
-                const logoScale = (width * 0.15) / logoImage.naturalWidth;
-                const logoW = logoImage.naturalWidth * logoScale;
-                const logoH = logoImage.naturalHeight * logoScale;
+                if (logoImage.complete && logoImage.naturalWidth > 0) {
+                    // Calculate logo size (e.g., 15% of image width)
+                    const logoScale = (width * 0.15) / logoImage.naturalWidth;
+                    const logoW = logoImage.naturalWidth * logoScale;
+                    const logoH = logoImage.naturalHeight * logoScale;
 
-                // Position: bottom-right with 20px padding (relative to resized image)
-                const padding = 20;
-                const x = width - logoW - padding;
-                const y = height - logoH - padding;
+                    // Position: bottom-right with 20px padding (relative to resized image)
+                    const padding = 20;
+                    const x = width - logoW - padding;
+                    const y = height - logoH - padding;
 
-                ctx.save();
-                ctx.globalAlpha = 0.7; // Subtle transparency
-                ctx.drawImage(logoImage, x, y, logoW, logoH);
-                ctx.restore();
+                    ctx.save();
+                    ctx.globalAlpha = 0.7; // Subtle transparency
+                    ctx.drawImage(logoImage, x, y, logoW, logoH);
+                    ctx.restore();
+                }
+            } catch (e) {
+                console.warn('Watermark overlay failed:', e);
             }
-        } catch (e) {
-            console.warn('Watermark overlay failed:', e);
         }
 
         // 3. Convert to WebP (optimized)
