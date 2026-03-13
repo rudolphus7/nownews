@@ -1834,7 +1834,7 @@ window.loadAnalytics = async () => {
     });
 
     try {
-        let query = _supabase.from('analytics_events').select('*').limit(5000).order('created_at', { ascending: false });
+        let query = _supabase.from('analytics_events').select('*', { count: 'exact' }).limit(15000).order('created_at', { ascending: false });
         let periodLabel = "За ввесь час";
 
         const now = new Date();
@@ -1882,25 +1882,7 @@ window.loadAnalytics = async () => {
         const { data: events, error } = await query;
         if (error) throw error;
 
-        if (!events || events.length === 0) {
-            ['analytics-text-table', 'analytics-voice-table'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.innerHTML = '<tr><td colspan="4" class="p-6 text-center text-slate-400 italic">Немає даних</td></tr>';
-            });
-            return;
-        }
-
-        const textEvents = events.filter(e => e.event_type === 'text_news_view');
-        const voiceEvents = events.filter(e => e.event_type === 'voice_news_listen');
-
-        // ── TEXT METRICS
-        const textSessions = new Set(textEvents.map(e => String(e.session_id || ''))).size;
-        const el_tu = document.getElementById('stat-text-users');
-        const el_tt = document.getElementById('stat-text-time');
-        const el_tp = document.getElementById('stat-text-per-session');
-        if (el_tu) el_tu.innerText = textSessions;
-
-        // Global Views Metric
+        // Fetch Global (All-time) stats for reference
         try {
             const { data: gvData } = await _supabase.from('news').select('views');
             if (gvData) {
@@ -1910,10 +1892,33 @@ window.loadAnalytics = async () => {
             }
         } catch (e) { console.warn("Global views fetch failed", e); }
 
+        if (!events || events.length === 0) {
+            const el_tu = document.getElementById('stat-text-users');
+            if (el_tu) el_tu.innerText = '0';
+            ['analytics-text-table', 'analytics-voice-table'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = '<tr><td colspan="4" class="p-6 text-center text-slate-400 italic">Немає даних за цей період</td></tr>';
+            });
+            return;
+        }
+
+        const textEvents = events.filter(e => e.event_type === 'text_news_view');
+        const voiceEvents = events.filter(e => e.event_type === 'voice_news_listen');
+
+        // ── TEXT METRICS
+        const el_tu = document.getElementById('stat-text-users');
+        const el_tt = document.getElementById('stat-text-time');
+        const el_tp = document.getElementById('stat-text-per-session');
+        
+        // Use total event count for "Views in Period"
+        if (el_tu) el_tu.innerText = textEvents.length;
+
         if (textEvents.length > 0) {
             const totalT = textEvents.reduce((a, c) => a + (c.duration_seconds || 0), 0);
             if (el_tt) el_tt.innerText = Math.round(totalT / textEvents.length) + ' сек.';
-            if (el_tp) el_tp.innerText = (textEvents.length / (textSessions || 1)).toFixed(1);
+            // Average time per session might be more useful? Let's keep it as is for now but fix division by zero
+            const sessions = new Set(textEvents.map(e => String(e.session_id || ''))).size || 1;
+            if (el_tp) el_tp.innerText = (textEvents.length / sessions).toFixed(1);
         } else {
             if (el_tt) el_tt.innerText = '0 сек.';
             if (el_tp) el_tp.innerText = '0';
