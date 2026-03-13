@@ -568,7 +568,7 @@ module.exports = async (req, res) => {
         // Ensure content is visible and loader is hidden - already handled above
 
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
-        res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=60');
+        res.setHeader('Cache-Control', 's-maxage=86400, stale-while-revalidate=3600');
         return res.status(200).send(htmlContent);
 
     } catch (err) {
