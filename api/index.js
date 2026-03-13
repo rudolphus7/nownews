@@ -18,7 +18,8 @@ const handlers = {
     'settings': require('./_handlers/settings'),
     'rss-proxy': require('./_handlers/rss-proxy'),
     'upload-image': require('./_handlers/upload-image'),
-    'index-ping': require('./_handlers/index-ping')
+    'index-ping': require('./_handlers/index-ping'),
+    'cleanup': require('./_handlers/cleanup')
 };
 
 module.exports = async (req, res) => {

@@ -218,7 +218,11 @@
         },
         {
             "source": "/sitemap-posts.xml",
-            "destination": "/api/index?__target=sitemap&type=posts"
+            "destination": "/api/index?__target=sitemap&type=posts&page=1"
+        },
+        {
+            "source": "/sitemap-posts-:page.xml",
+            "destination": "/api/index?__target=sitemap&type=posts&page=:page"
         },
         {
             "source": "/sitemap-news.xml",

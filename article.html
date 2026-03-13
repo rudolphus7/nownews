@@ -900,7 +900,8 @@
             document.getElementById('news-date').innerText = new Date(data.created_at).toLocaleDateString('uk-UA', { day: 'numeric', month: 'long', year: 'numeric' });
 
             // Reading Time
-            const words = (data.content || '').replace(/<[^>]*>/g, '').split(/\s+/).filter(Boolean).length;
+            const contentForTime = data.content || document.getElementById('news-text').innerText || '';
+            const words = contentForTime.replace(/<[^>]*>/g, '').split(/\s+/).filter(Boolean).length;
             const min = Math.max(1, Math.round(words / 200));
             const readingTimeElem = document.getElementById('reading-time');
             if (readingTimeElem) {
@@ -922,14 +923,16 @@
             }
 
             // Optimize article body images
-            let optimizedContent = data.content || '';
+            let optimizedContent = data.content || document.getElementById('news-text').innerHTML || '';
             optimizedContent = optimizedContent.replace(/<img\s+([^>]+)>/gi, (match, attrs) => {
                 if (!attrs.includes('loading=')) attrs += ' loading="lazy"';
                 if (!attrs.includes('decoding=')) attrs += ' decoding="async"';
                 return `<img ${attrs}>`;
             });
 
-            document.getElementById('news-text').innerHTML = optimizedContent;
+            if (data.content) {
+                document.getElementById('news-text').innerHTML = optimizedContent;
+            }
 
             // Meta Badges
             let metaHtml = '';

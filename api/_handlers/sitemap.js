@@ -3,7 +3,9 @@ const SUPABASE_KEY = process.env.SUPABASE_KEY || 'sb_publishable_L4_HhLhbj_m6wbE
 const SITE_URL = process.env.SITE_URL || 'https://bukva.news';
 
 module.exports = async (req, res) => {
-    const { type } = req.query;
+    let { type, page } = req.query;
+    if (Array.isArray(type)) type = type[0];
+    if (Array.isArray(page)) page = page[0];
 
     try {
         const headers = {
@@ -12,11 +14,11 @@ module.exports = async (req, res) => {
         };
 
         if (type === 'pages') return await servePages(res, headers);
-        if (type === 'posts') return await servePosts(res, headers);
+        if (type === 'posts') return await servePosts(res, headers, page);
         if (type === 'news') return await serveNews(res, headers);
 
         // Default to Index
-        return await serveIndex(res);
+        return await serveIndex(res, headers);
 
     } catch (err) {
         console.error('Sitemap error:', err);
@@ -24,8 +26,28 @@ module.exports = async (req, res) => {
     }
 };
 
-async function serveIndex(res) {
-    const sitemaps = ['sitemap-pages.xml', 'sitemap-posts.xml', 'sitemap-news.xml'];
+async function serveIndex(res, headers) {
+    // 1. Get total post count to determine how many post sitemaps we need
+    let postSitemaps = ['sitemap-posts-1.xml']; // Always at least one
+    try {
+        const countRes = await fetch(`${SUPABASE_URL}/rest/v1/news?is_published=is.true&select=id`, {
+            method: 'HEAD',
+            headers: { ...headers, 'Prefer': 'count=exact' }
+        });
+        const range = countRes.headers.get('content-range');
+        if (range) {
+            const total = parseInt(range.split('/')[1]);
+            const chunks = Math.ceil(total / 1000);
+            postSitemaps = [];
+            for (let i = 1; i <= chunks; i++) {
+                postSitemaps.push(`sitemap-posts-${i}.xml`);
+            }
+        }
+    } catch (e) {
+        console.warn('Could not fetch post count for sitemap index', e);
+    }
+
+    const sitemaps = ['sitemap-pages.xml', ...postSitemaps, 'sitemap-news.xml'];
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${sitemaps.map(s => `  <sitemap>
@@ -33,7 +55,7 @@ ${sitemaps.map(s => `  <sitemap>
     <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
   </sitemap>`).join('\n')}
 </sitemapindex>`;
-    return sendXml(res, xml, 3600);
+    return sendXml(res, xml, 86400); // 24h cache for index
 }
 
 async function servePages(res, headers) {
@@ -72,50 +94,28 @@ ${urls.map(u => `  <url>
     <priority>${u.priority}</priority>
   </url>`).join('\n')}
 </urlset>`;
-    return sendXml(res, xml, 3600);
+    return sendXml(res, xml, 86400); // 24h
 }
 
-async function servePosts(res, headers) {
+async function servePosts(res, headers, pageNum = 1) {
     let articles = [];
+    const limit = 1000;
+    const page = parseInt(pageNum) || 1;
+    const offset = (page - 1) * limit;
+
     try {
-        let offset = 0;
-        const limit = 1000;
-        let hasMore = true;
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/news?is_published=is.true&select=slug,created_at,city,category&order=created_at.desc&limit=${limit}&offset=${offset}`, {
+            method: 'GET',
+            headers: headers
+        });
 
-        while (hasMore) {
-            const response = await fetch(`${SUPABASE_URL}/rest/v1/news?is_published=is.true&select=slug,created_at,city,category&order=created_at.desc&limit=${limit}&offset=${offset}`, {
-                method: 'GET',
-                headers: headers
-            });
-
-            if (!response.ok) {
-                console.error(`Supabase error fetching posts chunk at offset ${offset}: ${response.status}`);
-                break;
-            }
-
-            const text = await response.text();
-            if (text) {
-                const chunk = JSON.parse(text);
-                if (Array.isArray(chunk) && chunk.length > 0) {
-                    articles = articles.concat(chunk);
-                    if (chunk.length < limit) {
-                        hasMore = false;
-                    } else {
-                        offset += limit;
-                    }
-                } else {
-                    hasMore = false;
-                }
-            } else {
-                hasMore = false;
-            }
-
-            if (articles.length >= 10000) {
-                hasMore = false;
-            }
+        if (!response.ok) {
+            console.error(`Supabase error fetching posts page ${page}: ${response.status}`);
+        } else {
+            articles = await response.json();
         }
     } catch (e) {
-        console.error("Posts fetch/parse error:", e);
+        console.error("Posts fetch error:", e);
     }
 
     const CAT_MAP = {
@@ -132,6 +132,7 @@ ${articles.filter(a => a.slug).map(a => {
             if (a.updated_at) lastmod = new Date(a.updated_at).toISOString().split('T')[0];
             else if (a.created_at) lastmod = new Date(a.created_at).toISOString().split('T')[0];
         } catch (e) { }
+        
         let path;
         if (a.city) {
             path = `/novyny/${a.city}/${a.slug}/`;
@@ -139,18 +140,18 @@ ${articles.filter(a => a.slug).map(a => {
             const categorySlug = CAT_MAP[a.category] || a.category;
             path = `/${categorySlug}/${a.slug}/`;
         } else {
-            path = `/novyny/${a.slug}/`; // Fallback if no city or category
+            path = `/${a.slug}/`;
         }
 
         return `  <url>
     <loc>${escapeXml(`${SITE_URL}${path}`)}</loc>
     <lastmod>${lastmod}</lastmod>
-    <changefreq>hourly</changefreq>
-    <priority>0.85</priority>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
   </url>`;
     }).join('\n')}
 </urlset>`;
-    return sendXml(res, xml, 3600);
+    return sendXml(res, xml, 86400); // 24h cache
 }
 
 async function serveNews(res, headers) {

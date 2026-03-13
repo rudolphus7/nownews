@@ -517,11 +517,14 @@ module.exports = async (req, res) => {
         htmlContent = htmlContent.replace(/<div id="site-header-placeholder"><\/div>/, `<div id="site-header-placeholder">${headerHtml}</div>`);
 
         // SSR Content Injection
+        const postData = { ...news };
+        delete postData.content; // REDUCE BANDWIDTH: Content is already pre-rendered in HTML
+
         const ssrScript = `<script>
         window.__SSR_ID__ = '${news.id}';
         window.__SSR_SLUG__ = '${news.slug}';
         window.__SSR_CONTENT_PRE_RENDERED__ = true;
-        window.__SSR_POST_DATA__ = ${JSON.stringify(news)};
+        window.__SSR_POST_DATA__ = ${JSON.stringify(postData)};
         window.__SSR_CATEGORIES__ = ${JSON.stringify(categories)};
         window.__SSR_CITIES__ = ${JSON.stringify(cities)};
         window.__SSR_TICKER__ = ${JSON.stringify(tickerNews)};

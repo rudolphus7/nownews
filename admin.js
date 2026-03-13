@@ -526,15 +526,29 @@ if (btnPublishFb && fbPostText) {
 let CATEGORIES_UK = {};
 let CITIES_UK = {};
 
-window.loadNews = async () => {
+let newsCurrentPage = 0;
+const newsPageSize = 20;
+
+window.loadNews = async (page = 0) => {
+    newsCurrentPage = page;
     const tbody = document.getElementById('news-table-body');
     if (!tbody || !_supabase) return;
 
     tbody.innerHTML = '<tr><td colspan="6" class="p-5 text-center text-gray-500 italic">Синхронізація...</td></tr>';
 
-    const { data, error } = await _supabase.from('news').select('*').order('created_at', { ascending: false });
+    const from = newsCurrentPage * newsPageSize;
+    const to = from + newsPageSize - 1;
 
-    if (error) return;
+    const { data, error, count } = await _supabase
+        .from('news')
+        .select('*', { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .range(from, to);
+
+    if (error) {
+        tbody.innerHTML = `<tr><td colspan="6" class="p-5 text-center text-red-500">Помилка завантаження: ${error.message}</td></tr>`;
+        return;
+    }
 
     tbody.innerHTML = data.map(item => `
         <tr class="border-b hover:bg-gray-50 transition">
@@ -570,7 +584,28 @@ window.loadNews = async () => {
             </td>
         </tr>
     `).join('');
+
+    renderNewsPagination(count);
 };
+
+function renderNewsPagination(total) {
+    const container = document.getElementById('news-pagination-controls');
+    if (!container) return;
+
+    const totalPages = Math.ceil(total / newsPageSize);
+    let html = '';
+
+    html += `
+        <button onclick="window.loadNews(${Math.max(0, newsCurrentPage - 1)})" 
+            class="px-3 py-1 rounded-lg ${newsCurrentPage === 0 ? 'text-slate-200 cursor-not-allowed' : 'text-slate-600 hover:bg-slate-100'}" 
+            ${newsCurrentPage === 0 ? 'disabled' : ''}>←</button>
+        <span class="text-[10px] font-black text-slate-800">${newsCurrentPage + 1} / ${totalPages || 1}</span>
+        <button onclick="window.loadNews(${Math.min(totalPages - 1, newsCurrentPage + 1)})" 
+            class="px-3 py-1 rounded-lg ${newsCurrentPage >= totalPages - 1 ? 'text-slate-200 cursor-not-allowed' : 'text-slate-600 hover:bg-slate-100'}" 
+            ${newsCurrentPage >= totalPages - 1 ? 'disabled' : ''}>→</button>
+    `;
+    container.innerHTML = html;
+}
 
 function autoTagArticle(content, title) {
     const text = (title + ' ' + content).toLowerCase();
@@ -874,8 +909,12 @@ async function loadRSS() {
 }
 window.loadRSS = loadRSS;
 
+let rssCurrentPage = 0;
+const rssPageSize = 20;
+
 // --- RSS DB MANAGEMENT ---
-async function renderRSSArticles() {
+async function renderRSSArticles(page = 0) {
+    rssCurrentPage = page;
     const grid = document.getElementById('rss-items-grid');
     if (!grid || !_supabase) return;
 
@@ -884,7 +923,7 @@ async function renderRSSArticles() {
 
     let query = _supabase
         .from('rss_articles')
-        .select('*')
+        .select('*', { count: 'exact' })
         .eq('is_dismissed', false)
         .eq('is_imported', false);
 
@@ -892,9 +931,12 @@ async function renderRSSArticles() {
         query = query.eq('source_name', sourceName);
     }
 
-    const { data: articles, error } = await query
+    const from = rssCurrentPage * rssPageSize;
+    const to = from + rssPageSize - 1;
+
+    const { data: articles, error, count } = await query
         .order('pub_date', { ascending: false })
-        .limit(50);
+        .range(from, to);
 
     if (error || !articles || articles.length === 0) {
         grid.innerHTML = `
@@ -903,6 +945,8 @@ async function renderRSSArticles() {
                      <p class="text-slate-400 italic font-medium">Нових новин поки немає...</p>
                      <button onclick="window.fetchRSSArticles()" class="mt-8 px-8 py-4 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-orange-600 transition shadow-xl">Перевірити зараз</button>
                 </div>`;
+        const container = document.getElementById('rss-pagination-controls');
+        if (container) container.innerHTML = '';
         return;
     }
 
@@ -935,8 +979,29 @@ async function renderRSSArticles() {
             </div>
         </div>
     `).join('');
+
+    renderRSSPagination(count);
 }
 window.renderRSSArticles = renderRSSArticles;
+
+function renderRSSPagination(total) {
+    const container = document.getElementById('rss-pagination-controls');
+    if (!container) return;
+
+    const totalPages = Math.ceil(total / rssPageSize);
+    let html = '';
+
+    html += `
+        <button onclick="window.renderRSSArticles(${Math.max(0, rssCurrentPage - 1)})" 
+            class="px-3 py-1 rounded-lg ${rssCurrentPage === 0 ? 'text-slate-200 cursor-not-allowed' : 'text-slate-600 hover:bg-slate-100'}" 
+            ${rssCurrentPage === 0 ? 'disabled' : ''}>←</button>
+        <span class="text-[10px] font-black text-slate-800">${rssCurrentPage + 1} / ${totalPages || 1}</span>
+        <button onclick="window.renderRSSArticles(${Math.min(totalPages - 1, rssCurrentPage + 1)})" 
+            class="px-3 py-1 rounded-lg ${rssCurrentPage >= totalPages - 1 ? 'text-slate-200 cursor-not-allowed' : 'text-slate-600 hover:bg-slate-100'}" 
+            ${rssCurrentPage >= totalPages - 1 ? 'disabled' : ''}>→</button>
+    `;
+    container.innerHTML = html;
+}
 
 // Clear interval when switching sections
 const originalShowSection = window.showSection;
@@ -2522,3 +2587,6 @@ window.exportSubscribersCSV = () => {
 
 setTimeout(() => { if (_supabase) window.loadSettings(); }, 1000);
 window.loadStats();
+
+// Trigger background cleanup of old unpublished news
+fetch('/api/cleanup').catch(err => console.error('Auto-cleanup trigger failed:', err));
