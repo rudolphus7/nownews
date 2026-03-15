@@ -127,7 +127,7 @@
     right: 0;
     bottom: 25%;
     z-index: 9999;
-    background: #ea580c;
+    background: #1e1b4b; /* Dark indigo */
     color: white;
     height: 56px;
     width: 60px; /* Only icon visible by default */
@@ -135,16 +135,17 @@
     align-items: center;
     border-radius: 32px 0 0 32px;
     text-decoration: none !important;
-    box-shadow: -5px 5px 20px rgba(0, 0, 0, 0.2);
+    box-shadow: -5px 5px 20px rgba(0, 0, 0, 0.3);
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     overflow: hidden;
-    border-left: 2px solid rgba(255, 255, 255, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-right: none;
 }
 
 .voice-news-badge:hover {
-    width: 210px; /* Expand on hover */
-    background: #f97316;
-    box-shadow: -8px 8px 30px rgba(234, 88, 12, 0.4);
+    width: 220px; /* Expand on hover */
+    background: #131131; /* Slightly darker indigo */
+    box-shadow: -8px 8px 30px rgba(0, 0, 0, 0.4);
 }
 
 .voice-news-badge .badge-content {
