@@ -218,13 +218,22 @@ class SiteHeader {
 
     renderVoiceBadge() {
         if (document.getElementById('voice-news-badge')) return;
+        
+        // Hide badge on the /live/ page
+        if (window.location.pathname.includes('/live/')) {
+            console.log("On /live/ page, skipping voice news badge.");
+            return;
+        }
+
         const badge = document.createElement('a');
         badge.id = 'voice-news-badge';
         badge.href = '/live/';
         badge.className = 'voice-news-badge';
         badge.innerHTML = `
-            <span class="badge-icon">🎙️</span>
-            <span class="badge-text">Голосові новини</span>
+            <div class="badge-content">
+                <span class="badge-icon">🎙️</span>
+                <span class="badge-text">Голосові новини</span>
+            </div>
         `;
         document.body.appendChild(badge);
     }
