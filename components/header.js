@@ -84,6 +84,7 @@ class SiteHeader {
     async init() {
         try {
             this.renderPlaceholder();
+            this.renderVoiceBadge();
             this.setupEventListeners();
 
             // Hydration: Check if data is already provided by SSR
@@ -213,6 +214,19 @@ class SiteHeader {
                 </div>
             </div>
         `;
+    }
+
+    renderVoiceBadge() {
+        if (document.getElementById('voice-news-badge')) return;
+        const badge = document.createElement('a');
+        badge.id = 'voice-news-badge';
+        badge.href = '/live/';
+        badge.className = 'voice-news-badge';
+        badge.innerHTML = `
+            <span class="badge-icon">🎙️</span>
+            <span class="badge-text">Голосові новини</span>
+        `;
+        document.body.appendChild(badge);
     }
 
     async loadDynamicData() {
