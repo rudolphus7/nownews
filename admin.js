@@ -2625,7 +2625,7 @@ window.loadPopups = async () => {
             </div>
             <h4 class="text-lg font-black text-slate-800 mb-2 truncate">${p.name}</h4>
             <div class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-4">
-                Тригер: ${p.config?.triggers?.type || 'timer'} (${p.config?.triggers?.value || 0})
+                Тригер: ${p.config?.triggers?.type || 'timer'} (${p.config?.triggers?.type === 'timer' ? (p.config?.triggers?.value / 1000) + ' сек' : p.config?.triggers?.value})
             </div>
             <div class="pt-4 border-t border-slate-50 flex items-center justify-between">
                 <span class="text-[9px] text-slate-300 font-bold uppercase">${new Date(p.created_at).toLocaleDateString()}</span>
@@ -2655,7 +2655,9 @@ window.openPopupEditor = async (id = null) => {
             document.getElementById('popup-active').checked = p.is_active;
             
             document.getElementById('popup-trigger-type').value = p.config?.triggers?.type || 'timer';
-            document.getElementById('popup-trigger-value').value = p.config?.triggers?.value || 5000;
+            document.getElementById('popup-trigger-value').value = p.config?.triggers?.type === 'timer' ? (p.config?.triggers?.value / 1000) : (p.config?.triggers?.value || 5000);
+            document.getElementById('popup-img-fit').value = p.config?.image?.fit || 'cover';
+            document.getElementById('popup-img-pos').value = p.config?.image?.position || 'center';
             document.getElementById('popup-pos-desktop').value = p.config?.position?.desktop || 'center';
             document.getElementById('popup-pos-mobile').value = p.config?.position?.mobile || 'center';
             document.getElementById('popup-frequency').value = p.config?.frequency || 'session';
@@ -2719,7 +2721,13 @@ document.getElementById('popup-form')?.addEventListener('submit', async (e) => {
         config: {
             triggers: {
                 type: document.getElementById('popup-trigger-type').value,
-                value: parseInt(document.getElementById('popup-trigger-value').value)
+                value: document.getElementById('popup-trigger-type').value === 'timer' 
+                    ? parseFloat(document.getElementById('popup-trigger-value').value) * 1000
+                    : parseInt(document.getElementById('popup-trigger-value').value)
+            },
+            image: {
+                fit: document.getElementById('popup-img-fit').value,
+                position: document.getElementById('popup-img-pos').value
             },
             position: {
                 desktop: document.getElementById('popup-pos-desktop').value,
