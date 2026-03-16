@@ -129,36 +129,36 @@
     z-index: 9999;
     background: #1e1b4b; /* Dark indigo */
     color: white;
-    height: 68px;
-    width: 73px; /* Only icon visible by default */
+    height: 80px;
+    width: 86px; /* Only icon visible by default */
     display: flex;
     align-items: center;
-    border-radius: 34px 0 0 34px;
+    border-radius: 40px 0 0 40px;
     text-decoration: none !important;
-    box-shadow: -5px 5px 25px rgba(0, 0, 0, 0.35);
+    box-shadow: -5px 5px 30px rgba(0, 0, 0, 0.4);
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     border-right: none;
 }
 
 .voice-news-badge:hover {
-    width: 266px; /* Expand on hover */
+    width: 280px; /* Expand on hover */
     background: #131131; /* Slightly darker indigo */
-    box-shadow: -8px 8px 35px rgba(0, 0, 0, 0.45);
+    box-shadow: -10px 10px 40px rgba(0, 0, 0, 0.5);
 }
 
 .voice-news-badge .badge-content {
     display: flex;
     align-items: center;
-    padding-left: 20px;
-    gap: 14px;
+    padding-left: 24px;
+    gap: 16px;
     width: max-content;
 }
 
 .voice-news-badge .badge-icon {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     flex-shrink: 0;
     display: flex;
     align-items: center;
@@ -171,7 +171,7 @@
 }
 
 .voice-news-badge .badge-text {
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 900;
     text-transform: uppercase;
     letter-spacing: 0.1em;
@@ -191,21 +191,21 @@
 @media (max-width: 768px) {
     .voice-news-badge {
         bottom: 20%;
-        height: 58px;
-        width: 63px;
-        border-radius: 29px 0 0 29px;
+        height: 64px;
+        width: 70px;
+        border-radius: 32px 0 0 32px;
     }
     
     .voice-news-badge:hover {
-        width: 218px;
+        width: 232px;
     }
     
     .voice-news-badge .badge-content {
-        padding-left: 18px;
+        padding-left: 20px;
     }
     
     .voice-news-badge .badge-icon {
-        width: 24px;
-        height: 24px;
+        width: 28px;
+        height: 28px;
     }
 }
