@@ -129,8 +129,8 @@
     z-index: 9999;
     background: #1e1b4b; /* Dark indigo */
     color: white;
-    height: 56px;
-    width: 60px; /* Only icon visible by default */
+    height: 62px;
+    width: 66px; /* Only icon visible by default */
     display: flex;
     align-items: center;
     border-radius: 32px 0 0 32px;
@@ -143,7 +143,7 @@
 }
 
 .voice-news-badge:hover {
-    width: 220px; /* Expand on hover */
+    width: 242px; /* Expand on hover */
     background: #131131; /* Slightly darker indigo */
     box-shadow: -8px 8px 30px rgba(0, 0, 0, 0.4);
 }
@@ -157,12 +157,12 @@
 }
 
 .voice-news-badge .badge-icon {
-    font-size: 22px;
+    font-size: 24px;
     flex-shrink: 0;
 }
 
 .voice-news-badge .badge-text {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 900;
     text-transform: uppercase;
     letter-spacing: 0.1em;
@@ -182,12 +182,12 @@
 @media (max-width: 768px) {
     .voice-news-badge {
         bottom: 20%;
-        height: 48px;
-        width: 52px;
+        height: 53px;
+        width: 57px;
     }
     
     .voice-news-badge:hover {
-        width: 180px;
+        width: 198px;
     }
     
     .voice-news-badge .badge-content {
@@ -195,6 +195,6 @@
     }
     
     .voice-news-badge .badge-icon {
-        font-size: 20px;
+        font-size: 22px;
     }
 }
