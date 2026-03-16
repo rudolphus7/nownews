@@ -301,6 +301,15 @@
             ]
         },
         {
+            "source": "/popup-engine.js",
+            "headers": [
+                {
+                    "key": "Cache-Control",
+                    "value": "public, max-age=0, must-revalidate"
+                }
+            ]
+        },
+        {
             "source": "/(.*)\\.(ico|png|jpg|jpeg|svg|css|js|webp)",
             "headers": [
                 {
