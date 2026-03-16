@@ -130,22 +130,22 @@
     background: #1e1b4b; /* Dark indigo */
     color: white;
     height: 100px !important;
-    width: 110px !important; /* Only icon visible by default */
+    width: 320px !important; /* Always expanded now */
     display: flex !important;
     align-items: center !important;
     border-radius: 50px 0 0 50px !important;
     text-decoration: none !important;
-    box-shadow: -5px 5px 40px rgba(0, 0, 0, 0.5) !important;
+    box-shadow: -10px 10px 50px rgba(0, 0, 0, 0.5) !important;
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
     overflow: hidden !important;
     border: 2px solid rgba(255, 255, 255, 0.3) !important;
     border-right: none !important;
+    background: #1e1b4b !important;
 }
 
 .voice-news-badge:hover {
-    width: 320px !important; /* Expand on hover */
-    background: #131131 !important; /* Slightly darker indigo */
-    box-shadow: -15px 15px 50px rgba(0, 0, 0, 0.6) !important;
+    background: #2e266d !important; /* Lighter on hover */
+    transform: translateX(-5px) !important;
 }
 
 .voice-news-badge .badge-content {
@@ -177,14 +177,13 @@
     letter-spacing: 0.1em !important;
     color: white !important;
     white-space: nowrap !important;
-    opacity: 0 !important;
-    transform: translateX(10px) !important;
+    opacity: 1 !important; /* Visible by default */
+    transform: translateX(0) !important;
     transition: all 0.3s ease 0.1s !important;
 }
 
 .voice-news-badge:hover .badge-text {
-    opacity: 1;
-    transform: translateX(0);
+    color: #f97316 !important; /* Orange text on hover */
 }
 
 /* Mobile adjustments */
@@ -192,12 +191,12 @@
     .voice-news-badge {
         bottom: 20% !important;
         height: 80px !important;
-        width: 88px !important;
+        width: 260px !important; /* Always expanded on mobile too */
         border-radius: 44px 0 0 44px !important;
     }
     
     .voice-news-badge:hover {
-        width: 260px !important;
+        background: #2e266d !important;
     }
     
     .voice-news-badge .badge-content {
@@ -207,5 +206,11 @@
     .voice-news-badge .badge-icon {
         width: 36px !important;
         height: 36px !important;
+    }
+
+    .voice-news-badge .badge-text {
+        font-size: 14px !important;
+        opacity: 1 !important;
+        transform: none !important;
     }
 }
