@@ -22,7 +22,20 @@ const handlers = {
     'cleanup': require('./_handlers/cleanup')
 };
 
+const BANNED_BOT_STRINGS = [
+    'gptbot', 'ccbot', 'perplexitybot', 'anthropic-ai', 'claudebot', 'oai-searchbot',
+    'amazonbot', 'metacrawler', 'mj12bot', 'ahrefsbot', 'semrushbot', 'dotbot'
+];
+
 module.exports = async (req, res) => {
+    // 0. Emergency Bot filter to save execution costs
+    const ua = (req.headers['user-agent'] || '').toLowerCase();
+    if (BANNED_BOT_STRINGS.some(bot => ua.includes(bot))) {
+        // No-store to avoid Vercel edge caching the rejection
+        res.setHeader('Cache-Control', 'no-store');
+        return res.status(403).send('Bot access denied');
+    }
+
     // Determine which handler to use based on the path or a query parameter
     // Vercel rewrites will pass the original intent via query or path
 

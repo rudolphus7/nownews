@@ -245,6 +245,7 @@ module.exports = async (req, res) => {
         // 301 Redirect if current path is not the preferred one
         if (currentPath !== preferredPath && !currentPath.includes('/api/')) {
             console.log(`301 Redirect: ${currentPath} -> ${preferredPath}`);
+            res.setHeader('Cache-Control', 's-maxage=86400, stale-while-revalidate=3600');
             res.writeHead(301, { Location: preferredPath });
             return res.end();
         }

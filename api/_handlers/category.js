@@ -347,7 +347,7 @@ module.exports = async (req, res) => {
     htmlContent = htmlContent.replace(/<title>.*?<\/title>/s, `<title>${escapeHtml(title)}</title>\n${metaTags}\n${ssrScript}\n${seoInjectorScript}`);
 
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=600');
+    res.setHeader('Cache-Control', 's-maxage=86400, stale-while-revalidate=600');
     return res.status(200).send(htmlContent);
 };
 

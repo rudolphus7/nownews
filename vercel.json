@@ -303,7 +303,7 @@
     ],
     "functions": {
         "api/index.js": {
-            "memory": 1024,
+            "memory": 128,
             "maxDuration": 60
         }
     }
