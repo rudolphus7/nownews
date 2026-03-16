@@ -2590,3 +2590,194 @@ window.loadStats();
 
 // Trigger background cleanup of old unpublished news
 fetch('/api/cleanup').catch(err => console.error('Auto-cleanup trigger failed:', err));
+
+// ═══════════════════════════════════════════════════════════════════════
+// POPUP MANAGEMENT SYSTEM
+// ═══════════════════════════════════════════════════════════════════════
+
+window.loadPopups = async () => {
+    if (!_supabase) return;
+    const grid = document.getElementById('popups-list');
+    grid.innerHTML = '<div class="col-span-full py-20 text-center"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto"></div></div>';
+
+    const { data: popups, error } = await _supabase.from('popups').select('*').order('created_at', { ascending: false });
+
+    if (error) {
+        grid.innerHTML = `<div class="col-span-full py-20 text-center text-red-500">Помилка завантаження: ${error.message}</div>`;
+        return;
+    }
+
+    if (!popups || popups.length === 0) {
+        grid.innerHTML = '<div class="col-span-full py-20 text-center text-slate-400 italic">Попапів ще не створено</div>';
+        return;
+    }
+
+    grid.innerHTML = popups.map(p => `
+        <div class="bg-white p-6 rounded-[2rem] shadow-xl border border-slate-100 group transition-all hover:shadow-2xl hover:-translate-y-1 relative overflow-hidden">
+            <div class="flex justify-between items-start mb-4">
+                <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${p.is_active ? 'bg-green-100 text-green-600' : 'bg-slate-100 text-slate-400'}">
+                    ${p.is_active ? 'Активний' : 'Чернетка'}
+                </span>
+                <div class="flex gap-2">
+                    <button onclick="window.openPopupEditor('${p.id}')" class="p-2 bg-slate-50 text-slate-400 hover:text-orange-600 rounded-lg transition-colors">✏️</button>
+                    <button onclick="window.deletePopup('${p.id}')" class="p-2 bg-slate-50 text-slate-400 hover:text-red-600 rounded-lg transition-colors">🗑️</button>
+                </div>
+            </div>
+            <h4 class="text-lg font-black text-slate-800 mb-2 truncate">${p.name}</h4>
+            <div class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-4">
+                Тригер: ${p.config?.triggers?.type || 'timer'} (${p.config?.triggers?.value || 0})
+            </div>
+            <div class="pt-4 border-t border-slate-50 flex items-center justify-between">
+                <span class="text-[9px] text-slate-300 font-bold uppercase">${new Date(p.created_at).toLocaleDateString()}</span>
+                <button onclick="window.duplicatePopup('${p.id}')" class="text-[9px] font-black text-slate-400 uppercase hover:text-orange-600 transition-colors">Копіювати</button>
+            </div>
+        </div>
+    `).join('');
+};
+
+window.openPopupEditor = async (id = null) => {
+    const modal = document.getElementById('popup-editor-modal');
+    const form = document.getElementById('popup-form');
+    const title = document.getElementById('popup-modal-title');
+    const btnList = document.getElementById('popup-buttons-list');
+    
+    form.reset();
+    btnList.innerHTML = '';
+    document.getElementById('popup-id').value = id || '';
+    title.innerText = id ? 'Редагувати попап' : 'Створити попап';
+    
+    if (id) {
+        const { data: p } = await _supabase.from('popups').select('*').eq('id', id).single();
+        if (p) {
+            document.getElementById('popup-name').value = p.name;
+            document.getElementById('popup-html').value = p.content_html || '';
+            document.getElementById('popup-image').value = p.image_url || '';
+            document.getElementById('popup-active').checked = p.is_active;
+            
+            document.getElementById('popup-trigger-type').value = p.config?.triggers?.type || 'timer';
+            document.getElementById('popup-trigger-value').value = p.config?.triggers?.value || 5000;
+            document.getElementById('popup-pos-desktop').value = p.config?.position?.desktop || 'center';
+            document.getElementById('popup-pos-mobile').value = p.config?.position?.mobile || 'center';
+            document.getElementById('popup-frequency').value = p.config?.frequency || 'session';
+            
+            if (p.config?.buttons) {
+                p.config.buttons.forEach(b => window.addPopupButtonRow(b));
+            }
+        }
+    } else {
+        window.addPopupButtonRow({ text: 'Дізнатися більше', link: '#', style: 'primary' });
+    }
+    
+    modal.classList.remove('hidden');
+};
+
+window.addPopupButtonRow = (data = { text: '', link: '', style: 'primary' }) => {
+    const list = document.getElementById('popup-buttons-list');
+    const row = document.createElement('div');
+    row.className = 'flex gap-2 items-center bg-slate-50 p-2 rounded-xl border border-slate-100';
+    row.innerHTML = `
+        <input type="text" placeholder="Текст" class="flex-[0.5] p-2 bg-white rounded-lg text-xs" value="${data.text}">
+        <input type="text" placeholder="URL" class="flex-1 p-2 bg-white rounded-lg text-xs" value="${data.link}">
+        <select class="p-2 bg-white rounded-lg text-[10px] font-bold">
+            <option value="primary" ${data.style === 'primary' ? 'selected' : ''}>Осн</option>
+            <option value="secondary" ${data.style === 'secondary' ? 'selected' : ''}>Дод</option>
+        </select>
+        <button type="button" onclick="this.parentElement.remove()" class="text-slate-300 hover:text-red-500 p-1">×</button>
+    `;
+    list.appendChild(row);
+};
+
+window.closePopupEditor = () => {
+    document.getElementById('popup-editor-modal').classList.add('hidden');
+};
+
+document.getElementById('popup-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = e.target.querySelector('button[type="submit"]');
+    const originalText = btn.innerText;
+    btn.disabled = true;
+    btn.innerText = 'Збереження...';
+
+    const id = document.getElementById('popup-id').value;
+    const buttons = [];
+    document.querySelectorAll('#popup-buttons-list > div').forEach(row => {
+        const inputs = row.querySelectorAll('input, select');
+        if (inputs[0].value.trim()) {
+            buttons.push({
+                text: inputs[0].value.trim(),
+                link: inputs[1].value.trim(),
+                style: inputs[2].value
+            });
+        }
+    });
+
+    const popupData = {
+        name: document.getElementById('popup-name').value.trim(),
+        content_html: document.getElementById('popup-html').value,
+        image_url: document.getElementById('popup-image').value,
+        is_active: document.getElementById('popup-active').checked,
+        config: {
+            triggers: {
+                type: document.getElementById('popup-trigger-type').value,
+                value: parseInt(document.getElementById('popup-trigger-value').value)
+            },
+            position: {
+                desktop: document.getElementById('popup-pos-desktop').value,
+                mobile: document.getElementById('popup-pos-mobile').value
+            },
+            frequency: document.getElementById('popup-frequency').value,
+            buttons: buttons
+        }
+    };
+
+    try {
+        const token = localStorage.getItem('ifnews_admin_token');
+        const url = id ? `/api/popups?id=${id}&token=${token}` : `/api/popups?token=${token}`;
+        const method = id ? 'PUT' : 'POST';
+
+        const res = await fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(popupData)
+        });
+
+        if (!res.ok) throw new Error('Помилка збереження на сервері');
+
+        window.closePopupEditor();
+        window.loadPopups();
+    } catch (e) {
+        alert('Помилка: ' + e.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerText = originalText;
+    }
+});
+
+window.deletePopup = async (id) => {
+    if (!confirm('Ви впевнені, що хочете видалити цей попап?')) return;
+    const token = localStorage.getItem('ifnews_admin_token');
+    try {
+        const res = await fetch(`/api/popups?id=${id}&token=${token}`, { method: 'DELETE' });
+        if (res.ok) window.loadPopups();
+        else throw new Error('Помилка видалення');
+    } catch (e) {
+        alert(e.message);
+    }
+};
+
+window.duplicatePopup = async (id) => {
+    const { data: p } = await _supabase.from('popups').select('*').eq('id', id).single();
+    if (p) {
+        delete p.id;
+        delete p.created_at;
+        p.name = p.name + ' (Копія)';
+        p.is_active = false;
+        const token = localStorage.getItem('ifnews_admin_token');
+        await fetch(`/api/popups?token=${token}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(p)
+        });
+        window.loadPopups();
+    }
+};

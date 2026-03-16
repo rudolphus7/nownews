@@ -19,6 +19,7 @@ const handlers = {
     'rss-proxy': require('./_handlers/rss-proxy'),
     'upload-image': require('./_handlers/upload-image'),
     'index-ping': require('./_handlers/index-ping'),
+    'popups': require('./_handlers/popups'),
     'cleanup': require('./_handlers/cleanup')
 };
 

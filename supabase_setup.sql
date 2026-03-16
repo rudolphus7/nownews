@@ -46,3 +46,18 @@ CREATE TABLE IF NOT EXISTS public.rss_articles (
 -- Enable RLS
 ALTER TABLE public.rss_articles ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Public Access" ON public.rss_articles FOR ALL USING (true) WITH CHECK (true);
+
+-- 5. POPUPS TABLE (Management system)
+CREATE TABLE IF NOT EXISTS public.popups (
+    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+    name text NOT NULL,
+    is_active boolean DEFAULT false,
+    content_html text,
+    image_url text,
+    config jsonb DEFAULT '{"buttons": [], "triggers": {"type": "timer", "value": 5000}, "position": {"desktop": "center", "mobile": "center"}, "frequency": "session", "targeting": {"cities": [], "categories": []}}'::jsonb,
+    created_at timestamptz DEFAULT now()
+);
+
+-- Enable RLS
+ALTER TABLE public.popups ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public Access" ON public.popups FOR ALL USING (true) WITH CHECK (true);
