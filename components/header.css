@@ -129,57 +129,57 @@
     z-index: 9999;
     background: #1e1b4b; /* Dark indigo */
     color: white;
-    height: 80px;
-    width: 86px; /* Only icon visible by default */
-    display: flex;
-    align-items: center;
-    border-radius: 40px 0 0 40px;
+    height: 100px !important;
+    width: 110px !important; /* Only icon visible by default */
+    display: flex !important;
+    align-items: center !important;
+    border-radius: 50px 0 0 50px !important;
     text-decoration: none !important;
-    box-shadow: -5px 5px 30px rgba(0, 0, 0, 0.4);
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-right: none;
+    box-shadow: -5px 5px 40px rgba(0, 0, 0, 0.5) !important;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+    overflow: hidden !important;
+    border: 2px solid rgba(255, 255, 255, 0.3) !important;
+    border-right: none !important;
 }
 
 .voice-news-badge:hover {
-    width: 280px; /* Expand on hover */
-    background: #131131; /* Slightly darker indigo */
-    box-shadow: -10px 10px 40px rgba(0, 0, 0, 0.5);
+    width: 320px !important; /* Expand on hover */
+    background: #131131 !important; /* Slightly darker indigo */
+    box-shadow: -15px 15px 50px rgba(0, 0, 0, 0.6) !important;
 }
 
 .voice-news-badge .badge-content {
-    display: flex;
-    align-items: center;
-    padding-left: 24px;
-    gap: 16px;
-    width: max-content;
+    display: flex !important;
+    align-items: center !important;
+    padding-left: 30px !important;
+    gap: 20px !important;
+    width: max-content !important;
 }
 
 .voice-news-badge .badge-icon {
-    width: 32px;
-    height: 32px;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    width: 44px !important;
+    height: 44px !important;
+    flex-shrink: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 }
 
 .voice-news-badge .badge-icon svg {
-    width: 100%;
-    height: 100%;
+    width: 100% !important;
+    height: 100% !important;
 }
 
 .voice-news-badge .badge-text {
-    font-size: 15px;
-    font-weight: 900;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
+    font-size: 18px !important;
+    font-weight: 900 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.1em !important;
     color: white !important;
-    white-space: nowrap;
-    opacity: 0;
-    transform: translateX(10px);
-    transition: all 0.3s ease 0.1s;
+    white-space: nowrap !important;
+    opacity: 0 !important;
+    transform: translateX(10px) !important;
+    transition: all 0.3s ease 0.1s !important;
 }
 
 .voice-news-badge:hover .badge-text {
@@ -190,22 +190,22 @@
 /* Mobile adjustments */
 @media (max-width: 768px) {
     .voice-news-badge {
-        bottom: 20%;
-        height: 64px;
-        width: 70px;
-        border-radius: 32px 0 0 32px;
+        bottom: 20% !important;
+        height: 80px !important;
+        width: 88px !important;
+        border-radius: 44px 0 0 44px !important;
     }
     
     .voice-news-badge:hover {
-        width: 232px;
+        width: 260px !important;
     }
     
     .voice-news-badge .badge-content {
-        padding-left: 20px;
+        padding-left: 24px !important;
     }
     
     .voice-news-badge .badge-icon {
-        width: 28px;
-        height: 28px;
+        width: 36px !important;
+        height: 36px !important;
     }
 }
