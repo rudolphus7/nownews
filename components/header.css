@@ -129,14 +129,14 @@
     z-index: 9999;
     background: #1e1b4b; /* Dark indigo */
     color: white;
-    height: 100px !important;
-    width: 320px !important; /* Always expanded now */
+    height: 80px !important;
+    width: 86px !important; /* Only icon visible by default */
     display: flex !important;
     align-items: center !important;
-    border-radius: 50px 0 0 50px !important;
+    border-radius: 40px 0 0 40px !important;
     text-decoration: none !important;
-    box-shadow: -10px 10px 50px rgba(0, 0, 0, 0.5) !important;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+    box-shadow: -10px 10px 40px rgba(0, 0, 0, 0.4) !important;
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
     overflow: hidden !important;
     border: 2px solid rgba(255, 255, 255, 0.3) !important;
     border-right: none !important;
@@ -144,8 +144,9 @@
 }
 
 .voice-news-badge:hover {
-    background: #2e266d !important; /* Lighter on hover */
-    transform: translateX(-5px) !important;
+    width: 280px !important; /* Expand on hover */
+    background: #2e266d !important;
+    box-shadow: -15px 15px 50px rgba(0, 0, 0, 0.5) !important;
 }
 
 .voice-news-badge .badge-content {
@@ -157,8 +158,8 @@
 }
 
 .voice-news-badge .badge-icon {
-    width: 44px !important;
-    height: 44px !important;
+    width: 32px !important;
+    height: 32px !important;
     flex-shrink: 0 !important;
     display: flex !important;
     align-items: center !important;
@@ -171,18 +172,20 @@
 }
 
 .voice-news-badge .badge-text {
-    font-size: 18px !important;
+    font-size: 15px !important;
     font-weight: 900 !important;
     text-transform: uppercase !important;
     letter-spacing: 0.1em !important;
     color: white !important;
     white-space: nowrap !important;
-    opacity: 1 !important; /* Visible by default */
-    transform: translateX(0) !important;
-    transition: all 0.3s ease 0.1s !important;
+    opacity: 0 !important; /* Hidden by default */
+    transform: translateX(20px) !important;
+    transition: all 0.4s ease 0.1s !important;
 }
 
 .voice-news-badge:hover .badge-text {
+    opacity: 1 !important;
+    transform: translateX(0) !important;
     color: #f97316 !important; /* Orange text on hover */
 }
 
@@ -190,27 +193,33 @@
 @media (max-width: 768px) {
     .voice-news-badge {
         bottom: 20% !important;
-        height: 80px !important;
-        width: 260px !important; /* Always expanded on mobile too */
-        border-radius: 44px 0 0 44px !important;
+        height: 64px !important; /* Slightly smaller for mobile if PC is 80 */
+        width: 70px !important;
+        border-radius: 32px 0 0 32px !important;
     }
     
     .voice-news-badge:hover {
+        width: 232px !important;
         background: #2e266d !important;
     }
     
     .voice-news-badge .badge-content {
-        padding-left: 24px !important;
+        padding-left: 20px !important;
     }
     
     .voice-news-badge .badge-icon {
-        width: 36px !important;
-        height: 36px !important;
+        width: 28px !important;
+        height: 28px !important;
     }
 
     .voice-news-badge .badge-text {
-        font-size: 14px !important;
+        font-size: 12px !important;
+        opacity: 0 !important;
+        transform: translateX(10px) !important;
+    }
+
+    .voice-news-badge:hover .badge-text {
         opacity: 1 !important;
-        transform: none !important;
+        transform: translateX(0) !important;
     }
 }
