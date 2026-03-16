@@ -24,7 +24,8 @@ const handlers = {
 
 const BANNED_BOT_STRINGS = [
     'gptbot', 'ccbot', 'perplexitybot', 'anthropic-ai', 'claudebot', 'oai-searchbot',
-    'amazonbot', 'metacrawler', 'mj12bot', 'ahrefsbot', 'semrushbot', 'dotbot'
+    'amazonbot', 'metacrawler', 'mj12bot', 'ahrefsbot', 'semrushbot', 'dotbot',
+    'bytespider', 'petalbot', 'rogerbot', 'clark-crawler', 'searchmetricsbot'
 ];
 
 module.exports = async (req, res) => {

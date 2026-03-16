@@ -287,16 +287,25 @@
             "headers": [
                 {
                     "key": "Cache-Control",
-                    "value": "public, max-age=31536000, immutable"
+                    "value": "public, max-age=31536000, s-maxage=31536000, immutable"
                 }
             ]
         },
         {
-            "source": "/(.*)\\.(ico|png|jpg|jpeg|svg|css|js)",
+            "source": "/images/(.*)",
             "headers": [
                 {
                     "key": "Cache-Control",
-                    "value": "public, max-age=31536000, immutable"
+                    "value": "public, max-age=31536000, s-maxage=31536000, immutable"
+                }
+            ]
+        },
+        {
+            "source": "/(.*)\\.(ico|png|jpg|jpeg|svg|css|js|webp)",
+            "headers": [
+                {
+                    "key": "Cache-Control",
+                    "value": "public, max-age=31536000, s-maxage=31536000, immutable"
                 }
             ]
         }
