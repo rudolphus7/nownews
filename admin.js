@@ -1,5 +1,16 @@
 import { SEOEngine } from './seo-engine.js';
 
+// --- ГЛОБАЛЬНІ ЗМІННІ ТА ПЕРЕКЛАДИ ---
+let CATEGORIES_UK = {};
+let CITIES_UK = {};
+let rssInterval = null;
+let rssSources = [];
+let _allSubscribers = [];
+let readAlsoTimeout = null;
+let quill;
+let currentEditingId = null;
+let currentTags = [];
+
 // --- ІНІЦІАЛІЗАЦІЯ SUPABASE ---
 let _supabase;
 function initSupabase() {
@@ -141,8 +152,8 @@ window.handleImageUpload = async (input, targetId) => {
 };
 
 // --- СТАН РЕДАГУВАННЯ ---
-let currentEditingId = null;
-let currentTags = [];
+currentEditingId = null;
+currentTags = [];
 
 // --- ТЕГИ (ЛОГІКА) ---
 const renderTags = () => {
@@ -187,7 +198,7 @@ document.getElementById('tag-input')?.addEventListener('keydown', (e) => {
 });
 
 // --- ІНІЦІАЛІЗАЦІЯ РЕДАКТОРА (QUILL) ---
-let quill;
+// quill is globally declared
 function initEditor() {
     const editorElem = document.getElementById('editor-container');
     if (editorElem && typeof Quill !== 'undefined') {
@@ -528,8 +539,10 @@ if (btnPublishFb && fbPostText) {
 }
 
 
-let CATEGORIES_UK = {};
-let CITIES_UK = {};
+// CATEGORIES_UK globally declared
+
+// CITIES_UK globally declared
+
 
 let newsCurrentPage = 0;
 const newsPageSize = 20;
@@ -799,8 +812,8 @@ window.generateTTS = async (id) => {
 };
 
 // --- RSS АГРЕГАТОР (ДАНІ) ---
-let rssSources = [];
-let rssInterval = null;
+rssSources = [];
+rssInterval = null;
 
 async function loadRSSSources() {
     if (!_supabase) return;
@@ -914,7 +927,7 @@ async function loadRSS() {
 }
 window.loadRSS = loadRSS;
 
-let rssCurrentPage = 0;
+rssCurrentPage = 0;
 const rssPageSize = 20;
 
 // --- RSS DB MANAGEMENT ---
@@ -1695,8 +1708,7 @@ window.loadSettings = async () => {
 
 // ═══════════════════════════════════════════════════════════════════════
 // READ ALSO GENERATOR (Internal Links)
-// ═══════════════════════════════════════════════════════════════════════
-let readAlsoTimeout = null;
+// readAlsoTimeout globally declared
 
 window.openReadAlsoModal = async () => {
     document.getElementById('read-also-modal').classList.remove('hidden');
@@ -2261,9 +2273,9 @@ window.loadSettings = async () => {
 
         // Update Global Translation Maps
         CATEGORIES_UK = {};
-        cats.forEach(c => CATEGORIES_UK[c.slug] = c.name);
+        if(cats) cats.forEach(c => CATEGORIES_UK[c.slug] = c.name);
         CITIES_UK = {};
-        cities.forEach(c => CITIES_UK[c.slug] = c.name);
+        if(cities) cities.forEach(c => CITIES_UK[c.slug] = c.name);
 
         // Re-render news list to update category names if they changed
         window.loadNews();
@@ -2498,7 +2510,8 @@ window.deleteComment = async (id) => {
 // ═══════════════════════════════════════════════════════════════════════
 // SUBSCRIBERS MANAGEMENT
 // ═══════════════════════════════════════════════════════════════════════
-let _allSubscribers = [];
+// _allSubscribers globally declared
+
 
 window.loadSubscribers = async () => {
     const token = localStorage.getItem('ifnews_admin_token') || '';
