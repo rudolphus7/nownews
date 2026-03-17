@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" sizes="32x32" href="/logo.png">
+    <title>KALUSH NEWS | Портал міста Калуш</title>
+    
+    <!-- Fonts & CSS -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/main.css">
+    <link rel="stylesheet" href="/components/header.css?v=7">
+    
+    <style>
+        :root {
+            --portal-accent: #f97316;
+            --portal-bg: #f8fafc;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--portal-bg);
+            color: #1e293b;
+        }
+
+        .portal-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .portal-main {
+            grid-column: span 8;
+        }
+
+        .portal-sidebar {
+            grid-column: span 4;
+        }
+
+        .portal-card {
+            background: white;
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+        }
+
+        .portal-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: -0.02em;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: var(--portal-accent);
+            border-radius: 2px;
+        }
+
+        /* Mockup Place Card */
+        .place-card {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px dashed #e2e8f0;
+        }
+
+        .place-card:last-child {
+            border-bottom: none;
+        }
+
+        .place-img {
+            width: 80px;
+            height: 80px;
+            border-radius: 1rem;
+            object-fit: cover;
+            background: #f1f5f9;
+        }
+
+        .place-info h4 {
+            font-weight: 800;
+            font-size: 1rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .place-tags {
+            font-size: 0.75rem;
+            color: var(--portal-accent);
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        /* Ads List */
+        .ad-item {
+            background: #fff7ed;
+            border: 1px solid #ffedd5;
+            padding: 1rem;
+            border-radius: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .ad-price {
+            font-weight: 900;
+            color: #c2410c;
+            display: block;
+            margin-top: 0.5rem;
+        }
+
+        @media (max-width: 1024px) {
+            .portal-main, .portal-sidebar {
+                grid-column: span 12;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="site-header-placeholder"></div>
+
+    <main class="container mx-auto px-4 py-8">
+        <!-- Dashboard Header -->
+        <div class="mb-12">
+            <h1 class="text-4xl lg:text-5xl font-black tracking-tight text-slate-900 mb-4">
+                ВІТАЄМО В <span class="text-orange-600">КАЛУШІ</span>
+            </h1>
+            <p class="text-slate-500 max-w-2xl font-medium leading-relaxed">
+                Твій персональний гід містом: від останніх новин громади до кращих закладів та приватних оголошень.
+            </p>
+        </div>
+
+        <div class="portal-grid">
+            <!-- Main Content: News & Events -->
+            <div class="portal-main">
+                <section class="mb-12">
+                    <h2 class="section-title">ОСТАННІ ПОДІЇ МІСТА</h2>
+                    <div id="portal-news-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Hydrated by JS -->
+                        <div class="portal-card animate-pulse h-64 bg-slate-100"></div>
+                        <div class="portal-card animate-pulse h-64 bg-slate-100"></div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="section-title">ЦІКАВІ ЗАКЛАДИ</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="portal-card">
+                            <div class="place-card">
+                                <div class="place-img"></div>
+                                <div class="place-info">
+                                    <span class="place-tags">Ресторани • Центр</span>
+                                    <h4>Кав'ярня "Час Пити"</h4>
+                                    <p class="text-xs text-slate-500">Найкраща кава власного обсмаження в місті.</p>
+                                </div>
+                            </div>
+                            <div class="place-card">
+                                <div class="place-img"></div>
+                                <div class="place-info">
+                                    <span class="place-tags">Сервіс • Ремонт</span>
+                                    <h4>IT-Helper Kalush</h4>
+                                    <p class="text-xs text-slate-500">Ремонт ноутбуків та телефонів будь-якої складності.</p>
+                                </div>
+                            </div>
+                            <a href="#" class="block text-center pt-4 text-xs font-black text-slate-400 hover:text-orange-600 uppercase tracking-widest">Дивитись всі заклади &rarr;</a>
+                        </div>
+
+                        <div class="portal-card">
+                            <div class="place-card">
+                                <div class="place-img"></div>
+                                <div class="place-info">
+                                    <span class="place-tags">Спорт • Хімік</span>
+                                    <h4>Спортклуб "Титан"</h4>
+                                    <p class="text-xs text-slate-500">Сучасні тренажери та професійні тренери.</p>
+                                </div>
+                            </div>
+                            <div class="place-card">
+                                <div class="place-img"></div>
+                                <div class="place-info">
+                                    <span class="place-tags">Відпочинок</span>
+                                    <h4>Парк ім. І. Франка</h4>
+                                    <p class="text-xs text-slate-500">Місце для спокійних прогулянок та відпочинку з дітьми.</p>
+                                </div>
+                            </div>
+                             <a href="#" class="block text-center pt-4 text-xs font-black text-slate-400 hover:text-orange-600 uppercase tracking-widest">Додати свій заклад +</a>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Sidebar: Ads & Jobs -->
+            <div class="portal-sidebar">
+                <section class="mb-12">
+                    <h2 class="section-title">ОГОЛОШЕННЯ</h2>
+                    <div class="portal-card">
+                        <div class="ad-item">
+                            <p class="text-sm font-bold">Продам 2-кімнатну квартиру в центрі</p>
+                            <span class="ad-price">32 500 $</span>
+                        </div>
+                        <div class="ad-item">
+                            <p class="text-sm font-bold">Потрібен бариста (повна зайнятість)</p>
+                            <span class="ad-price">12 000 грн/міс</span>
+                        </div>
+                        <div class="ad-item">
+                            <p class="text-sm font-bold">Продам велосипед Scott Aspect</p>
+                            <span class="ad-price">15 000 грн</span>
+                        </div>
+                        <button class="w-full bg-slate-900 text-white py-4 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-orange-600 transition">Подати оголошення</button>
+                    </div>
+                </section>
+
+                <section>
+                    <div class="portal-card bg-indigo-900 text-white border-none">
+                        <h3 class="text-xl font-black mb-4 uppercase">Чат Громади</h3>
+                        <p class="text-indigo-200 text-sm mb-6">Приєднуйтесь до обговорення важливих питань міста в нашому Telegram чаті.</p>
+                        <a href="https://t.me/bukvanews" class="inline-flex items-center gap-2 bg-indigo-500 py-3 px-6 rounded-xl font-bold hover:bg-white hover:text-indigo-900 transition">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/></svg>
+                            ДОЛУЧИТИСЬ
+                        </a>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <script defer src="/components/header.js?v=7"></script>
+    <script>
+        // Portal Hydration Script (simplified for now)
+        async function loadPortalNews() {
+            try {
+                const res = await fetch('/api/news?city=kalush&limit=4');
+                const data = await res.json();
+                const grid = document.getElementById('portal-news-grid');
+                grid.innerHTML = data.map(item => `
+                    <a href="${item.url}" class="portal-card flex flex-col group">
+                        <img src="${item.image || '/og-default.jpg'}" class="rounded-xl h-40 object-cover mb-4 group-hover:scale-105 transition duration-500">
+                        <span class="text-[10px] font-black uppercase text-orange-600 mb-2">${item.category_name}</span>
+                        <h3 class="font-black text-lg leading-tight group-hover:text-orange-600 transition">${item.title}</h3>
+                    </a>
+                `).join('');
+            } catch (e) {
+                console.error('Portal News Error:', e);
+            }
+        }
+        window.addEventListener('load', loadPortalNews);
+    </script>
+</body>
+
+</html>

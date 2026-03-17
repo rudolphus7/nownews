@@ -20,7 +20,8 @@ const handlers = {
     'upload-image': require('./_handlers/upload-image'),
     'index-ping': require('./_handlers/index-ping'),
     'popups': require('./_handlers/popups'),
-    'cleanup': require('./_handlers/cleanup')
+    'cleanup': require('./_handlers/cleanup'),
+    'portal': require('./_handlers/portal')
 };
 
 const BANNED_BOT_STRINGS = [
@@ -45,8 +46,7 @@ module.exports = async (req, res) => {
     // 1.1 Subdomain handling: Route kalush.bukva.news/ directly to the city portal
     if (host.startsWith('kalush.') && !target && (req.url === '/' || req.url.startsWith('/?'))) {
         try {
-            req.query.city = 'kalush';
-            return await handlers['city'](req, res);
+            return await handlers['portal'](req, res);
         } catch (err) {
             console.error('Subdomain Router Error:', err);
         }
