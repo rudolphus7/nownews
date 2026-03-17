@@ -297,6 +297,17 @@
             pointer-events: none;
         }
     </style>
+    <script>
+        // Diagnostic script
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                console.log("🔍 [DIAG] openPortalEditor defined at:", window.openPortalEditor.toString().substring(0, 100));
+                if (window.openPortalEditor.toString().includes("not yet loaded")) {
+                    console.error("🚨 [DIAG] openPortalEditor is still the stub! admin.js likely failed to load or crash before assignment.");
+                }
+            }, 3000);
+        });
+    </script>
 </head>
 
 <!-- ============ LOGIN GATE ============ -->
@@ -1878,7 +1889,7 @@
         </div>
     </div>
 
-    <script type="module" src="/admin.js"></script>
+    <script type="module" src="/admin.js" onerror="console.error('🚨 [ADMIN] Failed to load /admin.js module. Check path and server logs.')"></script>
 </body>
 
 </html>

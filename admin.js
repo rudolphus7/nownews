@@ -1,4 +1,6 @@
+console.log("🚀 Admin.js: Module loading started...");
 import { SEOEngine } from './seo-engine.js';
+console.log("✅ Admin.js: Imports successful");
 
 // --- ГЛОБАЛЬНІ ЗМІННІ ТА ПЕРЕКЛАДИ ---
 let CATEGORIES_UK = {};
@@ -20,6 +22,7 @@ window.loadPlaces = async () => { console.warn("Place logic not yet loaded"); };
 window.openPlaceEditor = async () => { console.warn("Place logic not yet loaded"); };
 window.loadAds = async () => { console.warn("Ad logic not yet loaded"); };
 window.openAdEditor = async () => { console.warn("Ad logic not yet loaded"); };
+console.log("✅ Admin.js: Early stubs registered");
 
 // --- ІНІЦІАЛІЗАЦІЯ SUPABASE ---
 let _supabase;
@@ -34,6 +37,7 @@ function initSupabase() {
     }
 }
 initSupabase();
+console.log("✅ Admin.js: Supabase initialization call made");
 
 // --- IMAGE UPLOAD & OPTIMIZATION ---
 // Pre-load logo once to avoid repeated network requests and timing issues on mobile
@@ -229,6 +233,7 @@ function initEditor() {
 }
 
 initEditor();
+console.log("✅ Admin.js: Editor (Quill) initialized");
 
 const newsForm = document.getElementById('news-form');
 const titleInput = document.getElementById('title');
@@ -296,6 +301,7 @@ const initReactionSelector = () => {
     }
 };
 initReactionSelector();
+console.log("✅ Admin.js: Reaction selector initialized");
 
 // --- НАВІГАЦІЯ ---
 const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
