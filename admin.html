@@ -464,6 +464,23 @@
                 <span class="text-xl">🪟</span>
                 <span class="font-bold tracking-wide">Попапи</span>
             </a>
+            <hr class="border-slate-800 my-2">
+            <a href="#" onclick="showSection('section-portals'); window.loadPortals();"
+                class="flex items-center space-x-4 p-4 rounded-2xl hover:bg-slate-800 transition-all group text-orange-400">
+                <span class="text-xl">🏙️</span>
+                <span class="font-bold tracking-wide">Портали Міст</span>
+            </a>
+            <a href="#" onclick="showSection('section-places'); window.loadPlaces();"
+                class="flex items-center space-x-4 p-4 rounded-2xl hover:bg-slate-800 transition-all group">
+                <span class="text-xl">📍</span>
+                <span class="font-bold tracking-wide">Заклади</span>
+            </a>
+            <a href="#" onclick="showSection('section-ads'); window.loadAds();"
+                class="flex items-center space-x-4 p-4 rounded-2xl hover:bg-slate-800 transition-all group">
+                <span class="text-xl">📢</span>
+                <span class="font-bold tracking-wide">Оголошення</span>
+            </a>
+            <hr class="border-slate-800 my-2">
             <a href="#" onclick="showSection('section-settings')"
                 class="flex items-center space-x-4 p-4 rounded-2xl hover:bg-slate-800 transition-all group">
                 <span class="text-xl">⚙️</span>
@@ -1360,6 +1377,237 @@
                         <div class="flex gap-4 pt-6 border-t">
                             <button type="submit" class="flex-1 bg-slate-900 text-white py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-orange-600 transition shadow-xl">Зберегти попап</button>
                             <button type="button" onclick="window.closePopupEditor()" class="flex-1 bg-slate-100 text-slate-500 py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-slate-200 transition">Скасувати</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: PORTALS -->
+        <section id="section-portals" class="admin-section hidden max-w-6xl">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+                <div>
+                    <h2 class="text-3xl font-extrabold text-slate-800 tracking-tight">Портали Міст</h2>
+                </div>
+                <button onclick="window.openPortalEditor()" class="px-6 py-4 bg-orange-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-900 transition shadow-xl shadow-orange-100 flex items-center gap-2">
+                    <span>➕</span> Додати Портал
+                </button>
+            </div>
+
+            <div id="portals-list" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Portals cards here -->
+            </div>
+
+            <!-- Portal Editor Modal -->
+            <div id="portal-editor-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-lg hidden z-[100] flex items-center justify-center p-4">
+                <div class="bg-white rounded-[3rem] p-8 w-full max-w-2xl shadow-2xl overflow-y-auto max-h-[90vh]">
+                    <h3 class="text-2xl font-black mb-6 text-slate-800 uppercase italic">Налаштування порталу</h3>
+                    <form id="portal-form" class="space-y-6">
+                        <input type="hidden" id="portal-id">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[10px] font-black uppercase text-slate-400 mb-2 tracking-widest">Slug міста</label>
+                                <input type="text" id="portal-city-slug" class="w-full p-4 bg-slate-50 rounded-xl font-bold border-none" readonly disabled>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-black uppercase text-slate-400 mb-2 tracking-widest">Назва порталу</label>
+                                <input type="text" id="portal-name-input" class="w-full p-4 bg-slate-50 rounded-xl font-bold border-none" required>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black uppercase text-slate-400 mb-2 tracking-widest">Логотип (URL)</label>
+                            <input type="text" id="portal-logo" class="w-full p-4 bg-slate-50 rounded-xl border-none" placeholder="https://...">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[10px] font-black uppercase text-slate-400 mb-2 tracking-widest">SEO Title</label>
+                                <input type="text" id="portal-seo-title" class="w-full p-4 bg-slate-50 rounded-xl border-none">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-black uppercase text-slate-400 mb-2 tracking-widest">SEO Description</label>
+                                <textarea id="portal-seo-desc" rows="1" class="w-full p-4 bg-slate-50 rounded-xl border-none"></textarea>
+                            </div>
+                        </div>
+                        <div class="flex gap-4 pt-4">
+                            <button type="submit" class="flex-1 bg-slate-900 text-white py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-orange-600 transition shadow-xl">Зберегти</button>
+                            <button type="button" onclick="window.closePortalEditor()" class="flex-1 bg-slate-100 text-slate-500 py-4 rounded-2xl font-black uppercase tracking-widest">Скасувати</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: PLACES -->
+        <section id="section-places" class="admin-section hidden max-w-6xl">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+                <div>
+                    <h2 class="text-3xl font-extrabold text-slate-800 tracking-tight">Заклади</h2>
+                    <p class="text-slate-500 font-medium">Ресторани, сервіси та туристичні місця</p>
+                </div>
+                <button onclick="window.openPlaceEditor()" class="bg-slate-900 text-white px-8 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl hover:bg-orange-600 transition">
+                    + Додати заклад
+                </button>
+            </div>
+
+            <div class="bg-white rounded-[2.5rem] shadow-xl overflow-x-auto border border-white">
+                <table class="w-full text-left border-collapse min-w-[800px]">
+                    <thead class="bg-slate-50 text-slate-400 uppercase text-[10px] font-black tracking-widest border-b">
+                        <tr>
+                            <th class="p-6">Заклад / Місто</th>
+                            <th class="p-6 text-center">Категорія</th>
+                            <th class="p-6">Контакти</th>
+                            <th class="p-6 text-right">Дії</th>
+                        </tr>
+                    </thead>
+                    <tbody id="places-table-body" class="divide-y divide-slate-100">
+                        <!-- Places content -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Place Editor Modal -->
+            <div id="place-editor-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-lg hidden z-[100] flex items-center justify-center p-4">
+                <div class="bg-white rounded-[3rem] p-8 w-full max-w-2xl shadow-2xl overflow-y-auto max-h-[90vh]">
+                    <h3 class="text-2xl font-black mb-6 text-slate-800 uppercase italic">Редагувати заклад</h3>
+                    <form id="place-form" class="space-y-4">
+                        <input type="hidden" id="place-id">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">Місто</label>
+                                <select id="place-city" class="w-full p-4 bg-slate-50 rounded-xl border-none font-bold" required>
+                                    <option value="kalush">Калуш</option>
+                                    <option value="if">Франківськ</option>
+                                    <option value="kolomyya">Коломия</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">Назва закладу</label>
+                                <input type="text" id="place-name" class="w-full p-4 bg-slate-50 rounded-xl border-none font-bold" required>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">Категорія (Slug)</label>
+                                <input type="text" id="place-cat-slug" class="w-full p-4 bg-slate-50 rounded-xl border-none" placeholder="restaurants">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">Категорія (Назва)</label>
+                                <input type="text" id="place-cat-name" class="w-full p-4 bg-slate-50 rounded-xl border-none" placeholder="Ресторани">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">Адреса</label>
+                                <input type="text" id="place-address" class="w-full p-4 bg-slate-50 rounded-xl border-none">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">Телефон</label>
+                                <input type="text" id="place-phone" class="w-full p-4 bg-slate-50 rounded-xl border-none">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">Фото (URL)</label>
+                            <input type="text" id="place-image" class="w-full p-4 bg-slate-50 rounded-xl border-none">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">Опис</label>
+                            <textarea id="place-desc" rows="2" class="w-full p-4 bg-slate-50 rounded-xl border-none"></textarea>
+                        </div>
+                        <div class="flex items-center gap-3 p-4 bg-orange-50 rounded-2xl">
+                            <input type="checkbox" id="place-featured" class="w-6 h-6 rounded-lg text-orange-600">
+                            <label for="place-featured" class="text-[10px] font-black uppercase text-orange-600 tracking-widest">Закріпити в топі на порталі</label>
+                        </div>
+                        <div class="flex gap-4 pt-4">
+                            <button type="submit" class="flex-1 bg-slate-900 text-white py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-orange-600 transition shadow-xl">Зберегти</button>
+                            <button type="button" onclick="window.closePlaceEditor()" class="flex-1 bg-slate-100 text-slate-500 py-4 rounded-2xl font-black uppercase tracking-widest">Скасувати</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: ADS -->
+        <section id="section-ads" class="admin-section hidden max-w-6xl">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+                <div>
+                    <h2 class="text-3xl font-extrabold text-slate-800 tracking-tight">Оголошення</h2>
+                    <p class="text-slate-500 font-medium">Приватні оголошення від жителів міст</p>
+                </div>
+                <button onclick="window.openAdEditor()" class="bg-slate-900 text-white px-8 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl hover:bg-orange-600 transition">
+                    + Нове оголошення
+                </button>
+            </div>
+
+            <div class="bg-white rounded-[2.5rem] shadow-xl overflow-x-auto border border-white">
+                <table class="w-full text-left border-collapse min-w-[800px]">
+                    <thead class="bg-slate-50 text-slate-400 uppercase text-[10px] font-black tracking-widest border-b">
+                        <tr>
+                            <th class="p-6">Оголошення</th>
+                            <th class="p-6 text-center">Ціна</th>
+                            <th class="p-6 text-center">Статус</th>
+                            <th class="p-6 text-right">Дії</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ads-table-body" class="divide-y divide-slate-100">
+                        <!-- Ads content -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Ad Editor Modal -->
+            <div id="ad-editor-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-lg hidden z-[100] flex items-center justify-center p-4">
+                <div class="bg-white rounded-[3rem] p-8 w-full max-w-2xl shadow-2xl overflow-y-auto max-h-[90vh]">
+                    <h3 class="text-2xl font-black mb-6 text-slate-800 uppercase italic">Редагувати оголошення</h3>
+                    <form id="ad-form" class="space-y-4">
+                        <input type="hidden" id="ad-id">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">Місто</label>
+                                <select id="ad-city" class="w-full p-4 bg-slate-50 rounded-xl border-none font-bold" required>
+                                    <option value="kalush">Калуш</option>
+                                    <option value="if">Франківськ</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">Заголовок</label>
+                                <input type="text" id="ad-title" class="w-full p-4 bg-slate-50 rounded-xl border-none font-bold" required>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">Категорія</label>
+                                <input type="text" id="ad-category" class="w-full p-4 bg-slate-50 rounded-xl border-none" placeholder="Нерухомість">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">Ціна</label>
+                                <input type="text" id="ad-price" class="w-full p-4 bg-slate-50 rounded-xl border-none" placeholder="1000 грн">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">Телефон</label>
+                            <input type="text" id="ad-phone" class="w-full p-4 bg-slate-50 rounded-xl border-none">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">Опис</label>
+                            <textarea id="ad-desc" rows="3" class="w-full p-4 bg-slate-50 rounded-xl border-none"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">Фото (URL)</label>
+                            <input type="text" id="ad-image" class="w-full p-4 bg-slate-50 rounded-xl border-none">
+                        </div>
+                        <div class="flex items-center gap-6 p-4 bg-slate-50 rounded-2xl">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" id="ad-published" checked class="w-6 h-6 rounded-lg text-green-600">
+                                <span class="text-[10px] font-black uppercase tracking-widest">Опубліковано</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" id="ad-featured" class="w-6 h-6 rounded-lg text-orange-600">
+                                <span class="text-[10px] font-black uppercase tracking-widest text-orange-600">Виділити</span>
+                            </label>
+                        </div>
+                        <div class="flex gap-4 pt-4">
+                            <button type="submit" class="flex-1 bg-slate-900 text-white py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-orange-600 transition shadow-xl">Зберегти</button>
+                            <button type="button" onclick="window.closeAdEditor()" class="flex-1 bg-slate-100 text-slate-500 py-4 rounded-2xl font-black uppercase tracking-widest">Скасувати</button>
                         </div>
                     </form>
                 </div>

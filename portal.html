@@ -157,46 +157,10 @@
 
                 <section>
                     <h2 class="section-title">ЦІКАВІ ЗАКЛАДИ</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="portal-card">
-                            <div class="place-card">
-                                <div class="place-img"></div>
-                                <div class="place-info">
-                                    <span class="place-tags">Ресторани • Центр</span>
-                                    <h4>Кав'ярня "Час Пити"</h4>
-                                    <p class="text-xs text-slate-500">Найкраща кава власного обсмаження в місті.</p>
-                                </div>
-                            </div>
-                            <div class="place-card">
-                                <div class="place-img"></div>
-                                <div class="place-info">
-                                    <span class="place-tags">Сервіс • Ремонт</span>
-                                    <h4>IT-Helper Kalush</h4>
-                                    <p class="text-xs text-slate-500">Ремонт ноутбуків та телефонів будь-якої складності.</p>
-                                </div>
-                            </div>
-                            <a href="#" class="block text-center pt-4 text-xs font-black text-slate-400 hover:text-orange-600 uppercase tracking-widest">Дивитись всі заклади &rarr;</a>
-                        </div>
-
-                        <div class="portal-card">
-                            <div class="place-card">
-                                <div class="place-img"></div>
-                                <div class="place-info">
-                                    <span class="place-tags">Спорт • Хімік</span>
-                                    <h4>Спортклуб "Титан"</h4>
-                                    <p class="text-xs text-slate-500">Сучасні тренажери та професійні тренери.</p>
-                                </div>
-                            </div>
-                            <div class="place-card">
-                                <div class="place-img"></div>
-                                <div class="place-info">
-                                    <span class="place-tags">Відпочинок</span>
-                                    <h4>Парк ім. І. Франка</h4>
-                                    <p class="text-xs text-slate-500">Місце для спокійних прогулянок та відпочинку з дітьми.</p>
-                                </div>
-                            </div>
-                             <a href="#" class="block text-center pt-4 text-xs font-black text-slate-400 hover:text-orange-600 uppercase tracking-widest">Додати свій заклад +</a>
-                        </div>
+                    <div id="places-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Hydrated by JS -->
+                        <div class="portal-card animate-pulse h-64 bg-slate-100"></div>
+                        <div class="portal-card animate-pulse h-64 bg-slate-100"></div>
                     </div>
                 </section>
             </div>
@@ -205,20 +169,13 @@
             <div class="portal-sidebar">
                 <section class="mb-12">
                     <h2 class="section-title">ОГОЛОШЕННЯ</h2>
-                    <div class="portal-card">
-                        <div class="ad-item">
-                            <p class="text-sm font-bold">Продам 2-кімнатну квартиру в центрі</p>
-                            <span class="ad-price">32 500 $</span>
+                    <div id="ads-container" class="portal-card">
+                        <!-- Hydrated by JS -->
+                        <div class="animate-pulse space-y-4">
+                            <div class="h-16 bg-slate-100 rounded-xl"></div>
+                            <div class="h-16 bg-slate-100 rounded-xl"></div>
+                            <div class="h-12 bg-slate-200 rounded-xl"></div>
                         </div>
-                        <div class="ad-item">
-                            <p class="text-sm font-bold">Потрібен бариста (повна зайнятість)</p>
-                            <span class="ad-price">12 000 грн/міс</span>
-                        </div>
-                        <div class="ad-item">
-                            <p class="text-sm font-bold">Продам велосипед Scott Aspect</p>
-                            <span class="ad-price">15 000 грн</span>
-                        </div>
-                        <button class="w-full bg-slate-900 text-white py-4 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-orange-600 transition">Подати оголошення</button>
                     </div>
                 </section>
 
@@ -238,24 +195,80 @@
 
     <script defer src="/components/header.js?v=7"></script>
     <script>
-        // Portal Hydration Script (simplified for now)
-        async function loadPortalNews() {
-            try {
-                const res = await fetch('/api/news?city=kalush&limit=4');
-                const data = await res.json();
-                const grid = document.getElementById('portal-news-grid');
-                grid.innerHTML = data.map(item => `
-                    <a href="${item.url}" class="portal-card flex flex-col group">
-                        <img src="${item.image || '/og-default.jpg'}" class="rounded-xl h-40 object-cover mb-4 group-hover:scale-105 transition duration-500">
-                        <span class="text-[10px] font-black uppercase text-orange-600 mb-2">${item.category_name}</span>
-                        <h3 class="font-black text-lg leading-tight group-hover:text-orange-600 transition">${item.title}</h3>
-                    </a>
-                `).join('');
-            } catch (e) {
-                console.error('Portal News Error:', e);
-            }
+        const API_BASE = 'https://kgrxlznhimwuvwhjfzhv.supabase.co/rest/v1';
+        const API_KEY = 'sb_publishable_L4_HhLhbj_m6wbEc3ZqhcQ_QNGOLWXU';
+        const config = window.PORTAL_CONFIG || { citySlug: 'kalush', cityDisplayName: 'Калуш' };
+
+        // Simple fetch helper for economy
+        async function sbFetch(table, params) {
+            const res = await fetch(`${API_BASE}/${table}?${params}`, {
+                headers: { 'apikey': API_KEY, 'Authorization': `Bearer ${API_KEY}` }
+            });
+            return res.ok ? res.json() : [];
         }
-        window.addEventListener('load', loadPortalNews);
+
+        async function hydratePortal() {
+            // 1. Load News
+            try {
+                const news = await sbFetch('news', `city=eq.${config.citySlug}&is_published=eq.true&select=id,title,slug,image_url,category,category_name&order=created_at.desc&limit=4`);
+                const newsGrid = document.getElementById('portal-news-grid');
+                if (news.length > 0) {
+                    newsGrid.innerHTML = news.map(n => `
+                        <a href="/${n.city ? n.city + '/' : n.category + '/'}${n.slug}" class="portal-card flex flex-col group">
+                            <img src="${n.image_url || '/og-default.jpg'}" class="rounded-xl h-44 object-cover mb-4 group-hover:scale-[1.02] transition duration-500 shadow-sm bg-slate-100">
+                            <span class="text-[10px] font-black uppercase text-orange-600 mb-2">${n.category_name}</span>
+                            <h3 class="font-black text-lg leading-tight group-hover:text-orange-600 transition line-clamp-2">${n.title}</h3>
+                        </a>
+                    `).join('');
+                } else {
+                    newsGrid.innerHTML = '<div class="col-span-full py-8 text-center text-slate-400 italic">Новин поки немає</div>';
+                }
+            } catch (e) { console.error(e); }
+
+            // 2. Load Places
+            try {
+                const places = await sbFetch('places', `city_slug=eq.${config.citySlug}&order=is_featured.desc,created_at.desc&limit=6`);
+                const placesContainer = document.querySelector('#places-container');
+                if (placesContainer && places.length > 0) {
+                    // Split into two columns as per template
+                    const leftCol = places.slice(0, 3);
+                    const rightCol = places.slice(3, 6);
+                    
+                    const renderCol = (list) => `
+                        <div class="portal-card">
+                            ${list.map(p => `
+                                <div class="place-card">
+                                    <img src="${p.image_url || 'https://via.placeholder.com/100'}" class="place-img bg-slate-50">
+                                    <div class="place-info">
+                                        <span class="place-tags">${p.category_name}</span>
+                                        <h4>${p.name}</h4>
+                                        <p class="text-xs text-slate-500 line-clamp-1">${p.address || ''}</p>
+                                    </div>
+                                </div>
+                            `).join('')}
+                            <a href="#" class="block text-center pt-4 text-xs font-black text-slate-400 hover:text-orange-600 uppercase tracking-widest">Дивитись всі &rarr;</a>
+                        </div>
+                    `;
+                    placesContainer.innerHTML = renderCol(leftCol) + (rightCol.length > 0 ? renderCol(rightCol) : '');
+                }
+            } catch (e) { console.error(e); }
+
+            // 3. Load Ads
+            try {
+                const ads = await sbFetch('classifieds', `city_slug=eq.${config.citySlug}&is_published=eq.true&order=is_featured.desc,created_at.desc&limit=5`);
+                const adsContainer = document.getElementById('ads-container');
+                if (adsContainer && ads.length > 0) {
+                    adsContainer.innerHTML = ads.map(a => `
+                        <div class="ad-item">
+                            <p class="text-sm font-bold truncate">${a.title}</p>
+                            <span class="ad-price">${a.price || 'Договірна'}</span>
+                        </div>
+                    `).join('') + '<button class="w-full bg-slate-900 text-white py-4 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-orange-600 transition mt-4">Подати оголошення</button>';
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        window.addEventListener('DOMContentLoaded', hydratePortal);
     </script>
 </body>
 

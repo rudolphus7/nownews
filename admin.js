@@ -2789,3 +2789,300 @@ window.duplicatePopup = async (id) => {
         window.loadPopups();
     }
 };
+// ═══════════════════════════════════════════════════════════════════════
+// CITY PORTAL MANAGEMENT
+// ═══════════════════════════════════════════════════════════════════════
+
+window.loadPortals = async () => {
+    if (!_supabase) return;
+    const grid = document.getElementById('portals-list');
+    if (!grid) return;
+    grid.innerHTML = '<div class="col-span-full py-10 text-center"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto"></div></div>';
+
+    const { data: portals, error } = await _supabase.from('portal_settings').select('*').order('city_slug');
+
+    if (error) {
+        grid.innerHTML = `<div class="col-span-full py-10 text-center text-red-500">Помилка: ${error.message}</div>`;
+        return;
+    }
+
+    grid.innerHTML = portals.map(p => `
+        <div class="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-50 hover:shadow-2xl transition-all group">
+            <div class="flex justify-between items-start mb-6">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-2xl">
+                        ${p.config?.logo_url ? `<img src="${p.config.logo_url}" class="w-8 h-8 object-contain">` : '🏛️'}
+                    </div>
+                    <div>
+                        <h4 class="text-xl font-black text-slate-800">${p.city_name || p.city_slug}</h4>
+                        <p class="text-[10px] font-black uppercase text-slate-400 tracking-widest">${p.city_slug}.bukva.news</p>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="window.openPortalEditor('${p.id}')" class="p-3 bg-slate-50 text-slate-400 hover:text-orange-600 rounded-2xl transition-colors">✏️</button>
+                    <button onclick="window.deletePortal('${p.id}')" class="p-3 bg-slate-50 text-slate-400 hover:text-red-500 rounded-2xl transition-colors">🗑️</button>
+                </div>
+            </div>
+            <div class="space-y-2 mb-6">
+                <div class="flex justify-between text-xs">
+                    <span class="text-slate-400 font-bold uppercase tracking-tighter">SEO Title:</span>
+                    <span class="text-slate-700 font-bold truncate max-w-[150px] font-mono">${p.config?.seo?.title || '—'}</span>
+                </div>
+            </div>
+            <a href="https://${p.city_slug}.bukva.news" target="_blank" class="block w-full py-4 bg-slate-900 text-white rounded-2xl text-center text-[10px] font-black uppercase tracking-widest hover:bg-orange-600 transition shadow-lg">Перейти на портал</a>
+        </div>
+    `).join('');
+};
+
+window.openPortalEditor = async (id = null) => {
+    const slugInput = document.getElementById('portal-city-slug');
+    document.getElementById('portal-form').reset();
+    document.getElementById('portal-id').value = id || '';
+
+    if (id) {
+        const { data: p } = await _supabase.from('portal_settings').select('*').eq('id', id).single();
+        if (p) {
+            document.getElementById('portal-id').value = p.id;
+            slugInput.value = p.city_slug;
+            slugInput.readOnly = true;
+            slugInput.disabled = true;
+            document.getElementById('portal-name-input').value = p.city_name || '';
+            document.getElementById('portal-logo').value = p.config?.logo_url || '';
+            document.getElementById('portal-seo-title').value = p.config?.seo?.title || '';
+            document.getElementById('portal-seo-desc').value = p.config?.seo?.description || '';
+        }
+    } else {
+        slugInput.value = '';
+        slugInput.readOnly = false;
+        slugInput.disabled = false;
+    }
+
+    document.getElementById('portal-editor-modal').classList.remove('hidden');
+};
+
+window.closePortalEditor = () => {
+    document.getElementById('portal-editor-modal').classList.add('hidden');
+};
+
+document.getElementById('portal-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('portal-id').value;
+    const payload = {
+        city_slug: document.getElementById('portal-city-slug').value.toLowerCase(),
+        city_name: document.getElementById('portal-name-input').value,
+        config: {
+            logo_url: document.getElementById('portal-logo').value,
+            seo: {
+                title: document.getElementById('portal-seo-title').value,
+                description: document.getElementById('portal-seo-desc').value
+            }
+        }
+    };
+
+    let res;
+    if (id) res = await _supabase.from('portal_settings').update(payload).eq('id', id);
+    else res = await _supabase.from('portal_settings').insert([payload]);
+
+    if (res.error) alert(res.error.message);
+    else {
+        window.closePortalEditor();
+        window.loadPortals();
+    }
+});
+
+window.deletePortal = async (id) => {
+    if (confirm('Видалити цей портал? Ця дія незворотна!')) {
+        const { error } = await _supabase.from('portal_settings').delete().eq('id', id);
+        if (error) alert(error.message);
+        else window.loadPortals();
+    }
+};
+
+// ═══════════════════════════════════════════════════════════════════════
+// PLACES MANAGEMENT
+// ═══════════════════════════════════════════════════════════════════════
+
+window.loadPlaces = async () => {
+    const tbody = document.getElementById('places-table-body');
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-slate-400 italic">Завантаження заладів...</td></tr>';
+
+    const { data: places, error } = await _supabase.from('places').select('*').order('created_at', { ascending: false });
+
+    if (error) {
+        tbody.innerHTML = `<tr><td colspan="4" class="p-10 text-center text-red-500">${error.message}</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = places.map(p => `
+        <tr class="hover:bg-slate-50 transition border-b border-slate-50">
+            <td class="p-6">
+                <div class="flex items-center gap-4">
+                    <img src="${p.image_url || 'https://via.placeholder.com/100'}" class="w-12 h-12 rounded-xl object-cover bg-slate-100">
+                    <div>
+                        <div class="font-black text-slate-800 uppercase text-xs">${p.name}</div>
+                        <div class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1">${p.city_slug} • ${p.address || 'Адреса не вказана'}</div>
+                    </div>
+                </div>
+            </td>
+            <td class="p-6 text-center">
+                <span class="px-3 py-1 bg-orange-50 text-orange-600 rounded-full text-[9px] font-black uppercase tracking-widest">${p.category_name}</span>
+            </td>
+            <td class="p-6 text-slate-500 text-[11px] font-black uppercase">${p.phone || '—'}</td>
+            <td class="p-6 text-right whitespace-nowrap">
+                <button onclick="window.openPlaceEditor('${p.id}')" class="inline-block bg-slate-100 text-slate-400 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest hover:text-orange-600 transition shadow-sm">Редагувати</button>
+                <button onclick="window.deletePlace('${p.id}')" class="inline-block ml-1 bg-slate-100 text-slate-400 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest hover:text-red-500 transition shadow-sm">🗑️</button>
+            </td>
+        </tr>
+    `).join('') || '<tr><td colspan="4" class="p-10 text-center text-slate-400 italic">Закладів ще не додано</td></tr>';
+};
+
+window.openPlaceEditor = async (id = null) => {
+    const form = document.getElementById('place-form');
+    form.reset();
+    document.getElementById('place-id').value = id || '';
+
+    if (id) {
+        const { data: p } = await _supabase.from('places').select('*').eq('id', id).single();
+        if (p) {
+            document.getElementById('place-city').value = p.city_slug;
+            document.getElementById('place-name').value = p.name;
+            document.getElementById('place-cat-slug').value = p.category_slug;
+            document.getElementById('place-cat-name').value = p.category_name;
+            document.getElementById('place-address').value = p.address || '';
+            document.getElementById('place-phone').value = p.phone || '';
+            document.getElementById('place-image').value = p.image_url || '';
+            document.getElementById('place-desc').value = p.description || '';
+            document.getElementById('place-featured').checked = p.is_featured;
+        }
+    }
+    document.getElementById('place-editor-modal').classList.remove('hidden');
+};
+
+window.closePlaceEditor = () => document.getElementById('place-editor-modal').classList.add('hidden');
+
+document.getElementById('place-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('place-id').value;
+    const payload = {
+        city_slug: document.getElementById('place-city').value,
+        name: document.getElementById('place-name').value,
+        category_slug: document.getElementById('place-cat-slug').value,
+        category_name: document.getElementById('place-cat-name').value,
+        address: document.getElementById('place-address').value,
+        phone: document.getElementById('place-phone').value,
+        image_url: document.getElementById('place-image').value,
+        description: document.getElementById('place-desc').value,
+        is_featured: document.getElementById('place-featured').checked
+    };
+
+    let res;
+    if (id) res = await _supabase.from('places').update(payload).eq('id', id);
+    else res = await _supabase.from('places').insert([payload]);
+
+    if (res.error) alert(res.error.message);
+    else {
+        window.closePlaceEditor();
+        window.loadPlaces();
+    }
+});
+
+window.deletePlace = async (id) => {
+    if (confirm('Видалити цей заклад?')) {
+        await _supabase.from('places').delete().eq('id', id);
+        window.loadPlaces();
+    }
+};
+
+// ═══════════════════════════════════════════════════════════════════════
+// CLASSIFIEDS ADS MANAGEMENT
+// ═══════════════════════════════════════════════════════════════════════
+
+window.loadAds = async () => {
+    const tbody = document.getElementById('ads-table-body');
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-slate-400 italic">Завантаження оголошень...</td></tr>';
+
+    const { data: ads, error } = await _supabase.from('classifieds').select('*').order('created_at', { ascending: false });
+
+    if (error) {
+        tbody.innerHTML = `<tr><td colspan="4" class="p-10 text-center text-red-500">${error.message}</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = ads.map(a => `
+        <tr class="hover:bg-slate-50 transition border-b border-slate-50">
+            <td class="p-6">
+                <div class="font-black text-slate-800 uppercase text-xs">${a.title}</div>
+                <div class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1">${a.city_slug} • ${a.category}</div>
+            </td>
+            <td class="p-6 text-center text-orange-600 font-black text-sm">${a.price || 'Договірна'}</td>
+            <td class="p-6 text-center">
+                <span class="px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ${a.is_published ? 'bg-green-50 text-green-600' : 'bg-slate-100 text-slate-400'}">
+                    ${a.is_published ? 'Активно' : 'Чернетка'}
+                </span>
+            </td>
+            <td class="p-6 text-right whitespace-nowrap">
+                <button onclick="window.openAdEditor('${a.id}')" class="inline-block bg-slate-100 text-slate-400 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest hover:text-orange-600 transition shadow-sm">Редагувати</button>
+                <button onclick="window.deleteAd('${a.id}')" class="inline-block ml-1 bg-slate-100 text-slate-400 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest hover:text-red-500 transition shadow-sm">🗑️</button>
+            </td>
+        </tr>
+    `).join('') || '<tr><td colspan="4" class="p-10 text-center text-slate-400 italic">Оголошень ще немає</td></tr>';
+};
+
+window.openAdEditor = async (id = null) => {
+    const form = document.getElementById('ad-form');
+    form.reset();
+    document.getElementById('ad-id').value = id || '';
+
+    if (id) {
+        const { data: a } = await _supabase.from('classifieds').select('*').eq('id', id).single();
+        if (a) {
+            document.getElementById('ad-city').value = a.city_slug;
+            document.getElementById('ad-title').value = a.title;
+            document.getElementById('ad-category').value = a.category;
+            document.getElementById('ad-price').value = a.price || '';
+            document.getElementById('ad-phone').value = a.phone || '';
+            document.getElementById('ad-desc').value = a.description || '';
+            document.getElementById('ad-image').value = a.image_url || '';
+            document.getElementById('ad-published').checked = a.is_published;
+            document.getElementById('ad-featured').checked = a.is_featured;
+        }
+    }
+    document.getElementById('ad-editor-modal').classList.remove('hidden');
+};
+
+window.closeAdEditor = () => document.getElementById('ad-editor-modal').classList.add('hidden');
+
+document.getElementById('ad-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('ad-id').value;
+    const payload = {
+        city_slug: document.getElementById('ad-city').value,
+        title: document.getElementById('ad-title').value,
+        category: document.getElementById('ad-category').value,
+        price: document.getElementById('ad-price').value,
+        phone: document.getElementById('ad-phone').value,
+        description: document.getElementById('ad-desc').value,
+        image_url: document.getElementById('ad-image').value,
+        is_published: document.getElementById('ad-published').checked,
+        is_featured: document.getElementById('ad-featured').checked
+    };
+
+    let res;
+    if (id) res = await _supabase.from('classifieds').update(payload).eq('id', id);
+    else res = await _supabase.from('classifieds').insert([payload]);
+
+    if (res.error) alert(res.error.message);
+    else {
+        window.closeAdEditor();
+        window.loadAds();
+    }
+});
+
+window.deleteAd = async (id) => {
+    if (confirm('Видалити це оголошення?')) {
+        await _supabase.from('classifieds').delete().eq('id', id);
+        window.loadAds();
+    }
+};
