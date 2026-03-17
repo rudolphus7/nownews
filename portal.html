@@ -244,11 +244,11 @@
             <!-- Subtle Background Letter -->
             <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[30rem] font-black opacity-[0.02] pointer-events-none select-none z-0 uppercase" id="hero-letter">K</div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center relative z-10">
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-12 items-center relative z-10">
                 
                 <!-- Left: Content -->
-                <div class="lg:col-span-7">
-                    <div class="inline-flex items-center gap-4 bg-orange-600/10 border border-orange-600/20 px-5 py-2 rounded-full mb-10">
+                <div class="w-full">
+                    <div class="inline-flex items-center gap-4 bg-orange-600/10 border border-orange-600/20 px-5 py-2 rounded-full mb-8">
                          <div class="flex gap-1">
                              <span class="w-1.5 h-1.5 bg-orange-600 rounded-full animate-bounce"></span>
                              <span class="w-1.5 h-1.5 bg-orange-600 rounded-full animate-bounce" style="animation-delay: 0.2s"></span>
@@ -257,7 +257,7 @@
                          <span class="text-[10px] font-black uppercase tracking-[0.3em] text-orange-500">Live City Pulse</span>
                     </div>
 
-                    <h1 class="text-5xl md:text-[6.5rem] font-black leading-[0.85] tracking-[-0.05em] uppercase mb-12 text-white">
+                    <h1 class="text-5xl md:text-7xl xl:text-[7.5rem] font-black leading-[0.85] tracking-[-0.05em] uppercase mb-10 text-white">
                         <span class="opacity-40 block">ВІДКРИЙ</span>
                         <span class="relative">
                             СВІЙ КАЛУШ
@@ -265,15 +265,14 @@
                         </span>
                     </h1>
 
-                    <p class="text-slate-400 font-medium text-lg md:text-xl leading-relaxed max-w-xl mb-16 opacity-70">
-                        Професійний навігатор вашої громади. <br class="hidden md:block"> Найкращі сервіси, оголошення та новини в одному цифровому хабі.
+                    <p class="text-slate-400 font-medium text-lg md:text-xl leading-relaxed max-w-xl mb-12 opacity-70">
+                        Професійний навігатор вашої громади. Найкращі сервіси, оголошення та новини в одному цифровому хабі.
                     </p>
 
                     <div class="flex flex-wrap items-center gap-6">
-                        <button class="px-12 py-5 bg-white text-slate-950 rounded-2xl font-black uppercase tracking-[0.2em] text-[11px] hover:bg-orange-600 hover:text-white transition-all transform hover:-translate-y-1 shadow-xl shadow-white/5">
+                        <button class="px-10 py-5 bg-white text-slate-950 rounded-2xl font-black uppercase tracking-[0.2em] text-[11px] hover:bg-orange-600 hover:text-white transition-all transform hover:-translate-y-1 shadow-xl shadow-white/5">
                             Почати огляд
                         </button>
-                        <div class="h-12 w-px bg-white/10 hidden md:block"></div>
                         <button class="group flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.3em] text-white/40 hover:text-orange-500 transition">
                             <span>Подати оголошення</span>
                             <svg class="w-4 h-4 group-hover:translate-x-1 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
@@ -281,20 +280,49 @@
                     </div>
                 </div>
 
-                <!-- Right: Discovery Hub -->
-                <div class="lg:col-span-5">
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="bg-white/[0.03] border border-white/5 rounded-[2.5rem] p-8 backdrop-blur-3xl hover:border-orange-600/30 transition-all group">
-                            <div class="text-4xl font-black text-white mb-2 group-hover:text-orange-500 transition leading-none">42</div>
-                            <div class="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500">Закладів поруч</div>
+                <!-- Right: Discovery Hub (Responsive Weather & Search) -->
+                <div class="w-full">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- Live Weather Card -->
+                        <div class="bg-white/[0.03] border border-white/5 rounded-[2.5rem] p-8 backdrop-blur-3xl hover:border-orange-600/30 transition-all group overflow-hidden relative">
+                            <div class="relative z-10">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="text-[9px] font-bold uppercase tracking-[0.2em] text-orange-600">Погода Калуш</div>
+                                    <div id="weather-icon" class="text-2xl">--</div>
+                                </div>
+                                <div class="text-4xl font-black text-white leading-none mb-1" id="weather-temp">--°C</div>
+                                <div class="text-[10px] uppercase font-bold text-slate-500 tracking-widest" id="weather-desc">Завантаження...</div>
+                            </div>
+                            <!-- Subtle backdrop decoration -->
+                            <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-orange-600/10 rounded-full blur-2xl"></div>
                         </div>
+
+                        <!-- Time Card -->
                         <div class="bg-white/[0.03] border border-white/5 rounded-[2.5rem] p-8 backdrop-blur-3xl">
-                            <div class="text-xl font-black text-white mb-2 uppercase tracking-tighter" id="hub-time">
+                            <div class="text-4xl font-black text-white mb-2 leading-none" id="hub-time">
                                 --:--
                             </div>
-                            <div class="text-[9px] font-bold uppercase tracking-[0.2em] text-orange-600">Зараз у місті</div>
+                            <div class="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500">Зараз у місті</div>
+                            <div class="text-[9px] font-bold uppercase tracking-[0.2em] text-orange-600 mt-2" id="hub-date">--.03.2026</div>
                         </div>
-                        <div class="col-span-2 bg-gradient-to-br from-white/[0.05] to-transparent border border-white/10 rounded-[3rem] p-10 backdrop-blur-2xl mt-4">
+
+                        <!-- Weekly Forecast & Search -->
+                        <div class="sm:col-span-2 bg-gradient-to-br from-white/[0.05] to-transparent border border-white/10 rounded-[3rem] p-8 backdrop-blur-2xl mt-4">
+                            <!-- Mini Forecast -->
+                            <div class="mb-10 text-left">
+                                <div class="text-[9px] font-black uppercase tracking-[0.3em] text-slate-600 mb-6 font-heading">Прогноз на тиждень</div>
+                                <div class="grid grid-cols-7 gap-1" id="weekly-forecast">
+                                    <!-- Skeletons -->
+                                    <div class="text-center py-2 bg-white/5 rounded-xl animate-pulse h-12"></div>
+                                    <div class="text-center py-2 bg-white/5 rounded-xl animate-pulse h-12"></div>
+                                    <div class="text-center py-2 bg-white/5 rounded-xl animate-pulse h-12"></div>
+                                    <div class="text-center py-2 bg-white/5 rounded-xl animate-pulse h-12"></div>
+                                    <div class="text-center py-2 bg-white/5 rounded-xl animate-pulse h-12"></div>
+                                    <div class="text-center py-2 bg-white/5 rounded-xl animate-pulse h-12"></div>
+                                    <div class="text-center py-2 bg-white/5 rounded-xl animate-pulse h-12"></div>
+                                </div>
+                            </div>
+
                             <div class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 mb-8 font-heading">Універсальний пошук</div>
                             <div class="relative group/input">
                                 <input type="text" placeholder="Шукайте що завгодно..." class="w-full bg-transparent border-b-2 border-white/10 py-4 text-xl font-bold focus:outline-none focus:border-orange-600 transition-all placeholder:text-white/10">
@@ -466,7 +494,65 @@
             } catch(e) { return []; }
         }
 
+        async function fetchWeather() {
+            try {
+                const lat = 49.0275, lon = 24.3606;
+                const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&daily=weathercode,temperature_2m_max,temperature_2m_min&timezone=auto`);
+                const data = await res.json();
+                
+                if(data.current_weather) {
+                    const temp = Math.round(data.current_weather.temperature);
+                    const code = data.current_weather.weathercode;
+                    
+                    const weatherMap = {
+                        0: { icon: '☀️', desc: 'Ясно' },
+                        1: { icon: '🌤️', desc: 'Перев. ясно' },
+                        2: { icon: '⛅', desc: 'Хмарно' },
+                        3: { icon: '☁️', desc: 'Пасмурно' },
+                        45: { icon: '🌫️', desc: 'Туман' },
+                        61: { icon: '🌧️', desc: 'Дощ' },
+                        80: { icon: '🌦️', desc: 'Злива' },
+                        95: { icon: '⛈️', desc: 'Гроза' }
+                    };
+                    
+                    const w = weatherMap[code] || { icon: '🌡️', desc: 'Мінлива' };
+                    document.getElementById('weather-temp').innerText = `${temp}°C`;
+                    document.getElementById('weather-icon').innerText = w.icon;
+                    document.getElementById('weather-desc').innerText = w.desc;
+                }
+
+                if(data.daily) {
+                    const forecastGrid = document.getElementById('weekly-forecast');
+                    const days = ['Нд','Пн','Вт','Ср','Чт','Пт','Сб'];
+                    forecastGrid.innerHTML = data.daily.time.map((t, i) => {
+                        const date = new Date(t);
+                        const dayName = days[date.getDay()];
+                        const max = Math.round(data.daily.temperature_2m_max[i]);
+                        return `
+                            <div class="text-center p-2 rounded-2xl hover:bg-white/5 transition">
+                                <div class="text-[8px] font-black opacity-30 uppercase mb-1">${dayName}</div>
+                                <div class="text-xs font-black text-white">${max}°</div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            } catch(e) { console.error('Weather error:', e); }
+        }
+
         async function initPortal() {
+            // Start weather and time immediately
+            fetchWeather();
+            
+            const updateTime = () => {
+                const now = new Date();
+                const clock = document.getElementById('hub-time');
+                const dateEl = document.getElementById('hub-date');
+                if(clock) clock.innerText = now.toLocaleTimeString('uk-UA', {hour: '2-digit', minute:'2-digit'});
+                if(dateEl) dateEl.innerText = now.toLocaleDateString('uk-UA', {day: '2-digit', month: '2-digit', year: 'numeric'});
+            };
+            updateTime();
+            setInterval(updateTime, 10000);
+
             // 1. Places
             const places = await sbFetch('places', `city_slug=eq.${config.citySlug}&order=is_featured.desc,rating.desc&limit=6`);
             const pGrid = document.getElementById('p-places');
@@ -539,17 +625,13 @@
             // 4. Simple Calendar
             const cal = document.getElementById('calendar-view');
             let calHtml = '';
-            for(let i=1; i<=31; i++) {
-                const isSelected = i === new Date().getDate();
-                calHtml += `<div class="py-3 rounded-2xl cursor-pointer transition ${isSelected ? 'bg-orange-600 text-white font-black shadow-xl shadow-orange-600/30' : 'hover:bg-white/5'}">${i}</div>`;
+            if(cal) {
+                for(let i=1; i<=31; i++) {
+                    const isSelected = i === new Date().getDate();
+                    calHtml += `<div class="py-3 rounded-2xl cursor-pointer transition ${isSelected ? 'bg-orange-600 text-white font-black shadow-xl shadow-orange-600/30' : 'hover:bg-white/5'}">${i}</div>`;
+                }
+                cal.innerHTML = calHtml;
             }
-            cal.innerHTML = calHtml;
-
-            // 5. Live Hub Time
-            setInterval(() => {
-                const clock = document.getElementById('hub-time');
-                if(clock) clock.innerText = new Date().toLocaleTimeString('uk-UA', {hour: '2-digit', minute:'2-digit'});
-            }, 10000);
         }
 
         window.addEventListener('DOMContentLoaded', initPortal);
