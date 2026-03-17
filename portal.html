@@ -241,9 +241,6 @@
         </div>
 
         <div class="relative z-10 max-w-7xl mx-auto px-8">
-            <!-- Subtle Background Letter - Fixed Position -->
-            <div class="absolute top-1/2 left-0 -translate-y-1/2 text-[35rem] font-black opacity-[0.03] pointer-events-none select-none z-0 uppercase leading-none" id="hero-letter">K</div>
-
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center relative z-10">
                 
                 <!-- Left: Content -->
@@ -280,7 +277,7 @@
                     </div>
                 </div>
 
-                <!-- Right: Discovery Hub (Responsive Weather & Search) -->
+                <!-- Right: Unified City Status Hub -->
                 <div class="w-full relative z-20">
                     <div class="bg-white/[0.03] border border-white/5 rounded-[3rem] p-10 backdrop-blur-3xl hover:border-orange-600/30 transition-all group overflow-hidden relative">
                         <!-- Top Row: Time & Current Weather -->
@@ -315,22 +312,10 @@
                                 <div class="hidden sm:block h-24 bg-white/5 rounded-2xl animate-pulse"></div>
                             </div>
                         </div>
-
-                        <!-- Search Section Integrated -->
-                        <div class="mt-12 pt-10 border-t border-white/5">
-                            <div class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 mb-8 font-heading">Універсальний пошук</div>
-                            <div class="relative group/input">
-                                <input type="text" placeholder="Шукайте що завгодно..." class="w-full bg-transparent border-b-2 border-white/10 py-4 text-xl font-bold focus:outline-none focus:border-orange-600 transition-all placeholder:text-white/10">
-                                <button class="absolute right-0 bottom-4 text-white/20 group-hover/input:text-orange-600 transition">
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                                </button>
-                            </div>
-                        </div>
                         
                         <!-- Subtle Background Glow -->
                         <div class="absolute -right-20 -top-20 w-64 h-64 bg-orange-600/5 rounded-full blur-[100px] pointer-events-none"></div>
                     </div>
-                </div>
                 </div>
             </div>
         </div>
@@ -504,17 +489,33 @@
                 
                 const weatherMap = {
                     0: { icon: '☀️', desc: 'Ясно' },
-                    1: { icon: '🌤️', desc: 'Перев. ясно' },
-                    2: { icon: '⛅', desc: 'Хмарно' },
+                    1: { icon: '🌤️', desc: 'Переважно ясно' },
+                    2: { icon: '⛅', desc: 'Мінлива хмарність' },
                     3: { icon: '☁️', desc: 'Пасмурно' },
                     45: { icon: '🌫️', desc: 'Туман' },
-                    48: { icon: '🌫️', desc: 'Іній' },
-                    51: { icon: '🌦️', desc: 'Мряка' },
-                    61: { icon: '🌧️', desc: 'Дощ' },
+                    48: { icon: '🌫️', desc: 'Паморозь' },
+                    51: { icon: '🌦️', desc: 'Легка мряка' },
+                    53: { icon: '🌦️', desc: 'Мряка' },
+                    55: { icon: '🌦️', desc: 'Густа мряка' },
+                    56: { icon: '🌨️', desc: 'Крижана мряка' },
+                    57: { icon: '🌨️', desc: 'Густа крижана мряка' },
+                    61: { icon: '🌧️', desc: 'Слабкий дощ' },
                     63: { icon: '🌧️', desc: 'Помірний дощ' },
-                    71: { icon: '❄️', desc: 'Сніг' },
-                    80: { icon: '🌦️', desc: 'Злива' },
-                    95: { icon: '⛈️', desc: 'Гроза' }
+                    65: { icon: '🌧️', desc: 'Сильний дощ' },
+                    66: { icon: '🌨️', desc: 'Крижаний дощ' },
+                    67: { icon: '🌨️', desc: 'Сильний крижаний дощ' },
+                    71: { icon: '❄️', desc: 'Слабкий сніг' },
+                    73: { icon: '❄️', desc: 'Помірний сніг' },
+                    75: { icon: '❄️', desc: 'Сильний сніг' },
+                    77: { icon: '❄️', desc: 'Сніжні зерна' },
+                    80: { icon: '🌦️', desc: 'Слабкий зливовий дощ' },
+                    81: { icon: '🌦️', desc: 'Зливовий дощ' },
+                    82: { icon: '🌧️', desc: 'Сильний зливовий дощ' },
+                    85: { icon: '❄️', desc: 'Слабкий снігопад' },
+                    86: { icon: '❄️', desc: 'Сильний снігопад' },
+                    95: { icon: '⛈️', desc: 'Гроза' },
+                    96: { icon: '⛈️', desc: 'Гроза з градом' },
+                    99: { icon: '⛈️', desc: 'Сильна гроза з градом' }
                 };
 
                 if(data.current_weather) {
@@ -569,7 +570,7 @@
             const pGrid = document.getElementById('p-places');
             if(places.length > 0) {
                 pGrid.innerHTML = places.map(p => `
-                    <div class="place-item group cursor-pointer">
+                    <a href="/${config.citySlug}/places/${p.id || p.city_slug}" class="place-item group flex flex-col">
                          <div class="relative overflow-hidden rounded-3xl mb-5">
                              <img src="${p.image_url || 'https://placehold.co/400'}" class="w-full h-32 object-cover grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-110 transition duration-1000">
                              <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition duration-500"></div>
@@ -582,7 +583,7 @@
                              </div>
                              <span class="text-[10px] font-bold opacity-30">${p.rating || 0}</span>
                          </div>
-                    </div>
+                    </a>
                 `).join('');
             } else {
                 pGrid.innerHTML = '<div class="col-span-full py-16 text-center opacity-20 italic text-xs tracking-widest uppercase">Наповнюємо квартал закладами...</div>';
@@ -593,7 +594,7 @@
             const aList = document.getElementById('p-ads');
             if(ads.length > 0) {
                 aList.innerHTML = ads.map(a => `
-                    <div class="p-7 bg-white/2 rounded-[2.5rem] hover:bg-white/5 border border-white/5 transition-all group relative overflow-hidden flex flex-col justify-between h-32">
+                    <a href="/${config.citySlug}/classifieds/${a.id}" class="p-7 bg-white/2 rounded-[2.5rem] hover:bg-white/5 border border-white/5 transition-all group relative overflow-hidden flex flex-col justify-between h-32">
                         ${a.is_featured ? '<span class="hot-label">vip</span>' : ''}
                         <div>
                              <div class="text-[9px] font-black uppercase text-slate-500 mb-2 tracking-widest">${a.category || 'Загальне'}</div>
@@ -603,7 +604,7 @@
                              <div class="text-orange-600 font-black text-sm tracking-tighter">${a.price || 'Договірна'}</div>
                              <svg class="w-4 h-4 opacity-0 group-hover:opacity-20 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                         </div>
-                    </div>
+                    </a>
                 `).join('');
             } else {
                  aList.innerHTML = '<div class="py-16 text-center opacity-20 italic text-xs tracking-widest uppercase">Шукаємо кращі пропозиції...</div>';
