@@ -125,7 +125,9 @@ module.exports = async (req, res) => {
     let htmlContent = '';
     try {
         const possiblePaths = [
-            path.join(process.cwd(), 'index.html'),
+            path.join(process.cwd(), 'main_template.html'),
+            path.join(__dirname, '..', 'main_template.html'),
+            path.join(process.cwd(), 'index.html'), // Fallback during transition
             path.join(__dirname, '..', 'index.html')
         ];
         for (const p of possiblePaths) {
@@ -134,7 +136,7 @@ module.exports = async (req, res) => {
                 break;
             }
         }
-        if (!htmlContent) throw new Error('index.html not found');
+        if (!htmlContent) throw new Error('main_template.html not found');
     } catch (e) {
         return res.status(500).send('Configuration error');
     }

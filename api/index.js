@@ -21,7 +21,8 @@ const handlers = {
     'index-ping': require('./_handlers/index-ping'),
     'popups': require('./_handlers/popups'),
     'cleanup': require('./_handlers/cleanup'),
-    'portal': require('./_handlers/portal')
+    'portal': require('./_handlers/portal'),
+    'home': require('./_handlers/home')
 };
 
 const BANNED_BOT_STRINGS = [
@@ -49,6 +50,15 @@ module.exports = async (req, res) => {
             return await handlers['portal'](req, res);
         } catch (err) {
             console.error('Subdomain Router Error:', err);
+        }
+    }
+
+    // 1.2 Main site root handling: Route bukva.news/ to home handler (since index.html will be gone)
+    if (!target && (req.url === '/' || req.url.startsWith('/?'))) {
+        try {
+            return await handlers['home'](req, res);
+        } catch (err) {
+            console.error('Main Root Router Error:', err);
         }
     }
 

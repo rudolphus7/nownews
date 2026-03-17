@@ -159,6 +159,10 @@
             "destination": "/api/index?__target=portal"
         },
         {
+            "source": "/",
+            "destination": "/api/index?__target=home"
+        },
+        {
             "source": "/images/:path*",
             "destination": "https://kgrxlznhimwuvwhjfzhv.supabase.co/storage/v1/object/public/news/:path*"
         },
