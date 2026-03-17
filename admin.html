@@ -13,6 +13,16 @@
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Early stubs to prevent "is not a function" errors
+        // Using traditional functions for maximum compatibility and hoisting
+        window.openPortalEditor = function(id) { console.warn("Portal logic not yet loaded", id); };
+        window.openPlaceEditor = function(id) { console.warn("Place logic not yet loaded", id); };
+        window.openAdEditor = function(id) { console.warn("Ad logic not yet loaded", id); };
+        window.loadPortals = function() { console.warn("Portal logic not yet loaded"); };
+        window.loadPlaces = function() { console.warn("Place logic not yet loaded"); };
+        window.loadAds = function() { console.warn("Ad logic not yet loaded"); };
+    </script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
@@ -1868,16 +1878,7 @@
         </div>
     </div>
 
-    <script>
-        // Early stubs to prevent "is not a function" errors
-        window.openPortalEditor = window.openPortalEditor || (async () => console.warn("Portal logic not yet loaded"));
-        window.openPlaceEditor = window.openPlaceEditor || (async () => console.warn("Place logic not yet loaded"));
-        window.openAdEditor = window.openAdEditor || (async () => console.warn("Ad logic not yet loaded"));
-        window.loadPortals = window.loadPortals || (async () => console.warn("Portal logic not yet loaded"));
-        window.loadPlaces = window.loadPlaces || (async () => console.warn("Place logic not yet loaded"));
-        window.loadAds = window.loadAds || (async () => console.warn("Ad logic not yet loaded"));
-    </script>
-    <script type="module" src="./admin.js"></script>
+    <script type="module" src="/admin.js"></script>
 </body>
 
 </html>
