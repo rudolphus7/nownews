@@ -278,16 +278,22 @@ imageUrlInput?.addEventListener('input', () => {
 
 // --- РЕАКЦІЇ (ЛОГІКА ВИБОРУ В АДМІНЦІ) ---
 const initReactionSelector = () => {
-    const checkboxes = document.querySelectorAll('.reaction-checkbox');
-    checkboxes.forEach(cb => {
-        const updateUI = () => {
-            const label = cb.closest('.reaction-checkbox-label');
-            if (cb.checked) label.classList.add('checked');
-            else label.classList.remove('checked');
-        };
-        cb.addEventListener('change', updateUI);
-        updateUI(); // Initial
-    });
+    try {
+        const checkboxes = document.querySelectorAll('.reaction-checkbox');
+        checkboxes.forEach(cb => {
+            const updateUI = () => {
+                const label = cb.closest('.reaction-checkbox-label');
+                if (label) {
+                    if (cb.checked) label.classList.add('checked');
+                    else label.classList.remove('checked');
+                }
+            };
+            cb.addEventListener('change', updateUI);
+            updateUI(); // Initial
+        });
+    } catch (e) {
+        console.warn("Reaction selector initialization failed:", e);
+    }
 };
 initReactionSelector();
 
@@ -3114,3 +3120,5 @@ window.deleteAd = async (id) => {
         window.loadAds();
     }
 };
+
+console.log("🚀 BUKVA NEWS PRO: Admin.js fully loaded.");

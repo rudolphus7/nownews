@@ -1868,7 +1868,16 @@
         </div>
     </div>
 
-    <script type="module" src="/admin.js"></script>
+    <script>
+        // Early stubs to prevent "is not a function" errors
+        window.openPortalEditor = window.openPortalEditor || (async () => console.warn("Portal logic not yet loaded"));
+        window.openPlaceEditor = window.openPlaceEditor || (async () => console.warn("Place logic not yet loaded"));
+        window.openAdEditor = window.openAdEditor || (async () => console.warn("Ad logic not yet loaded"));
+        window.loadPortals = window.loadPortals || (async () => console.warn("Portal logic not yet loaded"));
+        window.loadPlaces = window.loadPlaces || (async () => console.warn("Place logic not yet loaded"));
+        window.loadAds = window.loadAds || (async () => console.warn("Ad logic not yet loaded"));
+    </script>
+    <script type="module" src="./admin.js"></script>
 </body>
 
 </html>
