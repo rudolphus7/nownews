@@ -10,6 +10,16 @@ let readAlsoTimeout = null;
 let quill;
 let currentEditingId = null;
 let currentTags = [];
+let rssCurrentPage = 0; // Fix ReferenceError
+
+// --- EARLY GLOBAL REGISTRATION (FOR STABILITY) ---
+// We assign these early so they are available even if later script parts fail
+window.loadPortals = async () => { console.warn("Portal logic not yet loaded"); };
+window.openPortalEditor = async () => { console.warn("Portal logic not yet loaded"); };
+window.loadPlaces = async () => { console.warn("Place logic not yet loaded"); };
+window.openPlaceEditor = async () => { console.warn("Place logic not yet loaded"); };
+window.loadAds = async () => { console.warn("Ad logic not yet loaded"); };
+window.openAdEditor = async () => { console.warn("Ad logic not yet loaded"); };
 
 // --- ІНІЦІАЛІЗАЦІЯ SUPABASE ---
 let _supabase;
@@ -927,7 +937,7 @@ async function loadRSS() {
 }
 window.loadRSS = loadRSS;
 
-rssCurrentPage = 0;
+// rssCurrentPage declared at top
 const rssPageSize = 20;
 
 // --- RSS DB MANAGEMENT ---
