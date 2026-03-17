@@ -229,7 +229,7 @@
                 </div>
             </div>
         </div>
-    </he        <!-- Professional Editorial Hero Section -->
+    </header>
         <section class="relative pt-32 pb-20 md:pt-48 md:pb-32 overflow-hidden bg-[#07090f]">
             <!-- CSS-Only Mesh Background -->
             <div class="absolute inset-0 z-0 opacity-40">
@@ -327,14 +327,6 @@
                 50% { opacity: 0.6; transform: scale(1.05); }
             }
             .line-height-1 { line-height: 1; }
-        </style>
-0; }
-                to { opacity: 1; }
-            }
-            @keyframes slideUp {
-                from { opacity: 0; transform: translateY(40px); }
-                to { opacity: 1; transform: translateY(0); }
-            }
         </style>
 
         <!-- The 3 Pillars -->
@@ -567,6 +559,12 @@
                 calHtml += `<div class="py-3 rounded-2xl cursor-pointer transition ${isSelected ? 'bg-orange-600 text-white font-black shadow-xl shadow-orange-600/30' : 'hover:bg-white/5'}">${i}</div>`;
             }
             cal.innerHTML = calHtml;
+
+            // 5. Live Hub Time
+            setInterval(() => {
+                const clock = document.getElementById('hub-time');
+                if(clock) clock.innerText = new Date().toLocaleTimeString('uk-UA', {hour: '2-digit', minute:'2-digit'});
+            }, 10000);
         }
 
         window.addEventListener('DOMContentLoaded', initPortal);
