@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS public.places (
     image_url text,
     description text,
     is_featured boolean DEFAULT false, -- Show at the top of portal
+    rating decimal DEFAULT 0, -- 1-5 stars
     order_index integer DEFAULT 0,
     created_at timestamptz DEFAULT now()
 );
@@ -49,8 +50,13 @@ ALTER TABLE public.places ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.classifieds ENABLE ROW LEVEL SECURITY;
 
 -- Default Public Read Access (ALL can read)
+DROP POLICY IF EXISTS "Public Read Access portal_settings" ON public.portal_settings;
 CREATE POLICY "Public Read Access portal_settings" ON public.portal_settings FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Public Read Access places" ON public.places;
 CREATE POLICY "Public Read Access places" ON public.places FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Public Read Access classifieds" ON public.classifieds;
 CREATE POLICY "Public Read Access classifieds" ON public.classifieds FOR SELECT USING (true);
 
 -- Insert Initial Kalush Data (Basic Placeholder)

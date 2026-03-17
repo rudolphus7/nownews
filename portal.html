@@ -5,271 +5,413 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" sizes="32x32" href="/logo.png">
-    <title>KALUSH NEWS | Портал міста Калуш</title>
     
     <!-- Fonts & CSS -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/main.css">
-    <link rel="stylesheet" href="/components/header.css?v=7">
     
     <style>
         :root {
-            --portal-accent: #f97316;
-            --portal-bg: #f8fafc;
+            --brand-orange: #f97316;
+            --brand-orange-light: #fb923c;
+            --dark-slate: #0f172a;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-blur: blur(20px);
         }
 
         body {
             font-family: 'Inter', sans-serif;
-            background-color: var(--portal-bg);
-            color: #1e293b;
+            background: #0f172a;
+            background-image: 
+                radial-gradient(circle at 0% 0%, rgba(249, 115, 22, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 100% 100%, rgba(30, 64, 175, 0.1) 0%, transparent 40%);
+            color: #f8fafc;
+            min-height: 100vh;
+            overflow-x: hidden;
         }
 
-        .portal-grid {
-            display: grid;
-            grid-template-columns: repeat(12, 1fr);
-            gap: 2rem;
-            margin-top: 2rem;
+        h1, h2, h3, h4, .font-heading { font-family: 'Outfit', sans-serif; }
+
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            border-radius: 2.5rem;
         }
 
-        .portal-main {
-            grid-column: span 8;
-        }
-
-        .portal-sidebar {
-            grid-column: span 4;
-        }
-
-        .portal-card {
-            background: white;
-            border-radius: 1.5rem;
-            padding: 1.5rem;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-            border: 1px solid rgba(0, 0, 0, 0.05);
-            transition: transform 0.3s ease;
-        }
-
-        .portal-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .section-title {
-            font-size: 1.5rem;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: -0.02em;
-            margin-bottom: 1.5rem;
+        /* Hero Layered B */
+        .hero-b-container {
+            position: relative;
+            padding: 10rem 0 6rem;
             display: flex;
             align-items: center;
-            gap: 0.75rem;
+            justify-content: center;
+            text-align: center;
         }
 
-        .section-title::before {
-            content: '';
-            width: 4px;
-            height: 24px;
-            background: var(--portal-accent);
-            border-radius: 2px;
-        }
-
-        /* Mockup Place Card */
-        .place-card {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px dashed #e2e8f0;
-        }
-
-        .place-card:last-child {
-            border-bottom: none;
-        }
-
-        .place-img {
-            width: 80px;
-            height: 80px;
-            border-radius: 1rem;
-            object-fit: cover;
-            background: #f1f5f9;
-        }
-
-        .place-info h4 {
-            font-weight: 800;
-            font-size: 1rem;
-            margin-bottom: 0.25rem;
-        }
-
-        .place-tags {
-            font-size: 0.75rem;
-            color: var(--portal-accent);
-            font-weight: 700;
-            text-transform: uppercase;
-        }
-
-        /* Ads List */
-        .ad-item {
-            background: #fff7ed;
-            border: 1px solid #ffedd5;
-            padding: 1rem;
-            border-radius: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .ad-price {
+        .hero-b-bg {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 38rem;
             font-weight: 900;
-            color: #c2410c;
-            display: block;
-            margin-top: 0.5rem;
+            line-height: 1;
+            color: rgba(249, 115, 22, 0.12);
+            z-index: -1;
+            user-select: none;
+            font-family: 'Outfit', sans-serif;
+            filter: blur(2px);
         }
 
-        @media (max-width: 1024px) {
-            .portal-main, .portal-sidebar {
-                grid-column: span 12;
-            }
+        .hero-tagline {
+            font-size: 4.5rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: -0.05em;
+            line-height: 0.9;
+            text-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        /* Floating Cards in Hero */
+        .hero-floating-card {
+            position: absolute;
+            width: 180px;
+            padding: 1rem;
+            border-radius: 2rem;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            pointer-events: none;
+            display: none; /* Desktop only */
+        }
+        @media (min-width: 1280px) { .hero-floating-card { display: block; } }
+
+        /* Column Layouts */
+        .main-portal-grid {
+            display: grid;
+            grid-template-columns: 1.3fr 1fr 1fr;
+            gap: 2rem;
+            margin-top: 4rem;
+        }
+
+        .column-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 3rem;
+            padding: 2.5rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .place-item {
+            background: rgba(255,255,255,0.03);
+            border-radius: 2.5rem;
+            padding: 1rem;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid transparent;
+        }
+        .place-item:hover {
+            background: rgba(255,255,255,0.08);
+            border-color: var(--brand-orange);
+            transform: translateY(-8px) scale(1.02);
+        }
+
+        /* Hot Ads System */
+        .ad-grid-cat {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+        .ad-cat-box {
+            background: rgba(255,255,255,0.05);
+            border-radius: 1.5rem;
+            padding: 1.5rem 1rem;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: 0.3s;
+            position: relative;
+        }
+        .ad-cat-box:hover {
+            background: var(--brand-orange);
+            border-color: var(--brand-orange);
+        }
+        .hot-label {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            background: #f43f5e;
+            color: white;
+            font-size: 8px;
+            font-weight: 900;
+            padding: 2px 6px;
+            border-radius: 10px;
+            text-transform: uppercase;
+            box-shadow: 0 0 15px rgba(244, 63, 94, 0.6);
+        }
+
+        @media (max-width: 1100px) {
+            .main-portal-grid { grid-template-columns: 1fr; }
+            .hero-tagline { font-size: 3rem; }
         }
     </style>
 </head>
 
 <body>
-    <div id="site-header-placeholder"></div>
+    <!-- Premium Header -->
+    <header class="fixed top-0 left-0 w-full z-50 p-6 pointer-events-none">
+        <div class="container mx-auto pointer-events-auto">
+            <div class="glass flex items-center justify-between px-8 py-4 bg-white/5 border-white/10">
+                <div class="flex items-center gap-4">
+                    <img src="/logo.png" class="w-10 h-10 object-contain" id="p-logo">
+                    <div>
+                        <div class="font-black text-xl tracking-tighter uppercase leading-none" id="p-name">МІСЬКІ БЛОКИ</div>
+                        <div class="text-[9px] font-bold opacity-40 uppercase tracking-widest mt-1">Ваш провідник по місту</div>
+                    </div>
+                </div>
+                
+                <nav class="hidden lg:flex items-center gap-10 text-[10px] font-black uppercase tracking-[0.2em] opacity-60">
+                    <a href="#" class="hover:text-orange-500 transition">Про місто</a>
+                    <a href="#" class="hover:text-orange-500 transition">Заклади</a>
+                    <a href="#" class="hover:text-orange-500 transition">Оголошення</a>
+                    <a href="#" class="hover:text-orange-500 transition">Новини</a>
+                </nav>
 
-    <main class="container mx-auto px-4 py-8">
-        <!-- Dashboard Header -->
-        <div class="mb-12">
-            <h1 class="text-4xl lg:text-5xl font-black tracking-tight text-slate-900 mb-4">
-                ВІТАЄМО В <span class="text-orange-600">КАЛУШІ</span>
-            </h1>
-            <p class="text-slate-500 max-w-2xl font-medium leading-relaxed">
-                Твій персональний гід містом: від останніх новин громади до кращих закладів та приватних оголошень.
-            </p>
+                <div class="flex items-center gap-4">
+                    <button class="px-6 py-2 border border-white/10 rounded-full font-black text-[10px] uppercase tracking-widest hover:bg-white/10 transition">Увійти</button>
+                    <button class="px-6 py-2 bg-orange-600 text-white rounded-full font-black text-[10px] uppercase tracking-widest hover:bg-white hover:text-orange-600 transition shadow-xl shadow-orange-600/30">Реєстрація</button>
+                </div>
+            </div>
         </div>
+    </header>
 
-        <div class="portal-grid">
-            <!-- Main Content: News & Events -->
-            <div class="portal-main">
-                <section class="mb-12">
-                    <h2 class="section-title">ОСТАННІ ПОДІЇ МІСТА</h2>
-                    <div id="portal-news-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Hydrated by JS -->
-                        <div class="portal-card animate-pulse h-64 bg-slate-100"></div>
-                        <div class="portal-card animate-pulse h-64 bg-slate-100"></div>
-                    </div>
-                </section>
-
-                <section>
-                    <h2 class="section-title">ЦІКАВІ ЗАКЛАДИ</h2>
-                    <div id="places-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Hydrated by JS -->
-                        <div class="portal-card animate-pulse h-64 bg-slate-100"></div>
-                        <div class="portal-card animate-pulse h-64 bg-slate-100"></div>
-                    </div>
-                </section>
+    <main class="container mx-auto px-4 pb-20">
+        
+        <!-- Hero Section -->
+        <section class="hero-b-container">
+            <div class="hero-b-bg">B</div>
+            
+            <!-- Floating Elements -->
+            <div class="hero-floating-card glass top-[20%] left-[5%] -rotate-6 animate-pulse" style="animation-duration: 4s;">
+                 <div class="bg-orange-600/20 w-full h-20 rounded-xl mb-3"></div>
+                 <div class="h-3 w-3/4 bg-white/20 rounded-full mb-2"></div>
+                 <div class="h-3 w-1/2 bg-white/10 rounded-full"></div>
+            </div>
+            <div class="hero-floating-card glass top-[60%] right-[8%] rotate-12">
+                 <div class="bg-blue-600/20 w-full h-24 rounded-xl mb-3"></div>
+                 <div class="h-3 w-3/4 bg-white/20 rounded-full mb-2"></div>
+                 <div class="rating-stars text-orange-400">★★★★★</div>
             </div>
 
-            <!-- Sidebar: Ads & Jobs -->
-            <div class="portal-sidebar">
-                <section class="mb-12">
-                    <h2 class="section-title">ОГОЛОШЕННЯ</h2>
-                    <div id="ads-container" class="portal-card">
-                        <!-- Hydrated by JS -->
-                        <div class="animate-pulse space-y-4">
-                            <div class="h-16 bg-slate-100 rounded-xl"></div>
-                            <div class="h-16 bg-slate-100 rounded-xl"></div>
-                            <div class="h-12 bg-slate-200 rounded-xl"></div>
+            <div class="max-w-2xl mx-auto z-10">
+                <h1 class="hero-tagline mb-8">ТВОЄ МІСТО<br><span class="text-orange-600">В КВАРТАЛАХ</span></h1>
+                <p class="text-slate-400 font-medium mb-12 text-sm leading-relaxed max-w-lg mx-auto opacity-70">Відкрийте для себе найкращі заклади, актуальні оголошення та останні новини вашої громади в одному місці.</p>
+                <button class="px-12 py-5 bg-orange-600 text-white rounded-full font-black uppercase tracking-widest text-[11px] hover:scale-105 transition shadow-2xl shadow-orange-600/50">Розпочати дослідження</button>
+            </div>
+        </section>
+
+        <!-- The 3 Pillars -->
+        <div class="main-portal-grid">
+            
+            <!-- Pillar 1: Places -->
+            <div class="column-card relative">
+                <div class="flex justify-between items-center mb-10">
+                    <h2 class="text-2xl font-black uppercase italic tracking-tighter">Міські заклади</h2>
+                    <div class="flex gap-2">
+                        <button class="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-orange-600 transition">←</button>
+                        <button class="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-orange-600 transition">→</button>
+                    </div>
+                </div>
+                
+                <div id="p-places" class="grid grid-cols-2 gap-4">
+                    <!-- Skeleton -->
+                    <div class="place-item h-48 animate-pulse bg-white/5"></div>
+                    <div class="place-item h-48 animate-pulse bg-white/5"></div>
+                    <div class="place-item h-48 animate-pulse bg-white/5"></div>
+                    <div class="place-item h-48 animate-pulse bg-white/5"></div>
+                </div>
+                
+                <div class="mt-8 flex justify-center gap-1 opacity-20">
+                    <div class="w-8 h-1 bg-white rounded-full"></div>
+                    <div class="w-2 h-1 bg-white rounded-full"></div>
+                    <div class="w-2 h-1 bg-white rounded-full"></div>
+                </div>
+            </div>
+
+            <!-- Pillar 2: Ads -->
+            <div class="column-card">
+                 <div class="mb-10">
+                    <h2 class="text-2xl font-black uppercase italic tracking-tighter">Актуальні<br>оголошення</h2>
+                    <div class="text-[9px] font-black uppercase tracking-[0.3em] opacity-30 mt-2">Приватні пропозиції</div>
+                 </div>
+
+                 <div class="ad-grid-cat mb-8">
+                     <div class="ad-cat-box group cursor-pointer">
+                         <span class="hot-label">hot</span>
+                         <div class="text-2xl mb-3 opacity-40 group-hover:opacity-100 group-hover:scale-110 transition">🛒</div>
+                         <div class="text-[9px] font-black uppercase tracking-tighter">Продаж</div>
+                     </div>
+                     <div class="ad-cat-box group cursor-pointer">
+                         <span class="hot-label">hot</span>
+                         <div class="text-2xl mb-3 opacity-40 group-hover:opacity-100 group-hover:scale-110 transition">🏡</div>
+                         <div class="text-[9px] font-black uppercase tracking-tighter">Оренда</div>
+                     </div>
+                     <div class="ad-cat-box group cursor-pointer">
+                         <span class="hot-label">hot</span>
+                         <div class="text-2xl mb-3 opacity-40 group-hover:opacity-100 group-hover:scale-110 transition">🔧</div>
+                         <div class="text-[9px] font-black uppercase tracking-tighter">Послуги</div>
+                     </div>
+                 </div>
+
+                 <div id="p-ads" class="space-y-4">
+                     <!-- Hydrated -->
+                 </div>
+            </div>
+
+            <!-- Pillar 3: News -->
+            <div class="column-card">
+                <div class="flex justify-between items-center mb-10">
+                    <h2 class="text-2xl font-black uppercase italic tracking-tighter">Останні новини</h2>
+                    <div class="flex gap-2">
+                        <button class="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-orange-600 transition">←</button>
+                        <button class="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-orange-600 transition">→</button>
+                    </div>
+                </div>
+
+                <div id="p-news" class="space-y-8">
+                    <!-- Hydrated -->
+                    <div class="flex gap-4 animate-pulse">
+                        <div class="w-20 h-20 rounded-2xl bg-white/5 flex-shrink-0"></div>
+                        <div class="flex-1 space-y-3">
+                            <div class="h-4 bg-white/10 w-full rounded-full"></div>
+                            <div class="h-4 bg-white/5 w-1/2 rounded-full"></div>
                         </div>
                     </div>
-                </section>
-
-                <section>
-                    <div class="portal-card bg-indigo-900 text-white border-none">
-                        <h3 class="text-xl font-black mb-4 uppercase">Чат Громади</h3>
-                        <p class="text-indigo-200 text-sm mb-6">Приєднуйтесь до обговорення важливих питань міста в нашому Telegram чаті.</p>
-                        <a href="https://t.me/bukvanews" class="inline-flex items-center gap-2 bg-indigo-500 py-3 px-6 rounded-xl font-bold hover:bg-white hover:text-indigo-900 transition">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/></svg>
-                            ДОЛУЧИТИСЬ
-                        </a>
-                    </div>
-                </section>
+                </div>
             </div>
+        </div>
+
+        <!-- Widgets Area -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-12">
+             <!-- Calendar -->
+             <div class="column-card p-10">
+                <h3 class="text-xl font-black uppercase italic mb-8 tracking-tighter">Календар</h3>
+                <div class="grid grid-cols-7 text-center text-[9px] font-black uppercase opacity-20 mb-6 tracking-widest">
+                    <div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Нд</div>
+                </div>
+                <div class="grid grid-cols-7 gap-1 text-center text-sm font-bold opacity-70" id="calendar-view">
+                    <!-- Dynamic -->
+                </div>
+             </div>
+
+             <!-- Events Scroll -->
+             <div class="column-card p-10 relative overflow-hidden">
+                <div class="flex justify-between items-center mb-10">
+                    <h3 class="text-xl font-black uppercase italic tracking-tighter">Міські події</h3>
+                </div>
+                <div class="bg-white text-slate-900 rounded-[2.5rem] p-8 relative overflow-hidden group">
+                     <div class="relative z-10">
+                         <div class="text-[8px] font-black uppercase tracking-[0.3em] text-slate-400 mb-2">Інтерактивний календар</div>
+                         <div class="text-2xl font-black leading-tight mb-6">25 двентрога<br>Музичний фестиваль</div>
+                         <div class="flex items-center gap-4">
+                             <span class="text-[10px] font-black text-slate-400 uppercase">27 магхе — 12 лютня</span>
+                             <button class="px-6 py-2 bg-orange-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-slate-900 transition translate-y-0 group-hover:-translate-y-1">Войти</button>
+                         </div>
+                     </div>
+                     <img src="/logo.png" class="absolute -right-10 -bottom-10 w-48 h-48 opacity-10 rotate-12 group-hover:rotate-0 transition duration-1000">
+                </div>
+             </div>
         </div>
     </main>
 
-    <script defer src="/components/header.js?v=7"></script>
     <script>
         const API_BASE = 'https://kgrxlznhimwuvwhjfzhv.supabase.co/rest/v1';
         const API_KEY = 'sb_publishable_L4_HhLhbj_m6wbEc3ZqhcQ_QNGOLWXU';
-        const config = window.PORTAL_CONFIG || { citySlug: 'kalush', cityDisplayName: 'Калуш' };
+        const config = window.PORTAL_CONFIG || { citySlug: 'kalush', portalName: 'Калуш ПОРТАЛ', logoUrl: '/logo.png' };
 
-        // Simple fetch helper for economy
+        // Basic Info Setup
+        if(config.portalName) {
+            document.title = config.portalName;
+            document.getElementById('p-name').innerText = config.portalName.toUpperCase();
+        }
+        if(config.logoUrl) document.getElementById('p-logo').src = config.logoUrl;
+
         async function sbFetch(table, params) {
-            const res = await fetch(`${API_BASE}/${table}?${params}`, {
-                headers: { 'apikey': API_KEY, 'Authorization': `Bearer ${API_KEY}` }
-            });
-            return res.ok ? res.json() : [];
+            try {
+                const res = await fetch(`${API_BASE}/${table}?${params}`, {
+                    headers: { 'apikey': API_KEY, 'Authorization': `Bearer ${API_KEY}` }
+                });
+                return res.ok ? res.json() : [];
+            } catch(e) { return []; }
         }
 
-        async function hydratePortal() {
-            // 1. Load News
-            try {
-                const news = await sbFetch('news', `city=eq.${config.citySlug}&is_published=eq.true&select=id,title,slug,image_url,category,category_name&order=created_at.desc&limit=4`);
-                const newsGrid = document.getElementById('portal-news-grid');
-                if (news.length > 0) {
-                    newsGrid.innerHTML = news.map(n => `
-                        <a href="/${n.city ? n.city + '/' : n.category + '/'}${n.slug}" class="portal-card flex flex-col group">
-                            <img src="${n.image_url || '/og-default.jpg'}" class="rounded-xl h-44 object-cover mb-4 group-hover:scale-[1.02] transition duration-500 shadow-sm bg-slate-100">
-                            <span class="text-[10px] font-black uppercase text-orange-600 mb-2">${n.category_name}</span>
-                            <h3 class="font-black text-lg leading-tight group-hover:text-orange-600 transition line-clamp-2">${n.title}</h3>
-                        </a>
-                    `).join('');
-                } else {
-                    newsGrid.innerHTML = '<div class="col-span-full py-8 text-center text-slate-400 italic">Новин поки немає</div>';
-                }
-            } catch (e) { console.error(e); }
-
-            // 2. Load Places
-            try {
-                const places = await sbFetch('places', `city_slug=eq.${config.citySlug}&order=is_featured.desc,created_at.desc&limit=6`);
-                const placesContainer = document.querySelector('#places-container');
-                if (placesContainer && places.length > 0) {
-                    // Split into two columns as per template
-                    const leftCol = places.slice(0, 3);
-                    const rightCol = places.slice(3, 6);
-                    
-                    const renderCol = (list) => `
-                        <div class="portal-card">
-                            ${list.map(p => `
-                                <div class="place-card">
-                                    <img src="${p.image_url || 'https://via.placeholder.com/100'}" class="place-img bg-slate-50">
-                                    <div class="place-info">
-                                        <span class="place-tags">${p.category_name}</span>
-                                        <h4>${p.name}</h4>
-                                        <p class="text-xs text-slate-500 line-clamp-1">${p.address || ''}</p>
-                                    </div>
-                                </div>
-                            `).join('')}
-                            <a href="#" class="block text-center pt-4 text-xs font-black text-slate-400 hover:text-orange-600 uppercase tracking-widest">Дивитись всі &rarr;</a>
-                        </div>
-                    `;
-                    placesContainer.innerHTML = renderCol(leftCol) + (rightCol.length > 0 ? renderCol(rightCol) : '');
-                }
-            } catch (e) { console.error(e); }
-
-            // 3. Load Ads
-            try {
-                const ads = await sbFetch('classifieds', `city_slug=eq.${config.citySlug}&is_published=eq.true&order=is_featured.desc,created_at.desc&limit=5`);
-                const adsContainer = document.getElementById('ads-container');
-                if (adsContainer && ads.length > 0) {
-                    adsContainer.innerHTML = ads.map(a => `
-                        <div class="ad-item">
-                            <p class="text-sm font-bold truncate">${a.title}</p>
-                            <span class="ad-price">${a.price || 'Договірна'}</span>
-                        </div>
-                    `).join('') + '<button class="w-full bg-slate-900 text-white py-4 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-orange-600 transition mt-4">Подати оголошення</button>';
-                }
-            } catch (e) { console.error(e); }
+        function renderStars(rating = 0) {
+            return '★'.repeat(Math.round(rating)).padEnd(5, '☆');
         }
 
-        window.addEventListener('DOMContentLoaded', hydratePortal);
+        async function initPortal() {
+            // 1. Places
+            const places = await sbFetch('places', `city_slug=eq.${config.citySlug}&order=is_featured.desc,rating.desc&limit=6`);
+            const pGrid = document.getElementById('p-places');
+            if(places.length > 0) {
+                pGrid.innerHTML = places.map(p => `
+                    <div class="place-item group">
+                         <img src="${p.image_url || 'https://via.placeholder.com/200'}" class="w-full h-24 object-cover rounded-2xl mb-4 grayscale group-hover:grayscale-0 transition duration-500">
+                         <div class="text-[8px] font-black uppercase text-orange-600 mb-1">${p.category_name}</div>
+                         <h4 class="font-black text-xs truncate mb-1">${p.name}</h4>
+                         <div class="flex items-center gap-1">
+                             <span class="text-[10px] text-orange-400 font-bold">${p.rating || 0}</span>
+                             <span class="text-[8px] text-orange-400 opacity-50 mb-0.5">${renderStars(p.rating)}</span>
+                         </div>
+                    </div>
+                `).join('');
+            } else {
+                pGrid.innerHTML = '<div class="col-span-full py-10 text-center opacity-30 italic text-xs">Закладів поки не додано</div>';
+            }
+
+            // 2. Ads
+            const ads = await sbFetch('classifieds', `city_slug=eq.${config.citySlug}&is_published=eq.true&order=is_featured.desc,created_at.desc&limit=4`);
+            const aList = document.getElementById('p-ads');
+            if(ads.length > 0) {
+                aList.innerHTML = ads.map(a => `
+                    <div class="p-6 bg-white/5 rounded-[2rem] hover:bg-white/10 transition group relative overflow-hidden">
+                        ${a.is_featured ? '<span class="hot-label">vip</span>' : ''}
+                        <div class="text-[8px] font-black uppercase text-slate-500 mb-2">${a.category || 'Загальне'}</div>
+                        <div class="font-bold text-xs leading-tight line-clamp-2">${a.title}</div>
+                        <div class="text-orange-600 font-black text-xs mt-3">${a.price || 'Договірна'}</div>
+                    </div>
+                `).join('');
+            } else {
+                 aList.innerHTML = '<div class="py-10 text-center opacity-30 italic text-xs">Оголошень поки немає</div>';
+            }
+
+            // 3. News
+            const news = await sbFetch('news', `city=eq.${config.citySlug}&is_published=eq.true&order=created_at.desc&limit=3`);
+            const nList = document.getElementById('p-news');
+            if(news.length > 0) {
+                nList.innerHTML = news.map(n => `
+                    <a href="/${n.slug}" class="flex gap-4 group">
+                        <img src="${n.image_url || '/og-default.jpg'}" class="w-20 h-20 rounded-2xl object-cover bg-white/5 group-hover:scale-105 transition">
+                        <div class="flex-1">
+                            <div class="text-[8px] font-black uppercase text-slate-500 mb-2">Новини громади</div>
+                            <h4 class="font-bold text-[11px] leading-snug group-hover:text-orange-500 transition line-clamp-2">${n.title}</h4>
+                        </div>
+                    </a>
+                `).join('');
+            } else {
+                nList.innerHTML = '<div class="py-10 text-center opacity-30 italic text-xs">Новин не знайдено</div>';
+            }
+
+            // 4. Simple Calendar
+            const cal = document.getElementById('calendar-view');
+            let calHtml = '';
+            for(let i=1; i<=31; i++) {
+                const isSelected = i === new Date().getDate();
+                calHtml += `<div class="py-2 rounded-lg cursor-pointer transition ${isSelected ? 'bg-orange-600 text-white font-black' : 'hover:bg-white/5'}">${i}</div>`;
+            }
+            cal.innerHTML = calHtml;
+        }
+
+        window.addEventListener('DOMContentLoaded', initPortal);
     </script>
 </body>
-
 </html>

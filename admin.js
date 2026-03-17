@@ -286,6 +286,11 @@ window.showSection = (id) => {
     const activeLink = document.querySelector(`[onclick*="${id}"]`);
     if (activeLink) activeLink.classList.add('bg-orange-600');
 
+    // Load data for specialized sections
+    if (id === 'section-portals' && window.loadPortals) window.loadPortals();
+    if (id === 'section-places' && window.loadPlaces) window.loadPlaces();
+    if (id === 'section-ads' && window.loadAds) window.loadAds();
+
     // Close mobile menu after navigation
     document.body.classList.remove('sidebar-open');
 };
@@ -2811,10 +2816,10 @@ window.loadPortals = async () => {
             <div class="flex justify-between items-start mb-6">
                 <div class="flex items-center gap-4">
                     <div class="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-2xl">
-                        ${p.config?.logo_url ? `<img src="${p.config.logo_url}" class="w-8 h-8 object-contain">` : '🏛️'}
+                        ${p.logo_url ? `<img src="${p.logo_url}" class="w-8 h-8 object-contain">` : '🏛️'}
                     </div>
                     <div>
-                        <h4 class="text-xl font-black text-slate-800">${p.city_name || p.city_slug}</h4>
+                        <h4 class="text-xl font-black text-slate-800">${p.portal_name || p.city_slug}</h4>
                         <p class="text-[10px] font-black uppercase text-slate-400 tracking-widest">${p.city_slug}.bukva.news</p>
                     </div>
                 </div>
@@ -2826,7 +2831,7 @@ window.loadPortals = async () => {
             <div class="space-y-2 mb-6">
                 <div class="flex justify-between text-xs">
                     <span class="text-slate-400 font-bold uppercase tracking-tighter">SEO Title:</span>
-                    <span class="text-slate-700 font-bold truncate max-w-[150px] font-mono">${p.config?.seo?.title || '—'}</span>
+                    <span class="text-slate-700 font-bold truncate max-w-[150px] font-mono">${p.seo_config?.title || '—'}</span>
                 </div>
             </div>
             <a href="https://${p.city_slug}.bukva.news" target="_blank" class="block w-full py-4 bg-slate-900 text-white rounded-2xl text-center text-[10px] font-black uppercase tracking-widest hover:bg-orange-600 transition shadow-lg">Перейти на портал</a>
@@ -2846,10 +2851,10 @@ window.openPortalEditor = async (id = null) => {
             slugInput.value = p.city_slug;
             slugInput.readOnly = true;
             slugInput.disabled = true;
-            document.getElementById('portal-name-input').value = p.city_name || '';
-            document.getElementById('portal-logo').value = p.config?.logo_url || '';
-            document.getElementById('portal-seo-title').value = p.config?.seo?.title || '';
-            document.getElementById('portal-seo-desc').value = p.config?.seo?.description || '';
+            document.getElementById('portal-name-input').value = p.portal_name || '';
+            document.getElementById('portal-logo').value = p.logo_url || '';
+            document.getElementById('portal-seo-title').value = p.seo_config?.title || '';
+            document.getElementById('portal-seo-desc').value = p.seo_config?.description || '';
         }
     } else {
         slugInput.value = '';
@@ -2869,13 +2874,11 @@ document.getElementById('portal-form')?.addEventListener('submit', async (e) => 
     const id = document.getElementById('portal-id').value;
     const payload = {
         city_slug: document.getElementById('portal-city-slug').value.toLowerCase(),
-        city_name: document.getElementById('portal-name-input').value,
-        config: {
-            logo_url: document.getElementById('portal-logo').value,
-            seo: {
-                title: document.getElementById('portal-seo-title').value,
-                description: document.getElementById('portal-seo-desc').value
-            }
+        portal_name: document.getElementById('portal-name-input').value,
+        logo_url: document.getElementById('portal-logo').value,
+        seo_config: {
+            title: document.getElementById('portal-seo-title').value,
+            description: document.getElementById('portal-seo-desc').value
         }
     };
 
@@ -2954,6 +2957,7 @@ window.openPlaceEditor = async (id = null) => {
             document.getElementById('place-image').value = p.image_url || '';
             document.getElementById('place-desc').value = p.description || '';
             document.getElementById('place-featured').checked = p.is_featured;
+            document.getElementById('place-rating').value = p.rating || 0;
         }
     }
     document.getElementById('place-editor-modal').classList.remove('hidden');
@@ -2973,7 +2977,8 @@ document.getElementById('place-form')?.addEventListener('submit', async (e) => {
         phone: document.getElementById('place-phone').value,
         image_url: document.getElementById('place-image').value,
         description: document.getElementById('place-desc').value,
-        is_featured: document.getElementById('place-featured').checked
+        is_featured: document.getElementById('place-featured').checked,
+        rating: parseFloat(document.getElementById('place-rating').value) || 0
     };
 
     let res;
@@ -3042,7 +3047,7 @@ window.openAdEditor = async (id = null) => {
             document.getElementById('ad-title').value = a.title;
             document.getElementById('ad-category').value = a.category;
             document.getElementById('ad-price').value = a.price || '';
-            document.getElementById('ad-phone').value = a.phone || '';
+            document.getElementById('ad-phone').value = a.contact_phone || '';
             document.getElementById('ad-desc').value = a.description || '';
             document.getElementById('ad-image').value = a.image_url || '';
             document.getElementById('ad-published').checked = a.is_published;
@@ -3062,7 +3067,7 @@ document.getElementById('ad-form')?.addEventListener('submit', async (e) => {
         title: document.getElementById('ad-title').value,
         category: document.getElementById('ad-category').value,
         price: document.getElementById('ad-price').value,
-        phone: document.getElementById('ad-phone').value,
+        contact_phone: document.getElementById('ad-phone').value,
         description: document.getElementById('ad-desc').value,
         image_url: document.getElementById('ad-image').value,
         is_published: document.getElementById('ad-published').checked,
