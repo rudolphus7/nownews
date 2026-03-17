@@ -2955,7 +2955,7 @@ window.loadPlaces = async () => {
         <tr class="hover:bg-slate-50 transition border-b border-slate-50">
             <td class="p-6">
                 <div class="flex items-center gap-4">
-                    <img src="${p.image_url || 'https://via.placeholder.com/100'}" class="w-12 h-12 rounded-xl object-cover bg-slate-100">
+                    <img src="${p.image_url || 'https://placehold.co/100'}" class="w-12 h-12 rounded-xl object-cover bg-slate-100">
                     <div>
                         <div class="font-black text-slate-800 uppercase text-xs">${p.name}</div>
                         <div class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1">${p.city_slug} • ${p.address || 'Адреса не вказана'}</div>
