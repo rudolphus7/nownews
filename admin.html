@@ -13,6 +13,7 @@
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/seo-engine.js"></script>
     <script>
         // Early stubs to prevent "is not a function" errors
         // Using traditional functions for maximum compatibility and hoisting
@@ -1889,7 +1890,7 @@
         </div>
     </div>
 
-    <script type="module" src="/admin.js" onerror="console.error('🚨 [ADMIN] Failed to load /admin.js module. Check path and server logs.')"></script>
+    <script src="/admin.js" onerror="console.error('🚨 [ADMIN] Failed to load /admin.js. Check path and server logs.')"></script>
 </body>
 
 </html>

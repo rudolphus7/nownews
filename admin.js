@@ -1,6 +1,5 @@
-console.log("🚀 Admin.js: Module loading started...");
-import { SEOEngine } from './seo-engine.js';
-console.log("✅ Admin.js: Imports successful");
+console.log("🚀 Admin.js: Loading as standard script...");
+// SEOEngine is now provided globally by seo-engine.js
 
 // --- ГЛОБАЛЬНІ ЗМІННІ ТА ПЕРЕКЛАДИ ---
 let CATEGORIES_UK = {};
