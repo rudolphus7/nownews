@@ -71,11 +71,20 @@ module.exports = async (req, res) => {
         return;
     }
 
+    const host = req.headers.host || '';
+    const isSubdomain = host.startsWith('kalush.');
+    
     const cityName = city.name;
-    const canonicalUrl = `${SITE_URL}/${citySlug}/`;
-    const title = `Новини ${cityName} — останні події | BUKVA NEWS`;
-    const description = `Актуальні новини ${cityName}: місцеві події, факти, оперативна інформація. Слідкуйте за головними новинами першими на BUKVA NEWS.`;
-    const siteName = 'BUKVA NEWS';
+    const canonicalUrl = isSubdomain ? `https://kalush.bukva.news/` : `${SITE_URL}/${citySlug}/`;
+    const title = isSubdomain 
+        ? `Портал міста Калуш — новини, події, оголошення | KALUSH NEWS` 
+        : `Новини ${cityName} — останні події | BUKVA NEWS`;
+    
+    const description = isSubdomain
+        ? `Головний міський портал Калуша. Оперативні новини, культурні події, бізнес та життєдіяльність міста в одному місці.`
+        : `Актуальні новини ${cityName}: місцеві події, факти, оперативна інформація. Слідкуйте за головними новинами першими на BUKVA NEWS.`;
+    
+    const siteName = isSubdomain ? 'KALUSH NEWS' : 'BUKVA NEWS';
 
     // Read index.html template
     let htmlContent = '';
@@ -207,8 +216,8 @@ module.exports = async (req, res) => {
                         <div class="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-orange-500 border-2 border-white rounded-full"></div>
                     </div>
                     <div class="leading-none text-left">
-                        <span class="text-3xl font-black uppercase tracking-tighter text-slate-900 block mt-1 header-logo-text">BUKVA <span class="text-orange-600">NEWS</span></span>
-                        <span class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 opacity-80">Незалежна Журналістика</span>
+                        <span class="text-3xl font-black uppercase tracking-tighter text-slate-900 block mt-1 header-logo-text">${isSubdomain ? 'KALUSH' : 'BUKVA'} <span class="text-orange-600">NEWS</span></span>
+                        <span class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 opacity-80">${isSubdomain ? 'Міський Портал Калуша' : 'Незалежна Журналістика'}</span>
                     </div>
                 </a>
 

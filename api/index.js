@@ -38,11 +38,19 @@ module.exports = async (req, res) => {
         return res.status(403).send('Bot access denied');
     }
 
-    // Determine which handler to use based on the path or a query parameter
-    // Vercel rewrites will pass the original intent via query or path
-
-    // 1. Get the target from query (set by vercel.json rewrites)
+    // 1. Get the target and host
     const target = req.query.__target;
+    const host = req.headers.host || '';
+
+    // 1.1 Subdomain handling: Route kalush.bukva.news/ directly to the city portal
+    if (host.startsWith('kalush.') && !target && (req.url === '/' || req.url.startsWith('/?'))) {
+        try {
+            req.query.city = 'kalush';
+            return await handlers['city'](req, res);
+        } catch (err) {
+            console.error('Subdomain Router Error:', err);
+        }
+    }
 
     if (target && handlers[target]) {
         try {
