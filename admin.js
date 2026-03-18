@@ -129,7 +129,21 @@ window.handleImageUpload = async (input, targetId) => {
         const webpBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/webp', 0.8));
 
         // 4. Upload to our API
-        const fileName = `${Date.now()}_${file.name.split('.')[0]}.webp`;
+        const slugVal = document.getElementById('slug')?.value;
+        let fileName;
+        
+        if (slugVal && targetId === 'image_url') {
+            // Priority: use article slug for main image
+            fileName = `${slugVal}.webp`;
+        } else {
+            // Fallback: clean original name + timestamp
+            const cleanBase = file.name.split('.')[0]
+                .replace(/[^a-z0-9]/gi, '-') // Replace non-alphanumeric with hyphens
+                .replace(/-+/g, '-')         // Collapse multiple hyphens
+                .toLowerCase();
+            fileName = `${Date.now()}_${cleanBase}.webp`;
+        }
+
         const response = await fetch('/api/upload-image', {
             method: 'POST',
             headers: {

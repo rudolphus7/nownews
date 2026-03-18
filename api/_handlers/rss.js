@@ -35,6 +35,10 @@ module.exports = async (req, res) => {
             const link = `${SITE_URL}${path}`;
             const pubDate = new Date(item.created_at).toUTCString();
 
+            const imageUrl = item.image_url || '';
+            const isWebP = imageUrl.toLowerCase().endsWith('.webp');
+            const mimeType = isWebP ? 'image/webp' : 'image/jpeg';
+
             return `
         <item>
             <title><![CDATA[${item.title}]]></title>
@@ -42,8 +46,8 @@ module.exports = async (req, res) => {
             <guid isPermaLink="false">${item.id}</guid>
             <pubDate>${pubDate}</pubDate>
             <description><![CDATA[${description}]]></description>
-            ${item.image_url ? `<enclosure url="${item.image_url}" length="0" type="image/jpeg" />` : ''}
-            ${item.image_url ? `<media:content url="${item.image_url}" medium="image" />` : ''}
+            ${item.image_url ? `<enclosure url="${item.image_url}" type="${mimeType}" />` : ''}
+            ${item.image_url ? `<media:content url="${item.image_url}" medium="image" type="${mimeType}" />` : ''}
             <category>${CAT_MAP[item.category] || item.category || 'Новини'}</category>
         </item>`;
         }).join('');
