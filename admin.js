@@ -304,10 +304,27 @@ console.log("✅ Admin.js: Reaction selector initialized");
 
 // --- НАВІГАЦІЯ ---
 const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+const mobileOverlay = document.getElementById('mobile-overlay');
+
+function toggleMobileMenu() {
+    const isOpen = document.body.classList.toggle('sidebar-open');
+    if (mobileOverlay) {
+        if (isOpen) {
+            mobileOverlay.classList.remove('hidden');
+            setTimeout(() => mobileOverlay.classList.add('visible'), 10);
+        } else {
+            mobileOverlay.classList.remove('visible');
+            setTimeout(() => mobileOverlay.classList.add('hidden'), 300);
+        }
+    }
+}
+
 if (mobileMenuToggle) {
-    mobileMenuToggle.addEventListener('click', () => {
-        document.body.classList.toggle('sidebar-open');
-    });
+    mobileMenuToggle.addEventListener('click', toggleMobileMenu);
+}
+
+if (mobileOverlay) {
+    mobileOverlay.addEventListener('click', toggleMobileMenu);
 }
 
 window.showSection = (id) => {
@@ -318,13 +335,21 @@ window.showSection = (id) => {
     const activeLink = document.querySelector(`[onclick*="${id}"]`);
     if (activeLink) activeLink.classList.add('bg-orange-600');
 
+    // Handle floating button visibility
+    const fab = document.querySelector('.fab-publish');
+    if (fab) {
+        fab.style.display = (id === 'section-add') ? 'flex' : 'none';
+    }
+
     // Load data for specialized sections
     if (id === 'section-portals' && window.loadPortals) window.loadPortals();
     if (id === 'section-places' && window.loadPlaces) window.loadPlaces();
     if (id === 'section-ads' && window.loadAds) window.loadAds();
 
     // Close mobile menu after navigation
-    document.body.classList.remove('sidebar-open');
+    if (document.body.classList.contains('sidebar-open')) {
+        toggleMobileMenu();
+    }
 };
 
 // --- ПУБЛІКАЦІЯ / ОНОВЛЕННЯ ---

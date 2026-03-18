@@ -140,6 +140,40 @@
         .journalist-card.active .j-desc {
             color: #6366f1;
         }
+
+        /* Floating Action Button for Mobile */
+        .fab-publish {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 1rem 1.5rem;
+            background: #f97316;
+            color: white;
+            border-radius: 9999px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            box-shadow: 0 20px 40px rgba(249, 115, 22, 0.4);
+            animation: bounceIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+        }
+
+        @keyframes bounceIn {
+            from { transform: scale(0.5) translateY(100px); opacity: 0; }
+            to { transform: scale(1) translateY(0); opacity: 1; }
+        }
+
+        #mobile-overlay.visible {
+            display: block;
+            opacity: 1;
+        }
+
+        body.sidebar-open {
+            overflow: hidden;
+        }
     </style>
     <style>
         /* --- LOGIN GATE --- */
@@ -433,24 +467,32 @@
 
 <body class="bg-[#f3f4f6] min-h-screen flex flex-col lg:flex-row">
 
+    <!-- Mobile Overlay -->
+    <div id="mobile-overlay" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[45] hidden transition-opacity duration-300 opacity-0 lg:hidden"></div>
+
     <!-- Mobile Header -->
     <header
-        class="lg:hidden bg-slate-900 text-white p-4 flex justify-between items-center sticky top-0 z-[60] shadow-lg">
+        class="lg:hidden bg-slate-900/80 backdrop-blur-md text-white p-4 flex justify-between items-center sticky top-0 z-[60] shadow-lg border-b border-slate-800">
         <h1 class="text-xl font-black text-orange-500 uppercase italic">BUKVA NEWS <span class="text-white">PRO</span>
         </h1>
-        <button id="mobile-menu-toggle" class="p-2 bg-slate-800 rounded-lg text-white">
+        <button id="mobile-menu-toggle" class="p-2 bg-slate-800 rounded-xl text-white active:scale-95 transition-transform">
             <span class="text-2xl">☰</span>
         </button>
     </header>
 
     <aside id="sidebar"
-        class="w-72 bg-slate-900 text-white min-h-screen fixed lg:sticky top-0 shadow-2xl z-50 overflow-y-auto">
-        <div class="p-8">
-            <h1 class="text-2xl font-black text-orange-500 tracking-tighter uppercase italic">BUKVA NEWS <span
-                    class="text-white">PRO</span></h1>
-            <p class="text-[10px] text-slate-400 tracking-[0.2em] uppercase mt-1">Global Editorial System</p>
+        class="w-72 bg-slate-900/95 backdrop-blur-xl text-white min-h-screen fixed lg:sticky top-0 shadow-2xl z-[70] overflow-y-auto transition-transform duration-300">
+        <div class="p-8 pb-4 flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-black text-orange-500 tracking-tighter uppercase italic">BUKVA NEWS <span
+                        class="text-white">PRO</span></h1>
+                <p class="text-[10px] text-slate-400 tracking-[0.2em] uppercase mt-1">Global Editorial System</p>
+            </div>
+            <button onclick="toggleMobileMenu()" class="lg:hidden p-2 text-slate-400 hover:text-white transition-colors">
+                <span class="text-2xl">✕</span>
+            </button>
         </div>
-        <nav class="flex-1 px-6 py-8 space-y-4">
+        <nav class="flex-1 px-4 py-8 space-y-2 lg:space-y-4">
             <a href="#" onclick="showSection('section-add')"
                 class="flex items-center space-x-4 p-4 rounded-2xl hover:bg-slate-800 transition-all group">
                 <span class="text-xl">✍️</span>
@@ -524,8 +566,8 @@
 
             <form id="news-form" class="grid grid-cols-1 lg:grid-cols-12 gap-10">
                 <div class="lg:col-span-8 space-y-8">
-                    <div class="bg-white p-4 lg:p-8 rounded-3xl shadow-xl border border-white">
-                        <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Заголовок
+                    <div class="bg-white p-6 lg:p-8 rounded-3xl shadow-xl border border-white">
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 lg:mb-3">Заголовок
                             публікації</label>
                         <input type="text" id="title" required
                             class="w-full text-2xl lg:text-3xl font-bold border-none focus:ring-0 outline-none placeholder-slate-200"
@@ -541,8 +583,8 @@
 
                     <div class="bg-white rounded-3xl shadow-xl border border-white overflow-hidden">
                         <div class="p-6 pb-0">
-                            <div class="flex items-center justify-between mb-4">
-                                <label class="block text-xs font-black text-slate-400 uppercase tracking-widest">Тіло
+                            <div class="flex items-center justify-between mb-3 lg:mb-4">
+                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Тіло
                                     новини (Rich Text)</label>
                                 <button type="button" onclick="window.openReadAlsoModal()" id="btn-read-also"
                                     class="bg-orange-50 hover:bg-orange-100 text-orange-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 group border border-orange-100">
@@ -833,6 +875,11 @@
                         </p>
                     </div>
                 </div>
+                <!-- Floating Publish Button for Mobile -->
+                <button type="submit" class="lg:hidden fab-publish">
+                    <span class="text-xl">🚀</span>
+                    <span>Опублікувати</span>
+                </button>
             </form>
         </section>
 
