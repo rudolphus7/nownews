@@ -1793,22 +1793,6 @@ window.savePasswordSettings = async () => {
     }
 };
 
-window.loadSettings = async () => {
-    if (!_supabase) return;
-
-    // Categories
-    const { data: catData } = await _supabase.from('categories').select('*').order('order_index', { ascending: true });
-    if (catData) renderSettingsTable('categories', catData);
-
-    // Cities
-    const { data: cityData } = await _supabase.from('cities').select('*').order('order_index', { ascending: true });
-    if (cityData) renderSettingsTable('cities', cityData);
-
-    // Load specific settings from api
-    await window.loadSocialSettings();
-    await window.loadPasswordSettings();
-};
-
 // ═══════════════════════════════════════════════════════════════════════
 // READ ALSO GENERATOR (Internal Links)
 // readAlsoTimeout globally declared
@@ -2421,6 +2405,10 @@ window.loadSettings = async () => {
         const savedKey = localStorage.getItem('gemini_api_key') || '';
         const keyInput = document.getElementById('gemini-api-key');
         if (keyInput) keyInput.value = savedKey;
+
+        // Load specific API settings
+        await window.loadSocialSettings();
+        await window.loadPasswordSettings();
     } catch (e) { console.error(e); }
 };
 
