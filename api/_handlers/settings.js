@@ -1,14 +1,22 @@
+const { verifyToken } = require('./_auth_utils');
+
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kgrxlznhimwuvwhjfzhv.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_KEY || 'sb_publishable_L4_HhLhbj_m6wbEc3ZqhcQ_QNGOLWXU';
 
 module.exports = async (req, res) => {
-    // Встановлюємо заголовки CORS (хоча Vercel зазвичай це хендлить)
+    // CORS headers
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
-    if (req.method === 'OPTIONS') {
-        return res.status(200).end();
+    if (req.method === 'OPTIONS') return res.status(200).end();
+
+    // 1. Auth & Role check
+    const token = req.query.token || (req.headers.authorization || '').replace('Bearer ', '');
+    const payload = verifyToken(token);
+    
+    if (!payload || payload.role !== 'admin') {
+        return res.status(403).json({ error: 'Access denied. Only primary admin can manage settings.' });
     }
 
     try {

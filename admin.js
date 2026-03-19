@@ -1705,7 +1705,8 @@ window.loadStats = async () => {
 // -- Social Media Settings --
 window.loadSocialSettings = async () => {
     try {
-        const res = await fetch('/api/settings');
+        const token = localStorage.getItem('ifnews_admin_token') || '';
+        const res = await fetch('/api/settings?token=' + encodeURIComponent(token));
         const settings = await res.json();
 
         if (settings) {
@@ -1735,7 +1736,8 @@ window.saveSocialSettings = async () => {
     };
 
     try {
-        const res = await fetch('/api/settings', {
+        const token = localStorage.getItem('ifnews_admin_token') || '';
+        const res = await fetch('/api/settings?token=' + encodeURIComponent(token), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(settings)
@@ -1756,7 +1758,8 @@ window.saveSocialSettings = async () => {
 // -- Password Settings --
 window.loadPasswordSettings = async () => {
     try {
-        const res = await fetch('/api/settings');
+        const token = localStorage.getItem('ifnews_admin_token') || '';
+        const res = await fetch('/api/settings?token=' + encodeURIComponent(token));
         const settings = await res.json();
         if (settings && settings.additional_admin_passwords) {
             document.getElementById('setting_additional_passwords').value = settings.additional_admin_passwords;
@@ -1777,7 +1780,8 @@ window.savePasswordSettings = async () => {
     const passwords = document.getElementById('setting_additional_passwords').value.trim();
     
     try {
-        const res = await fetch('/api/settings', {
+        const token = localStorage.getItem('ifnews_admin_token') || '';
+        const res = await fetch('/api/settings?token=' + encodeURIComponent(token), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ additional_admin_passwords: passwords })
@@ -2408,9 +2412,12 @@ window.loadSettings = async () => {
         const keyInput = document.getElementById('gemini-api-key');
         if (keyInput) keyInput.value = savedKey;
 
-        // Load specific API settings
-        await window.loadSocialSettings();
-        await window.loadPasswordSettings();
+        // Load specific API settings ONLY if admin
+        const role = localStorage.getItem('ifnews_admin_role');
+        if (role === 'admin') {
+            await window.loadSocialSettings();
+            await window.loadPasswordSettings();
+        }
     } catch (e) { console.error(e); }
 };
 

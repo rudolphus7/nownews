@@ -8,9 +8,8 @@
  * Токен — HMAC-SHA256 підписаний рядок із часом дії (48 год).
  */
 
-const crypto = require('crypto');
+const { signToken, verifyToken } = require('./_auth_utils');
 
-// Supabase config for DB-based passwords
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kgrxlznhimwuvwhjfzhv.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_KEY || 'sb_publishable_L4_HhLhbj_m6wbEc3ZqhcQ_QNGOLWXU';
 
@@ -18,28 +17,6 @@ const SUPABASE_KEY = process.env.SUPABASE_KEY || 'sb_publishable_L4_HhLhbj_m6wbE
 const JWT_SECRET = process.env.JWT_SECRET || 'if-news-admin-secret-change-me-in-vercel';
 const ADMIN_PASSWORD_ENV = process.env.ADMIN_PASSWORD || 'ifnews2024';
 const TOKEN_TTL_MS = 48 * 60 * 60 * 1000; // 48 годин
-
-function signToken(payload) {
-    const data = JSON.stringify(payload);
-    const b64 = Buffer.from(data).toString('base64url');
-    const sig = crypto.createHmac('sha256', JWT_SECRET).update(b64).digest('base64url');
-    return `${b64}.${sig}`;
-}
-
-function verifyToken(token) {
-    try {
-        const [b64, sig] = token.split('.');
-        if (!b64 || !sig) return null;
-        const expected = crypto.createHmac('sha256', JWT_SECRET).update(b64).digest('base64url');
-        // Constant-time comparison to prevent timing attacks
-        if (!crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) return null;
-        const payload = JSON.parse(Buffer.from(b64, 'base64url').toString());
-        if (Date.now() > payload.exp) return null; // expired
-        return payload;
-    } catch {
-        return null;
-    }
-}
 
 module.exports = async (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
@@ -71,12 +48,16 @@ module.exports = async (req, res) => {
         // 1. Check against Environment Variable(s)
         const envPasswords = ADMIN_PASSWORD_ENV.split(',').map(p => p.trim()).filter(Boolean);
         let match = false;
+        let role = 'staff';
+
+        const crypto = require('crypto'); // Need for timingSafeEqual here or move to utils
 
         for (const p of envPasswords) {
             const inputBuf = Buffer.from(password);
             const correctBuf = Buffer.from(p);
             if (inputBuf.length === correctBuf.length && crypto.timingSafeEqual(inputBuf, correctBuf)) {
                 match = true;
+                role = 'admin';
                 break;
             }
         }
@@ -99,6 +80,7 @@ module.exports = async (req, res) => {
                             const correctBuf = Buffer.from(p);
                             if (inputBuf.length === correctBuf.length && crypto.timingSafeEqual(inputBuf, correctBuf)) {
                                 match = true;
+                                role = 'staff'; // Additional passwords are staff
                                 break;
                             }
                         }
@@ -116,7 +98,7 @@ module.exports = async (req, res) => {
         }
 
         const token = signToken({
-            role: 'admin',
+            role: role,
             iat: Date.now(),
             exp: Date.now() + TOKEN_TTL_MS
         });

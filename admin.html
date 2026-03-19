@@ -408,7 +408,9 @@
 
             if (data.ok && data.token) {
                 localStorage.setItem(ADMIN_TOKEN_KEY, data.token);
+                localStorage.setItem('ifnews_admin_role', data.role || 'staff');
                 unlockAdmin();
+                applyRoleVisibility(data.role || 'staff');
             } else {
                 showLoginError(data.error || 'Невірний пароль');
             }
@@ -444,12 +446,25 @@
             const res = await fetch('/api/admin-auth?token=' + encodeURIComponent(token));
             const data = await res.json();
             if (data.valid) {
+                localStorage.setItem('ifnews_admin_role', data.role || 'staff');
                 unlockAdmin();
+                applyRoleVisibility(data.role || 'staff');
             } else {
                 localStorage.removeItem(ADMIN_TOKEN_KEY);
             }
         } catch {
             // On network error, silently stay on login
+        }
+    }
+
+    function applyRoleVisibility(role) {
+        const navSettings = document.getElementById('nav-settings');
+        if (navSettings) {
+            if (role === 'admin') {
+                navSettings.style.display = 'flex';
+            } else {
+                navSettings.style.display = 'none';
+            }
         }
     }
 
@@ -545,7 +560,7 @@
                 <span class="font-bold tracking-wide">Оголошення</span>
             </a>
             <hr class="border-slate-800 my-2">
-            <a href="#" onclick="showSection('section-settings')"
+            <a href="#" onclick="showSection('section-settings')" id="nav-settings"
                 class="flex items-center space-x-4 p-4 rounded-2xl hover:bg-slate-800 transition-all group">
                 <span class="text-xl">⚙️</span>
                 <span class="font-bold tracking-wide">Налаштування</span>
