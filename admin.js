@@ -1,4 +1,4 @@
-console.log("🚀 Admin.js: Loading as standard script...");
+console.log("🚀 Admin.js: Loading... v1.1 (Security Patch)");
 // SEOEngine is now provided globally by seo-engine.js
 
 // --- ГЛОБАЛЬНІ ЗМІННІ ТА ПЕРЕКЛАДИ ---
@@ -18,6 +18,8 @@ let rssCurrentPage = 0; // Fix ReferenceError
 window.loadPortals = async () => { console.warn("Portal logic not yet loaded"); };
 window.openPortalEditor = async () => { console.warn("Portal logic not yet loaded"); };
 window.loadPlaces = async () => { console.warn("Place logic not yet loaded"); };
+window.loadPasswordSettings = async () => { console.warn("Password logic not yet loaded"); };
+window.savePasswordSettings = async () => { console.warn("Password logic not yet loaded"); };
 window.openPlaceEditor = async () => { console.warn("Place logic not yet loaded"); };
 window.loadAds = async () => { console.warn("Ad logic not yet loaded"); };
 window.openAdEditor = async () => { console.warn("Ad logic not yet loaded"); };
@@ -2699,6 +2701,7 @@ window.loadStats();
 
 // Trigger background cleanup of old unpublished news
 fetch('/api/cleanup').catch(err => console.error('Auto-cleanup trigger failed:', err));
+console.log('✅ [ADMIN] admin.js loaded successfully. savePasswordSettings should be available.');
 
 // ═══════════════════════════════════════════════════════════════════════
 // POPUP MANAGEMENT SYSTEM
