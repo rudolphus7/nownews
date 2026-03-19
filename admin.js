@@ -1751,6 +1751,48 @@ window.saveSocialSettings = async () => {
     }
 };
 
+// -- Password Settings --
+window.loadPasswordSettings = async () => {
+    try {
+        const res = await fetch('/api/settings');
+        const settings = await res.json();
+        if (settings && settings.additional_admin_passwords) {
+            document.getElementById('setting_additional_passwords').value = settings.additional_admin_passwords;
+        }
+    } catch (e) {
+        console.error('Error loading password settings:', e);
+    }
+};
+
+window.savePasswordSettings = async () => {
+    const btn = document.getElementById('btn-save-passwords');
+    const status = document.getElementById('password-save-status');
+    const prevHtml = btn.innerHTML;
+
+    btn.disabled = true;
+    btn.innerHTML = `<span>⏳</span> ЗБЕРЕЖЕННЯ...`;
+
+    const passwords = document.getElementById('setting_additional_passwords').value.trim();
+    
+    try {
+        const res = await fetch('/api/settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ additional_admin_passwords: passwords })
+        });
+
+        if (!res.ok) throw new Error('Помилка збереження');
+
+        status.classList.remove('opacity-0');
+        setTimeout(() => status.classList.add('opacity-0'), 3000);
+    } catch (e) {
+        alert('Помилка збереження паролів: ' + e.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = prevHtml;
+    }
+};
+
 window.loadSettings = async () => {
     if (!_supabase) return;
 
@@ -1762,8 +1804,9 @@ window.loadSettings = async () => {
     const { data: cityData } = await _supabase.from('cities').select('*').order('order_index', { ascending: true });
     if (cityData) renderSettingsTable('cities', cityData);
 
-    // Load social specific settings from api
+    // Load specific settings from api
     await window.loadSocialSettings();
+    await window.loadPasswordSettings();
 };
 
 // ═══════════════════════════════════════════════════════════════════════
