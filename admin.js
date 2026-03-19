@@ -1995,6 +1995,13 @@ if (filterEl) {
 window.loadAnalytics = async () => {
     if (!_supabase) return;
 
+    // RBAC: Only admin can see analytics
+    const role = localStorage.getItem('ifnews_admin_role');
+    if (role !== 'admin') {
+        console.warn("Access denied to analytics");
+        return;
+    }
+
     const filter = document.getElementById('analytics-date-filter')?.value || 'all';
     const startDateVal = document.getElementById('analytics-start-date')?.value;
     const endDateVal = document.getElementById('analytics-end-date')?.value;

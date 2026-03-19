@@ -459,13 +459,12 @@
 
     function applyRoleVisibility(role) {
         const navSettings = document.getElementById('nav-settings');
-        if (navSettings) {
-            if (role === 'admin') {
-                navSettings.style.display = 'flex';
-            } else {
-                navSettings.style.display = 'none';
-            }
-        }
+        const navAnalytics = document.getElementById('nav-analytics');
+        
+        const isAdmin = (role === 'admin');
+        
+        if (navSettings) navSettings.style.display = isAdmin ? 'flex' : 'none';
+        if (navAnalytics) navAnalytics.style.display = isAdmin ? 'flex' : 'none';
     }
 
     // Enter key submits login
@@ -533,7 +532,7 @@
                 <span class="text-xl">📧</span>
                 <span class="font-bold tracking-wide">Підписники</span>
             </a>
-            <a href="#" onclick="showSection('section-analytics'); window.loadAnalytics();"
+            <a href="#" onclick="showSection('section-analytics'); window.loadAnalytics();" id="nav-analytics"
                 class="flex items-center space-x-4 p-4 rounded-2xl hover:bg-slate-800 transition-all group">
                 <span class="text-xl">📈</span>
                 <span class="font-bold tracking-wide">Аналітика</span>
