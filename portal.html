@@ -186,14 +186,18 @@
             .hero-tagline { font-size: 3.5rem; }
         }
 
-        /* SVG Icon Fixes */
-        .icon-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 100%;
-            transition: 0.3s;
+        @media (max-width: 768px) {
+            .hero-tagline { font-size: 2.5rem; }
+            .hero-b-container { padding: 6rem 0 4rem; }
+            .column-card { padding: 1.5rem; border-radius: 2rem; }
+            #hub-time { font-size: 4rem !important; }
+            #hub-date { font-size: 14px !important; }
+            .weather-hub-card { padding: 1.5rem !important; border-radius: 2.5rem !important; }
         }
+
+        /* SVG Icon Fixes */
+        .weather-icon-wrapper svg { width: 100%; height: 100%; }
+        .forecast-icon-wrapper svg { width: 2rem; height: 2rem; margin: 0 auto; }
     </style>
 </head>
 
@@ -221,7 +225,7 @@
                 </nav>
 
                 <div class="flex items-center gap-5">
-                    <button class="px-8 py-3 bg-orange-600 text-white rounded-full font-black text-[10px] uppercase tracking-widest hover:bg-white hover:text-orange-600 transition shadow-2xl shadow-orange-600/40">Реєстрація</button>
+                    <!-- Registration removed as requested -->
                 </div>
             </div>
         </div>
@@ -252,9 +256,9 @@
 
                     <h1 class="text-5xl md:text-7xl xl:text-[7.5rem] font-black leading-[0.85] tracking-[-0.05em] uppercase mb-10 text-white">
                         <span class="opacity-40 block">ВІДКРИЙ</span>
-                        <span class="relative">
+                        <span class="relative block md:inline">
                             СВІЙ КАЛУШ
-                            <span class="absolute -bottom-4 left-0 w-32 h-2 bg-orange-600 rounded-full"></span>
+                            <span class="absolute -bottom-4 left-0 w-32 h-2 bg-orange-600 rounded-full hidden md:block"></span>
                         </span>
                     </h1>
 
@@ -273,25 +277,25 @@
                     </div>
                 </div>
 
-                <!-- Right: Unified City Status Hub -->
                 <div class="w-full relative z-20">
-                    <div class="bg-white/[0.03] border border-white/5 rounded-[3.5rem] p-10 backdrop-blur-3xl hover:border-orange-600/30 transition-all group overflow-hidden relative shadow-[0_50px_100px_-20px_rgba(0,0,0,0.6)]">
-                        <!-- Unified Status Header -->
-                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-10 mb-12">
+                    <div class="bg-white/[0.02] border border-white/10 rounded-[2.5rem] p-6 md:p-10 backdrop-blur-3xl transition-all relative overflow-hidden weather-hub-card">
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
                             <div class="relative">
-                                <div class="text-[6rem] md:text-[8rem] font-black text-white leading-none tracking-tighter mb-4" id="hub-time">--:--</div>
+                                <div class="text-[5rem] md:text-[7rem] font-black text-white leading-none tracking-tighter mb-2" id="hub-time">--:--</div>
                                 <div class="flex items-center gap-4">
-                                    <div class="text-[11px] font-black uppercase tracking-[0.4em] text-orange-600" id="hub-date">--.03.2026</div>
-                                    <div class="w-16 h-px bg-white/20"></div>
-                                    <div class="text-[11px] font-black uppercase tracking-[0.4em] text-slate-500">Зараз у місті</div>
+                                    <div class="text-[14px] md:text-[18px] font-black uppercase tracking-[0.2em] text-orange-600" id="hub-date">--.--.2026</div>
+                                    <div class="w-12 h-px bg-white/20"></div>
+                                    <div class="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-500">Live Kalush</div>
                                 </div>
                             </div>
                             
-                            <div class="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 flex items-center gap-6 min-w-[280px] shadow-2xl">
-                                <div id="weather-icon" class="text-6xl filter drop-shadow-[0_10px_20px_rgba(249,115,22,0.4)]">☀️</div>
+                            <div class="bg-white/5 border border-white/10 rounded-[2rem] p-6 flex items-center gap-5 min-w-[240px] shadow-xl">
+                                <div id="weather-icon" class="w-14 h-14 text-orange-500 flex items-center justify-center weather-icon-wrapper">
+                                    <svg class="animate-pulse" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41M12 8a4 4 0 100 8 4 4 0 000-8z"/></svg>
+                                </div>
                                 <div>
-                                    <div class="text-5xl font-black text-white leading-none mb-2" id="weather-temp">--°C</div>
-                                    <div class="text-[11px] uppercase font-black text-orange-500 tracking-[0.3em] opacity-60" id="weather-desc">Завантаження...</div>
+                                    <div class="text-5xl font-black text-white leading-none mb-1" id="weather-temp">--°C</div>
+                                    <div class="text-[9px] uppercase font-black text-orange-500 tracking-[0.2em] opacity-60" id="weather-desc">Оновлюємо...</div>
                                 </div>
                             </div>
                         </div>
@@ -459,7 +463,7 @@
     <script>
         const API_BASE = 'https://kgrxlznhimwuvwhjfzhv.supabase.co/rest/v1';
         const API_KEY = 'sb_publishable_L4_HhLhbj_m6wbEc3ZqhcQ_QNGOLWXU';
-        const config = window.PORTAL_CONFIG || { citySlug: 'kalush', portalName: 'Калуш ПОРТАЛ', logoUrl: '/logo.png' };
+        const config = window.PORTAL_CONFIG || { citySlug: 'kalush', portalName: 'Калуш ПОРТАЛ', logoUrl: '/logo_footer.png' };
 
         // Basic Info Setup
         if(config.portalName) {
@@ -490,35 +494,42 @@
                 const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&daily=weathercode,temperature_2m_max,temperature_2m_min&timezone=auto`);
                 const data = await res.json();
                 
+                const sunIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>`;
+                const cloudIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19x" /><path d="M12 10a4 4 0 00-4 4h8a4 4 0 00-4-4z"/><path d="M17.5 19A3.5 3.5 0 0018 12h-1.26a8 8 0 10-11.62 9"/><path d="M17.5 19h-9"/></svg>`;
+                const cloudSunIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="M2 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="M12 8a4 4 0 100 8 4 4 0 000-8z"/><path d="M17.5 19A3.5 3.5 0 0018 12h-1.26a8 8 0 10-11.62 9"/><path d="M17.5 19h-9"/></svg>`;
+                const rainIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19A3.5 3.5 0 0018 12h-1.26a8 8 0 10-11.62 9"/><path d="M17.5 19h-9"/><path d="m8 19-2 3"/><path d="m12 19-2 3"/><path d="m16 19-2 3"/></svg>`;
+                const snowIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m8 2 8 20"/><path d="m20 8-16 8"/><path d="M3 10h18"/><path d="M10 3v18"/><path d="m14 3-8 18"/><path d="m6 3 8 18"/></svg>`;
+                const stormIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19A3.5 3.5 0 0018 12h-1.26a8 8 0 10-11.62 9"/><path d="M17.5 19h-9"/><path d="m13 18-3 5h3l-3 5"/></svg>`;
+
                 const weatherMap = {
-                    0: { icon: '☀️', desc: 'Ясно' },
-                    1: { icon: '🌤️', desc: 'Переважно ясно' },
-                    2: { icon: '⛅', desc: 'Мінлива хмарність' },
-                    3: { icon: '☁️', desc: 'Пасмурно' },
-                    45: { icon: '🌫️', desc: 'Туман' },
-                    48: { icon: '🌫️', desc: 'Паморозь' },
-                    51: { icon: '🌦️', desc: 'Легка мряка' },
-                    53: { icon: '🌦️', desc: 'Мряка' },
-                    55: { icon: '🌦️', desc: 'Густа мряка' },
-                    56: { icon: '🌨️', desc: 'Крижана мряка' },
-                    57: { icon: '🌨️', desc: 'Густа крижана мряка' },
-                    61: { icon: '🌧️', desc: 'Слабкий дощ' },
-                    63: { icon: '🌧️', desc: 'Помірний дощ' },
-                    65: { icon: '🌧️', desc: 'Сильний дощ' },
-                    66: { icon: '🌨️', desc: 'Крижаний дощ' },
-                    67: { icon: '🌨️', desc: 'Сильний крижаний дощ' },
-                    71: { icon: '❄️', desc: 'Слабкий сніг' },
-                    73: { icon: '❄️', desc: 'Помірний сніг' },
-                    75: { icon: '❄️', desc: 'Сильний сніг' },
-                    77: { icon: '❄️', desc: 'Сніжні зерна' },
-                    80: { icon: '🌦️', desc: 'Слабкий зливовий дощ' },
-                    81: { icon: '🌦️', desc: 'Зливовий дощ' },
-                    82: { icon: '🌧️', desc: 'Сильний зливовий дощ' },
-                    85: { icon: '❄️', desc: 'Слабкий снігопад' },
-                    86: { icon: '❄️', desc: 'Сильний снігопад' },
-                    95: { icon: '⛈️', desc: 'Гроза' },
-                    96: { icon: '⛈️', desc: 'Гроза з градом' },
-                    99: { icon: '⛈️', desc: 'Сильна гроза з градом' }
+                    0: { icon: sunIcon, desc: 'Ясно' },
+                    1: { icon: cloudSunIcon, desc: 'Переважно ясно' },
+                    2: { icon: cloudSunIcon, desc: 'Мінлива хмарність' },
+                    3: { icon: cloudIcon, desc: 'Пасмурно' },
+                    45: { icon: cloudIcon, desc: 'Туман' },
+                    48: { icon: cloudIcon, desc: 'Паморозь' },
+                    51: { icon: rainIcon, desc: 'Легка мряка' },
+                    53: { icon: rainIcon, desc: 'Мряка' },
+                    55: { icon: rainIcon, desc: 'Густа мряка' },
+                    56: { icon: snowIcon, desc: 'Крижана мряка' },
+                    57: { icon: snowIcon, desc: 'Густа крижана мряка' },
+                    61: { icon: rainIcon, desc: 'Слабкий дощ' },
+                    63: { icon: rainIcon, desc: 'Помірний дощ' },
+                    65: { icon: rainIcon, desc: 'Сильний дощ' },
+                    66: { icon: rainIcon, desc: 'Крижаний дощ' },
+                    67: { icon: rainIcon, desc: 'Сильний крижаний дощ' },
+                    71: { icon: snowIcon, desc: 'Слабкий сніг' },
+                    73: { icon: snowIcon, desc: 'Помірний сніг' },
+                    75: { icon: snowIcon, desc: 'Сильний сніг' },
+                    77: { icon: snowIcon, desc: 'Сніжні зерна' },
+                    80: { icon: rainIcon, desc: 'Слабкий зливовий дощ' },
+                    81: { icon: rainIcon, desc: 'Зливовий дощ' },
+                    82: { icon: rainIcon, desc: 'Сильний зливовий дощ' },
+                    85: { icon: snowIcon, desc: 'Слабкий снігопад' },
+                    86: { icon: snowIcon, desc: 'Сильний снігопад' },
+                    95: { icon: stormIcon, desc: 'Гроза' },
+                    96: { icon: stormIcon, desc: 'Гроза з градом' },
+                    99: { icon: stormIcon, desc: 'Сильна гроза з градом' }
                 };
 
                 if(data.current_weather) {
@@ -545,7 +556,7 @@
                             <div class="text-center p-4 rounded-[2rem] bg-white/[0.02] border border-white/5 hover:bg-orange-600/10 hover:border-orange-600/20 transition-all group/day cursor-default">
                                 <div class="text-[8px] font-black opacity-30 uppercase tracking-widest mb-1 group-hover/day:opacity-100 transition">${dayName}</div>
                                 <div class="text-[9px] font-bold text-orange-600 mb-3">${dateStr}</div>
-                                <div class="text-2xl mb-3 transform group-hover/day:scale-125 transition duration-500">${w.icon}</div>
+                                <div class="forecast-icon-wrapper mb-3 transform group-hover/day:scale-125 transition duration-500">${w.icon}</div>
                                 <div class="text-xs font-black text-white">${max}°</div>
                             </div>
                         `;

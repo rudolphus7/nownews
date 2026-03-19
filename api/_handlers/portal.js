@@ -33,7 +33,7 @@ module.exports = async (req, res) => {
 
         // Map database fields to our config
         const portalName = settings?.portal_name || `${citySlug.toUpperCase()} ПОРТАЛ`;
-        const logoUrl = settings?.logo_url || '/logo.png';
+        const logoUrl = settings?.logo_url || '/logo_footer.png';
         const seo = settings?.seo_config || {};
         
         const title = seo.title || `${portalName} | Новини, заклади, оголошення`;
