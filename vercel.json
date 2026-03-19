@@ -219,6 +219,30 @@
             "destination": "/api/index?__target=news&slug=:slug"
         },
         {
+            "source": "/places/:id/",
+            "destination": "/api/index?__target=place&id=:id"
+        },
+        {
+            "source": "/:city(kalush|if|kolomyya|dolyna|bolekhiv|nadvirna|burshtyn|kosiv|yaremche)/places/:id/",
+            "destination": "/api/index?__target=place&city=:city&id=:id"
+        },
+        {
+            "source": "/classifieds/:cat/",
+            "destination": "/api/index?__target=classifieds&cat=:cat"
+        },
+        {
+            "source": "/classifieds/",
+            "destination": "/api/index?__target=classifieds"
+        },
+        {
+            "source": "/:city(kalush|if|kolomyya|dolyna|bolekhiv|nadvirna|burshtyn|kosiv|yaremche)/classifieds/:cat/",
+            "destination": "/api/index?__target=classifieds&city=:city&cat=:cat"
+        },
+        {
+            "source": "/:city(kalush|if|kolomyya|dolyna|bolekhiv|nadvirna|burshtyn|kosiv|yaremche)/classifieds/",
+            "destination": "/api/index?__target=classifieds&city=:city"
+        },
+        {
             "source": "/:city/:slug/",
             "destination": "/api/index?__target=news&slug=:slug"
         },

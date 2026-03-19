@@ -22,7 +22,9 @@ const handlers = {
     'popups': require('./_handlers/popups'),
     'cleanup': require('./_handlers/cleanup'),
     'portal': require('./_handlers/portal'),
-    'home': require('./_handlers/home')
+    'home': require('./_handlers/home'),
+    'place': require('./_handlers/place'),
+    'classifieds': require('./_handlers/classifieds')
 };
 
 const BANNED_BOT_STRINGS = [

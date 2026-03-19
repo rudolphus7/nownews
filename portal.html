@@ -25,7 +25,7 @@
             background: #0f172a;
             background-image: 
                 radial-gradient(circle at 0% 0%, rgba(249, 115, 22, 0.1) 0%, transparent 45%),
-                radial-gradient(circle at 100% 100%, rgba(37, 99, 235, 0.12) 0%, transparent 45%),
+                radial-gradient(circle at 100% 100%, rgba(255, 255, 255, 0.05) 0%, transparent 45%),
                 radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 1) 0%, rgba(7, 10, 19, 1) 100%);
             color: #f8fafc;
             min-height: 100vh;
@@ -131,8 +131,8 @@
         /* Hot Ads System */
         .ad-grid-cat {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1.25rem;
+            grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+            gap: 1rem;
         }
         .ad-cat-box {
             background: rgba(255,255,255,0.03);
@@ -204,8 +204,8 @@
             <div class="glass flex items-center justify-between px-10 py-5 bg-white/5 border-white/10">
                 <div class="flex items-center gap-5">
                     <div class="relative group">
-                        <img src="/logo.png" class="w-12 h-12 object-contain group-hover:scale-110 transition duration-500" id="p-logo" alt="Logo">
-                        <div class="absolute -inset-2 bg-orange-600/20 blur-xl opacity-0 group-hover:opacity-100 transition duration-700"></div>
+                        <img src="/logo_footer.png" class="w-24 h-auto object-contain group-hover:scale-105 transition duration-500" id="p-logo" alt="Logo">
+                        <div class="absolute -inset-4 bg-orange-600/10 blur-2xl opacity-0 group-hover:opacity-100 transition duration-700"></div>
                     </div>
                     <div>
                         <div class="font-black text-2xl tracking-tighter uppercase leading-none" id="p-name">МІСЬКІ БЛОКИ</div>
@@ -231,7 +231,7 @@
         <!-- CSS-Only Mesh Background -->
         <div class="absolute inset-0 z-0 opacity-40">
             <div class="absolute top-[-10%] left-[-10%] w-[70%] h-[70%] bg-orange-600/10 rounded-full blur-[120px] animate-pulse"></div>
-            <div class="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-blue-600/10 rounded-full blur-[120px]" style="animation: pulse 10s infinite 2s;"></div>
+            <div class="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-white/5 rounded-full blur-[120px]" style="animation: pulse 10s infinite 2s;"></div>
             <div class="absolute top-[20%] right-[10%] w-[40%] h-[40%] bg-orange-500/5 rounded-full blur-[100px]"></div>
             <div class="absolute inset-0" style="background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 40px 40px;"></div>
         </div>
@@ -295,22 +295,15 @@
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Bottom Row: Weekly Forecast -->
-                        <div class="pt-10 border-t border-white/10">
-                            <div class="flex justify-between items-center mb-8">
-                                <div class="text-[11px] font-black uppercase tracking-[0.3em] text-slate-500">Прогноз на тиждень</div>
-                                <div class="h-px flex-1 mx-8 bg-white/5"></div>
-                                <div class="w-2 h-2 bg-orange-600 rounded-full animate-pulse"></div>
-                            </div>
-                            <div class="grid grid-cols-4 sm:grid-cols-7 gap-4" id="weekly-forecast">
+                        <div class="pt-10 border-t border-white/10 overflow-x-auto no-scrollbar">
+                            <div class="grid grid-cols-4 md:grid-cols-7 gap-3 md:gap-6 min-w-[600px] md:min-w-0" id="forecast-grid">
                                 <div class="h-32 bg-white/5 rounded-[2rem] animate-pulse"></div>
                                 <div class="h-32 bg-white/5 rounded-[2rem] animate-pulse"></div>
                                 <div class="h-32 bg-white/5 rounded-[2rem] animate-pulse"></div>
                                 <div class="h-32 bg-white/5 rounded-[2rem] animate-pulse"></div>
-                                <div class="hidden sm:block h-32 bg-white/5 rounded-[2rem] animate-pulse"></div>
-                                <div class="hidden sm:block h-32 bg-white/5 rounded-[2rem] animate-pulse"></div>
-                                <div class="hidden sm:block h-32 bg-white/5 rounded-[2rem] animate-pulse"></div>
+                                <div class="h-32 bg-white/5 rounded-[2rem] animate-pulse"></div>
+                                <div class="h-32 bg-white/5 rounded-[2rem] animate-pulse"></div>
+                                <div class="h-32 bg-white/5 rounded-[2rem] animate-pulse"></div>
                             </div>
                         </div>
                         
@@ -362,28 +355,28 @@
                     <div class="text-[10px] font-black uppercase tracking-[0.3em] opacity-20 mt-3">Ринковий квартал громади</div>
                  </div>
 
-                 <div class="ad-grid-cat mb-10 overflow-x-auto pb-4 hide-scrollbar flex md:grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-                     <div onclick="location.href=`/${config.citySlug}/classifieds?category=selling`" class="ad-cat-box group cursor-pointer flex-shrink-0 w-32 md:w-auto">
-                         <span class="hot-label">hot</span>
-                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                         <div class="text-[10px] font-black uppercase tracking-tighter group-hover:text-white transition">Продаж</div>
-                     </div>
-                     <div onclick="location.href=`/${config.citySlug}/classifieds?category=rent`" class="ad-cat-box group cursor-pointer flex-shrink-0 w-32 md:w-auto">
-                         <span class="hot-label">hot</span>
-                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-                         <div class="text-[10px] font-black uppercase tracking-tighter group-hover:text-white transition">Оренда</div>
-                     </div>
-                     <div onclick="location.href=`/${config.citySlug}/classifieds?category=services`" class="ad-cat-box group cursor-pointer flex-shrink-0 w-32 md:w-auto">
-                         <span class="hot-label">hot</span>
-                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                         <div class="text-[10px] font-black uppercase tracking-tighter group-hover:text-white transition">Послуги</div>
-                     </div>
-                     <div onclick="location.href=`/${config.citySlug}/classifieds?category=work`" class="ad-cat-box group cursor-pointer flex-shrink-0 w-32 md:w-auto border-orange-600/50 bg-orange-600/5">
-                         <span class="hot-label bg-orange-600 text-white">new</span>
-                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="text-orange-600 opacity-100"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                         <div class="text-[10px] font-black uppercase tracking-tighter group-hover:text-white transition text-orange-500 group-hover:text-white">Робота</div>
-                     </div>
-                 </div>
+                  <div class="ad-grid-cat mb-10 overflow-x-auto pb-4 hide-scrollbar flex md:grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                      <div onclick="location.href='/classifieds/sale/'" class="ad-cat-box group cursor-pointer flex-shrink-0 w-32 md:w-auto">
+                          <span class="hot-label">hot</span>
+                          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                          <div class="text-[10px] font-black uppercase tracking-tighter group-hover:text-white transition">Продаж</div>
+                      </div>
+                      <div onclick="location.href='/classifieds/rent/'" class="ad-cat-box group cursor-pointer flex-shrink-0 w-32 md:w-auto">
+                          <span class="hot-label">hot</span>
+                          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                          <div class="text-[10px] font-black uppercase tracking-tighter group-hover:text-white transition">Оренда</div>
+                      </div>
+                      <div onclick="location.href='/classifieds/services/'" class="ad-cat-box group cursor-pointer flex-shrink-0 w-32 md:w-auto">
+                          <span class="hot-label">hot</span>
+                          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                          <div class="text-[10px] font-black uppercase tracking-tighter group-hover:text-white transition">Послуги</div>
+                      </div>
+                      <div onclick="location.href='/classifieds/job/'" class="ad-cat-box group cursor-pointer flex-shrink-0 w-32 md:w-auto border-orange-600/50 bg-orange-600/5">
+                          <span class="hot-label bg-orange-600 text-white">new</span>
+                          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="text-orange-600 opacity-100"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                          <div class="text-[10px] font-black uppercase tracking-tighter group-hover:text-white transition text-orange-500 group-hover:text-white">Робота</div>
+                      </div>
+                  </div>
 
                  <div id="p-ads" class="space-y-5 text-left">
                      <!-- Hydrated -->
@@ -538,7 +531,7 @@
                 }
 
                 if(data.daily) {
-                    const forecastGrid = document.getElementById('weekly-forecast');
+                    const forecastGrid = document.getElementById('forecast-grid');
                     const days = ['Нд','Пн','Вт','Ср','Чт','Пт','Сб'];
                     forecastGrid.innerHTML = data.daily.time.map((t, i) => {
                         const dateObj = new Date(t);
@@ -580,7 +573,7 @@
             const pGrid = document.getElementById('p-places');
             if(places.length > 0) {
                 pGrid.innerHTML = places.map(p => `
-                    <a href="/${config.citySlug}/places/${p.id || p.city_slug}" class="place-item group flex flex-col">
+                    <a href="/places/${p.id}/" class="place-item group flex flex-col">
                          <div class="relative overflow-hidden rounded-3xl mb-5">
                              <img src="${p.image_url || 'https://placehold.co/400'}" class="w-full h-32 object-cover grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-110 transition duration-1000">
                              <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition duration-500"></div>
@@ -604,7 +597,7 @@
             const aList = document.getElementById('p-ads');
             if(ads.length > 0) {
                 aList.innerHTML = ads.map(a => `
-                    <a href="/${config.citySlug}/classifieds/${a.id}" class="p-7 bg-white/2 rounded-[2.5rem] hover:bg-white/5 border border-white/5 transition-all group relative overflow-hidden flex flex-col justify-between h-32">
+                    <a href="/classifieds/" class="p-7 bg-white/2 rounded-[2.5rem] hover:bg-white/5 border border-white/5 transition-all group relative overflow-hidden flex flex-col justify-between h-32">
                         ${a.is_featured ? '<span class="hot-label">vip</span>' : ''}
                         <div>
                              <div class="text-[9px] font-black uppercase text-slate-500 mb-2 tracking-widest">${a.category || 'Загальне'}</div>
