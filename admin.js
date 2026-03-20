@@ -81,7 +81,7 @@ function initSupabase() {
     }
 }
 initSupabase();
-console.log("✅ Admin.js: Supabase initialization call made");
+console.log("✅ Admin.js: Supabase initialization call made. _supabase defined:", !!_supabase);
 
 // --- IMAGE UPLOAD & OPTIMIZATION ---
 // Pre-load logo once to avoid repeated network requests and timing issues on mobile
@@ -432,7 +432,7 @@ console.log("✅ Admin.js: Reaction selector initialized");
 const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
 const mobileOverlay = document.getElementById('mobile-overlay');
 
-function toggleMobileMenu() {
+window.toggleMobileMenu = function() {
     const isOpen = document.body.classList.toggle('sidebar-open');
     if (mobileOverlay) {
         if (isOpen) {
@@ -443,14 +443,15 @@ function toggleMobileMenu() {
             setTimeout(() => mobileOverlay.classList.add('hidden'), 300);
         }
     }
-}
+    console.log("📱 Mobile menu toggled, isOpen:", isOpen);
+};
 
 if (mobileMenuToggle) {
-    mobileMenuToggle.addEventListener('click', toggleMobileMenu);
+    mobileMenuToggle.addEventListener('click', window.toggleMobileMenu);
 }
 
 if (mobileOverlay) {
-    mobileOverlay.addEventListener('click', toggleMobileMenu);
+    mobileOverlay.addEventListener('click', window.toggleMobileMenu);
 }
 
 window.showSection = (id) => {
