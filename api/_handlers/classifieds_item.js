@@ -77,25 +77,43 @@ module.exports = async (req, res) => {
 
         // Shared Header
         const headerHtml = `
-        <div class="fixed top-0 w-full z-[100] px-4 py-4 md:px-10">
-            <div class="container mx-auto px-4 md:px-8 py-3 bg-[#020617]/60 backdrop-blur-[40px] rounded-[3rem] border border-white/10 flex justify-between items-center shadow-[0_20px_50px_rgba(0,0,0,0.5)] header-nav-main">
-                <a href="https://kalush.bukva.news/" class="flex items-center gap-3 md:gap-4 group transition-all header-brand-box">
-                    <img src="/logo_footer.png" class="w-10 md:w-14 group-hover:scale-110 transition duration-500 header-brand-logo">
-                    <div class="flex flex-col leading-[0.9]">
-                        <span class="font-black text-white tracking-tighter uppercase text-base md:text-2xl header-brand-text">КАЛУШ</span>
-                        <span class="font-black text-orange-600 tracking-tighter uppercase text-base md:text-2xl header-brand-text">ПОРТАЛ</span>
-                    </div>
-                </a>
-                <div class="flex items-center gap-3 md:gap-6 header-links-box">
-                    <a href="https://bukva.news/" class="hidden md:flex items-center text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] hover:text-white transition-all px-4 py-2">
-                        Новини
-                    </a>
-                    <a href="https://kalush.bukva.news/" class="px-5 md:px-10 py-3.5 md:py-4 bg-white/5 border border-white/10 rounded-full text-[9px] md:text-[10px] font-black uppercase text-white tracking-[0.15em] md:tracking-[0.2em] hover:bg-orange-600 hover:border-orange-600 transition-all shadow-xl active:scale-95 header-btn-home">
-                        На головну
+    <!-- Premium Unified Header -->
+    <header class="fixed top-0 left-0 w-full z-[100] p-4 md:p-8 pointer-events-none transition-all duration-500" id="main-header">
+        <div class="container mx-auto pointer-events-auto max-w-7xl">
+            <div class="glass flex items-center justify-between px-6 md:px-12 py-3 md:py-5 bg-[#020617]/40 backdrop-blur-[50px] border-white/10 shadow-2xl rounded-full">
+                <div class="flex items-center gap-4 md:gap-6">
+                    <a href="https://kalush.bukva.news/" class="relative group block flex items-center gap-3 md:gap-5">
+                        <img src="/logo_footer.png" class="w-10 md:w-16 h-auto object-contain group-hover:scale-110 transition duration-500" alt="Logo">
+                        <div class="flex flex-col text-left">
+                            <div class="font-black text-lg md:text-2xl tracking-tighter uppercase leading-none text-white italic">КАЛУШ <span class="text-orange-600">ПОРТАЛ</span></div>
+                            <div class="text-[8px] md:text-[10px] font-bold opacity-30 uppercase tracking-[0.2em] mt-1.5 hidden md:block text-left">Premium City Guide System</div>
+                        </div>
                     </a>
                 </div>
+                <nav class="hidden lg:flex items-center gap-10 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+                    <a href="/places/all/" class="hover:text-orange-500 transition-all">Заклади</a>
+                    <a href="/classifieds/all/" class="hover:text-orange-500 transition-all">Оголошення</a>
+                    <a href="https://bukva.news/" class="hover:text-orange-500 transition-all">Новини</a>
+                    <a href="https://bukva.news/contacts" class="hover:text-orange-500 transition-all">Контакти</a>
+                </nav>
+                <div class="flex items-center gap-4">
+                    <div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
+                </div>
             </div>
-        </div>`;
+        </div>
+    </header>
+    <!-- Mobile Menu Overlay -->
+    <div class="mobile-menu" id="mobile-menu">
+        <div class="mobile-menu-close-area" onclick="toggleMenu()"></div>
+        <div class="mobile-menu-bg-logo">B</div>
+        <a href="https://bukva.news/" onclick="toggleMenu()">Новини</a>
+        <a href="/classifieds/all/" onclick="toggleMenu()">Оголошення</a>
+        <a href="/places/all/" onclick="toggleMenu()">Заклади</a>
+        <a href="https://bukva.news/contacts" onclick="toggleMenu()">Контакти</a>
+        <div class="mt-10 pt-10 border-t border-white/5 w-64 text-center">
+            <div class="text-[10px] font-black uppercase opacity-20 tracking-[0.5em] mb-4">БЛОКИ ГРОМАДИ 2026</div>
+        </div>
+    </div>`;
         html = html.replace('<div id="site-header-placeholder"></div>', headerHtml);
 
         res.setHeader('Content-Type', 'text/html; charset=utf-8');

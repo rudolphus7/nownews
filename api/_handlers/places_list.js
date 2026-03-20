@@ -18,45 +18,48 @@ async function fetchFromSupabase(table, params = '') {
 }
 
 module.exports = async (req, res) => {
-    const id = req.query.id;
-    if (!id) return res.status(404).send('Place ID missing');
+    const host = req.headers['x-forwarded-host'] || req.headers.host || '';
+    let citySlug = host.split('.')[0].toLowerCase();
+    
+    if (citySlug === 'bukva' || citySlug === 'localhost' || !citySlug || citySlug === 'www') {
+        citySlug = 'kalush'; 
+    }
 
     try {
-        const placeArr = await fetchFromSupabase('places', `id=eq.${id}&select=*`);
-        const place = (placeArr && placeArr.length > 0) ? placeArr[0] : null;
+        const places = await fetchFromSupabase('places', `city_slug=eq.${citySlug}&order=is_featured.desc,rating.desc&select=*`);
 
-        if (!place) return res.status(404).send('Place not found');
-
-        const templatePath = path.join(process.cwd(), 'place_detail.html');
+        const templatePath = path.join(process.cwd(), 'places_list.html');
         let html = fs.readFileSync(templatePath, 'utf8');
 
-        // Inject data
-        html = html.replace(/<h1 id="place-title"[^>]*>.*?<\/h1>/s, `<h1 id="place-title" class="text-6xl md:text-[120px] font-black text-white uppercase tracking-tighter leading-[0.8] italic">${place.name}</h1>`);
-        html = html.replace(/<div id="place-description"[^>]*>.*?<\/div>/s, `<div id="place-description" class="text-slate-300 text-lg md:text-xl leading-relaxed font-medium">${place.description || ''}</div>`);
-        html = html.replace(/<div id="place-address"[^>]*>.*?<\/div>/s, `<div id="place-address" class="font-bold text-[15px] truncate">${place.address || '--'}</div>`);
-        html = html.replace(/<div id="place-phone"[^>]*>.*?<\/div>/s, `<div id="place-phone" class="font-bold text-[15px] truncate">${place.phone || '--'}</div>`);
-        html = html.replace(/<span id="place-category"[^>]*>.*?<\/span>/s, `<span id="place-category" class="bg-orange-600 text-[9px] md:text-[10px] font-black uppercase tracking-[0.3em] px-5 py-2.5 rounded-full shadow-xl shadow-orange-600/40">${place.category_name || 'Заклад'}</span>`);
-        html = html.replace('id="place-hero-blur" class="hero-bg-blur"', `id="place-hero-blur" class="hero-bg-blur" style="background-image: url('${place.image_url || '/logo_footer.png'}')"`);
-        html = html.replace('id="place-image" src=""', `id="place-image" src="${place.image_url || '/logo_footer.png'}"`);
-
-        // Generate Premium Rating Stars (SVG)
-        const rating = Math.round(place.rating || 0);
-        let starsHtml = '';
-        for (let i = 1; i <= 5; i++) {
-            const opacity = i <= rating ? 'opacity-100' : 'opacity-20';
-            const color = i <= rating ? 'text-orange-500' : 'text-white';
-            starsHtml += `
-                <svg class="w-5 h-5 md:w-8 md:h-8 ${opacity} ${color} drop-shadow-[0_0_15px_rgba(249,115,22,0.4)]" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.97a1 1 0 00.95.69h4.18c.969 0 1.371 1.24.588 1.81l-3.388 2.46a1 1 0 00-.364 1.118l1.286 3.97c.3.921-.755 1.688-1.54 1.118l-3.388-2.46a1 1 0 00-1.175 0l-3.388 2.46c-.784.57-1.838-.197-1.539-1.118l1.286-3.97a1 1 0 00-.364-1.118L2.245 9.397c-.783-.57-.38-1.81.588-1.81h4.181a1 1 0 00.951-.69l1.286-3.97z" />
-                </svg>`;
+        let placesHtml = '';
+        if (places && places.length > 0) {
+            placesHtml = places.map(p => `
+                <a href="/places/${p.id}" class="place-card group relative">
+                    <div class="aspect-video rounded-[2rem] overflow-hidden mb-6 bg-slate-900 border border-white/5 relative">
+                        <img src="${p.image_url || '/logo_footer.png'}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt="${p.name}">
+                        ${p.is_featured ? '<span class="absolute top-4 right-4 bg-orange-600 text-white text-[8px] font-black px-3 py-1.5 rounded-full shadow-2xl">RECOMENDED</span>' : ''}
+                    </div>
+                    <div>
+                        <div class="flex items-center justify-between gap-3 mb-2">
+                            <span class="text-[9px] font-black uppercase tracking-[0.25em] text-orange-600/70">${p.category_name || 'Заклад'}</span>
+                            <div class="flex text-orange-500 text-[10px] gap-0.5">
+                                ${'★'.repeat(Math.round(p.rating || 0))}${'☆'.repeat(5 - Math.round(p.rating || 0))}
+                            </div>
+                        </div>
+                        <h3 class="text-2xl font-black text-white uppercase italic tracking-tighter leading-none group-hover:text-orange-500 transition-colors">${p.name}</h3>
+                        <div class="text-[10px] font-bold text-slate-500 mt-4 uppercase tracking-widest flex items-center gap-2 opacity-60">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            ${p.address || 'Адреса не вказана'}
+                        </div>
+                    </div>
+                </a>
+            `).join('');
+        } else {
+            placesHtml = '<div class="col-span-full py-40 text-center text-slate-600 font-black uppercase tracking-[0.3em] opacity-50 italic">Закладів поки не додано</div>';
         }
-        html = html.replace(/<div id="place-rating"[^>]*>.*?<\/div>/s, `<div id="place-rating" class="flex gap-1 md:gap-2">${starsHtml}</div>`);
 
-        // Inject dynamic links
-        html = html.replace('id="place-nav-link" href="#"', `id="place-nav-link" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.address || place.name)}"`);
-        html = html.replace('id="place-phone-link" href="tel:"', `id="place-phone-link" href="tel:${place.phone || ''}"`);
+        html = html.replace('<!-- Places items -->', placesHtml);
 
-        // Inject header (reuse dark glass design)
         const headerHtml = `
     <!-- Premium Unified Header -->
     <header class="fixed top-0 left-0 w-full z-[100] p-4 md:p-8 pointer-events-none transition-all duration-500" id="main-header">
@@ -100,7 +103,7 @@ module.exports = async (req, res) => {
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
         return res.status(200).send(html);
     } catch (e) {
-        console.error('Place Handler Error:', e);
+        console.error('Places List Handler Error:', e);
         return res.status(500).send('Server Error');
     }
 };

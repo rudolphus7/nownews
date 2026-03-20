@@ -198,38 +198,160 @@
         /* SVG Icon Fixes */
         .weather-icon-wrapper svg { width: 100%; height: 100%; }
         .forecast-icon-wrapper svg { width: 2rem; height: 2rem; margin: 0 auto; }
+
+        /* Hamburger Menu */
+        .hamburger {
+            display: none;
+            cursor: pointer;
+            width: 32px;
+            height: 24px;
+            position: relative;
+            z-index: 110;
+            pointer-events: auto;
+        }
+        @media (max-width: 1024px) {
+            .hamburger { display: block; }
+        }
+        .hamburger span {
+            display: block;
+            width: 100%;
+            height: 4px;
+            background: white;
+            position: absolute;
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+            border-radius: 4px;
+        }
+        .hamburger span:nth-child(1) { top: 0; }
+        .hamburger span:nth-child(2) { top: 10px; width: 70%; }
+        .hamburger span:nth-child(3) { top: 20px; width: 40%; }
+
+        .hamburger.active span:nth-child(1) { transform: translateY(10px) rotate(45deg); width: 100%; }
+        .hamburger.active span:nth-child(2) { opacity: 0; transform: translateX(-20px); }
+        .hamburger.active span:nth-child(3) { transform: translateY(-10px) rotate(-45deg); width: 100%; }
+
+        .mobile-menu {
+            position: fixed;
+            inset: 0;
+            background: #020617;
+            background-image: 
+                radial-gradient(circle at 100% 0%, rgba(249, 115, 22, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 0% 100%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+            backdrop-filter: blur(60px);
+            z-index: 105;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2rem;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            transform: scale(1.1);
+        }
+        .mobile-menu.active {
+            opacity: 1;
+            visibility: visible;
+            transform: scale(1);
+        }
+        .mobile-menu-bg-logo {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 35rem;
+            font-weight: 900;
+            color: rgba(255,255,255,0.03);
+            z-index: -1;
+            font-family: 'Outfit', sans-serif;
+            pointer-events: none;
+            filter: blur(2px);
+            animation: menuLogoPulse 15s ease-in-out infinite;
+        }
+        @keyframes menuLogoPulse {
+            0% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 0.02; }
+            50% { transform: translate(-50%, -50%) scale(1.1) rotate(5deg); opacity: 0.04; }
+            100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 0.02; }
+        }
+        .mobile-menu a {
+            font-size: 3rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            font-family: 'Outfit', sans-serif;
+            font-style: italic;
+            letter-spacing: -0.05em;
+            color: white;
+            transition: all 0.4s ease;
+            position: relative;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        .mobile-menu.active a {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .mobile-menu a:nth-child(1) { transition-delay: 0.1s; }
+        .mobile-menu a:nth-child(2) { transition-delay: 0.2s; }
+        .mobile-menu a:nth-child(3) { transition-delay: 0.3s; }
+        .mobile-menu a:nth-child(4) { transition-delay: 0.4s; }
+
+        .mobile-menu a:hover { color: var(--brand-orange); transform: scale(1.1) rotate(-2deg); }
+        
+        .mobile-menu-close-area {
+            position: absolute;
+            inset: 0;
+            z-index: -1;
+        }
     </style>
 </head>
 
 <body>
-    <!-- Premium Header -->
-    <header class="fixed top-0 left-0 w-full z-[100] p-6 pointer-events-none">
-        <div class="container mx-auto pointer-events-auto">
-            <div class="glass flex items-center justify-between px-10 py-5 bg-white/5 border-white/10">
-                <div class="flex items-center gap-5">
-                    <a href="https://kalush.bukva.news/" class="relative group block">
-                        <img src="/logo_footer.png" class="w-24 h-auto object-contain group-hover:scale-105 transition duration-500" id="p-logo" alt="Logo">
-                        <div class="absolute -inset-4 bg-orange-600/10 blur-2xl opacity-0 group-hover:opacity-100 transition duration-700"></div>
+    <!-- Premium Unified Header -->
+    <header class="fixed top-0 left-0 w-full z-[100] p-4 md:p-8 pointer-events-none transition-all duration-500" id="main-header">
+        <div class="container mx-auto pointer-events-auto max-w-7xl">
+            <div class="glass flex items-center justify-between px-6 md:px-12 py-3 md:py-5 bg-[#020617]/40 backdrop-blur-[50px] border-white/10 shadow-2xl rounded-full">
+                <!-- Brand -->
+                <div class="flex items-center gap-4 md:gap-6">
+                    <a href="https://kalush.bukva.news/" class="relative group block flex items-center gap-3 md:gap-5">
+                        <img src="/logo_footer.png" class="w-10 md:w-16 h-auto object-contain group-hover:scale-110 transition duration-500" alt="Logo">
+                        <div class="flex flex-col">
+                            <div class="font-black text-lg md:text-2xl tracking-tighter uppercase leading-none text-white italic">КАЛУШ <span class="text-orange-600">ПОРТАЛ</span></div>
+                            <div class="text-[8px] md:text-[10px] font-bold opacity-30 uppercase tracking-[0.25em] mt-1.5 hidden md:block">Premium City Guide System</div>
+                        </div>
                     </a>
-                    <div>
-                        <div class="font-black text-2xl tracking-tighter uppercase leading-none" id="p-name">МІСЬКІ БЛОКИ</div>
-                        <div class="text-[10px] font-bold opacity-30 uppercase tracking-[0.3em] mt-1.5">Premium City Guide System</div>
-                    </div>
                 </div>
                 
-                <nav class="hidden lg:flex items-center gap-12 text-[10px] font-black uppercase tracking-[0.25em] opacity-50">
-                    <a href="#" class="hover:text-orange-500 hover:opacity-100 transition">Про місто</a>
-                    <a href="#" class="hover:text-orange-500 hover:opacity-100 transition">Заклади</a>
-                    <a href="/classifieds/all/" class="hover:text-orange-500 hover:opacity-100 transition">Оголошення</a>
-                    <a href="https://bukva.news/" class="hover:text-orange-500 hover:opacity-100 transition">Новини</a>
+                <!-- Desktop Nav -->
+                <nav class="hidden lg:flex items-center gap-10 text-[10px] font-black uppercase tracking-[0.25em] text-slate-400">
+                    <a href="/places/all/" class="hover:text-orange-500 hover:scale-105 transition-all">Заклади</a>
+                    <a href="/classifieds/all/" class="hover:text-orange-500 hover:scale-105 transition-all">Оголошення</a>
+                    <a href="https://bukva.news/" class="hover:text-orange-500 hover:scale-105 transition-all">Новини</a>
+                    <a href="https://bukva.news/contacts" class="hover:text-orange-500 hover:scale-105 transition-all">Контакти</a>
                 </nav>
 
-                <div class="flex items-center gap-5">
-                    <!-- Registration removed as requested -->
+                <!-- Actions -->
+                <div class="flex items-center gap-4">
+                    <div class="hamburger" id="hamburger">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
                 </div>
             </div>
         </div>
     </header>
+
+    <!-- Mobile Menu Overlay -->
+    <div class="mobile-menu" id="mobile-menu">
+        <div class="mobile-menu-close-area" onclick="toggleMenu()"></div>
+        <div class="mobile-menu-bg-logo">B</div>
+        <a href="https://bukva.news/" onclick="toggleMenu()">Новини</a>
+        <a href="/classifieds/all/" onclick="toggleMenu()">Оголошення</a>
+        <a href="/places/all/" onclick="toggleMenu()">Заклади</a>
+        <a href="https://bukva.news/contacts" onclick="toggleMenu()">Контакти</a>
+        <div class="mt-10 pt-10 border-t border-white/5 w-64 text-center">
+            <div class="text-[10px] font-black uppercase opacity-20 tracking-[0.5em] mb-4">БЛОКИ ГРОМАДИ 2026</div>
+        </div>
+    </div>
 
     <section class="relative pt-32 pb-20 md:pt-48 md:pb-32 overflow-hidden bg-[#07090f]">
         <!-- CSS-Only Mesh Background -->
@@ -670,7 +792,18 @@
             }
         }
 
-        window.addEventListener('DOMContentLoaded', initPortal);
+        function toggleMenu() {
+            const burger = document.getElementById('hamburger');
+            const mobileMenu = document.getElementById('mobile-menu');
+            burger.classList.toggle('active');
+            mobileMenu.classList.toggle('active');
+            document.body.style.overflow = burger.classList.contains('active') ? 'hidden' : 'auto';
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initPortal();
+            document.getElementById('hamburger').onclick = toggleMenu;
+        });
     </script>
 </body>
 </html>

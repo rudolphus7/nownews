@@ -25,7 +25,8 @@ const handlers = {
     'home': require('./_handlers/home'),
     'place': require('./_handlers/place'),
     'classifieds': require('./_handlers/classifieds'),
-    'classifieds_item': require('./_handlers/classifieds_item')
+    'classifieds_item': require('./_handlers/classifieds_item'),
+    'places_list': require('./_handlers/places_list')
 };
 
 const BANNED_BOT_STRINGS = [
@@ -88,6 +89,7 @@ module.exports = async (req, res) => {
     if (path.includes('/api/tts')) return await handlers['tts'](req, res);
     if (path.includes('/api/ai')) return await handlers['ai'](req, res);
     if (path.includes('/api/rss-proxy')) return await handlers['rss-proxy'](req, res);
+    if (path.includes('/places/all')) return await handlers['places_list'](req, res);
 
     // Default 404
     console.warn('No handler found for request:', req.url);

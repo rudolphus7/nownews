@@ -223,6 +223,10 @@
             "destination": "/api/index?__target=place&id=:id"
         },
         {
+            "source": "/places/all/",
+            "destination": "/api/index?__target=places_list"
+        },
+        {
             "source": "/:city(kalush|if|kolomyya|dolyna|bolekhiv|nadvirna|burshtyn|kosiv|yaremche)/places/:id/",
             "destination": "/api/index?__target=place&city=:city&id=:id"
         },
