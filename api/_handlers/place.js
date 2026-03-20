@@ -31,7 +31,7 @@ module.exports = async (req, res) => {
         let html = fs.readFileSync(templatePath, 'utf8');
 
         // Inject data
-        html = html.replace(/<h1 id="place-title"[^>]*>.*?<\/h1>/s, `<h1 id="place-title" class="text-5xl md:text-7xl font-black text-white uppercase tracking-tighter" style="text-shadow: 0 10px 30px rgba(0,0,0,0.5);">${place.name}</h1>`);
+        html = html.replace(/<h1 id="place-title"[^>]*>.*?<\/h1>/s, `<h1 id="place-title" class="text-6xl md:text-[120px] font-black text-white uppercase tracking-tighter leading-[0.8] italic">${place.name}</h1>`);
         html = html.replace(/<div id="place-description"[^>]*>.*?<\/div>/s, `<div id="place-description" class="text-slate-300 text-lg md:text-xl leading-relaxed font-medium">${place.description || ''}</div>`);
         html = html.replace(/<div id="place-address"[^>]*>.*?<\/div>/s, `<div id="place-address" class="font-bold text-[15px] truncate">${place.address || '--'}</div>`);
         html = html.replace(/<div id="place-phone"[^>]*>.*?<\/div>/s, `<div id="place-phone" class="font-bold text-[15px] truncate">${place.phone || '--'}</div>`);
@@ -48,10 +48,10 @@ module.exports = async (req, res) => {
         <div class="fixed top-0 w-full z-50 px-4 py-4 md:px-10">
             <div class="container mx-auto px-6 py-4 bg-[#020617]/40 backdrop-blur-3xl rounded-[2.5rem] border border-white/10 flex justify-between items-center shadow-2xl header-nav-main">
                 <a href="https://kalush.bukva.news/" class="flex items-center gap-4 group transition-all header-brand-box">
-                    <img src="/logo_footer.png" class="w-10 md:w-12 group-hover:scale-110 transition duration-500 header-brand-logo">
-                    <div class="flex flex-col">
-                        <span class="font-black text-white tracking-tighter uppercase text-sm md:text-xl leading-none header-brand-text">КАЛУШ <span class="text-orange-600">ПОРТАЛ</span></span>
-                        <span class="text-[8px] font-black text-slate-500 uppercase tracking-[0.3em] mt-1 header-brand-sub">Оголошення Громади</span>
+                    <img src="/logo_footer.png" class="w-10 md:w-14 group-hover:scale-110 transition duration-500 header-brand-logo">
+                    <div class="flex flex-col leading-none">
+                        <span class="font-black text-white tracking-tighter uppercase text-base md:text-2xl header-brand-text">КАЛУШ</span>
+                        <span class="font-black text-orange-600 tracking-tighter uppercase text-base md:text-2xl header-brand-text">ПОРТАЛ</span>
                     </div>
                 </a>
                 <div class="flex items-center gap-3 md:gap-6 header-links-box">
