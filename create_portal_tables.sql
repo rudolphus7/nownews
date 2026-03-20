@@ -45,6 +45,30 @@ CREATE TABLE IF NOT EXISTS public.classifieds (
     created_at timestamptz DEFAULT now()
 );
 
+-- CREATE EVENTS TABLE
+CREATE TABLE IF NOT EXISTS public.events (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    title TEXT NOT NULL,
+    description TEXT,
+    event_date DATE NOT NULL,
+    event_time TEXT,
+    location TEXT,
+    organizer TEXT,
+    image_url TEXT,
+    city_slug TEXT DEFAULT 'kalush',
+    is_published BOOLEAN DEFAULT false,
+    user_submitted BOOLEAN DEFAULT false,
+    contact_info TEXT
+);
+
+-- Enable RLS for events
+ALTER TABLE public.events ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public Read Access events" ON public.events;
+CREATE POLICY "Public Read Access events" ON public.events FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Public Shared Submission" ON public.events;
+CREATE POLICY "Public Shared Submission" ON public.events FOR INSERT WITH CHECK (true);
+
 -- Enable RLS for all new tables
 ALTER TABLE public.portal_settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.places ENABLE ROW LEVEL SECURITY;

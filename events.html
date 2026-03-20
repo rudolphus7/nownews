@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" sizes="32x32" href="/logo.png">
+    <title>Календар подій | Калуш Портал</title>
+
+    <!-- Fonts & CSS -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="/main.css">
+
+    <style>
+        :root {
+            --brand-orange: #f97316;
+            --brand-orange-light: #fb923c;
+            --dark-slate: #0f172a;
+            --glass-bg: rgba(255, 255, 255, 0.04);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-blur: blur(25px);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0f172a;
+            background-image: 
+                radial-gradient(circle at 0% 0%, rgba(249, 115, 22, 0.1) 0%, transparent 45%),
+                radial-gradient(circle at 100% 100%, rgba(255, 255, 255, 0.05) 0%, transparent 45%),
+                radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 1) 0%, rgba(7, 10, 19, 1) 100%);
+            color: #f8fafc;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4 { font-family: 'Outfit', sans-serif; }
+
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            border-radius: 2rem;
+        }
+
+        .event-card {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+        }
+        .event-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            border-color: rgba(249, 115, 22, 0.4);
+            box-shadow: 0 30px 60px -12px rgba(249, 115, 22, 0.2);
+        }
+
+        .date-badge {
+            background: linear-gradient(135deg, var(--brand-orange), #ea580c);
+            box-shadow: 0 10px 20px -5px rgba(249, 115, 22, 0.5);
+        }
+
+        /* Hero Text Animation */
+        .hero-title {
+            animation: slideUpFade 1s ease-out both;
+        }
+        @keyframes slideUpFade {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-enter {
+            animation: modalIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+        }
+        @keyframes modalIn {
+            from { transform: scale(0.9) translateY(40px); opacity: 0; }
+            to { transform: scale(1) translateY(0); opacity: 1; }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header Holder (Replaced by JS) -->
+    <div id="portal-header-container"></div>
+
+    <main class="max-w-7xl mx-auto px-6 pt-32 pb-24">
+        <!-- Hero Section -->
+        <div class="text-center mb-16 hero-title">
+            <span class="inline-block px-6 py-2 rounded-full glass text-[11px] font-black uppercase tracking-[0.3em] text-orange-500 mb-6 border-orange-500/20">
+                Культурне життя міста
+            </span>
+            <h1 class="text-5xl lg:text-7xl font-black mb-6 tracking-tighter leading-none">
+                Календар <span class="bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-amber-600 italic">Подій</span>
+            </h1>
+            <p class="text-slate-400 text-lg max-w-2xl mx-auto font-medium">
+                Дізнавайтеся першими про концерти, фестивалі, виставки та благодійні заходи у Калуші. Заплануйте своє дозвілля правильно.
+            </p>
+        </div>
+
+        <!-- Filters & Actions -->
+        <div class="flex flex-col lg:flex-row justify-between items-center gap-6 mb-12">
+            <div class="flex gap-3 overflow-x-auto pb-2 w-full lg:w-auto scrollbar-hide">
+                <button class="px-6 py-3 rounded-2xl bg-orange-600 text-white font-black text-xs uppercase tracking-widest whitespace-nowrap">Усі події</button>
+                <button class="px-6 py-3 rounded-2xl glass hover:bg-white/10 text-slate-300 font-black text-xs uppercase tracking-widest transition whitespace-nowrap">Сьогодні</button>
+                <button class="px-6 py-3 rounded-2xl glass hover:bg-white/10 text-slate-300 font-black text-xs uppercase tracking-widest transition whitespace-nowrap">Вихідні</button>
+                <button class="px-6 py-3 rounded-2xl glass hover:bg-white/10 text-slate-300 font-black text-xs uppercase tracking-widest transition whitespace-nowrap">Цього місяця</button>
+            </div>
+            <button onclick="window.openSubmissionModal()" class="w-full lg:w-auto px-10 py-5 bg-white text-slate-900 rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] hover:bg-orange-500 hover:text-white transition-all shadow-2xl flex items-center justify-center gap-3 active:scale-95 group">
+                <span class="text-2xl group-hover:rotate-12 transition-transform">➕</span>
+                Запропонувати подію
+            </button>
+        </div>
+
+        <!-- Events Grid -->
+        <div id="events-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Shimmer Loading -->
+            <div class="glass animate-pulse aspect-[4/5] rounded-[3rem]"></div>
+            <div class="glass animate-pulse aspect-[4/5] rounded-[3rem]"></div>
+            <div class="glass animate-pulse aspect-[4/5] rounded-[3rem]"></div>
+        </div>
+    </main>
+
+    <!-- Submission Modal -->
+    <div id="submission-modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-6 bg-slate-950/80 backdrop-blur-xl">
+        <div class="bg-slate-900 border border-white/10 w-full max-w-2xl rounded-[3rem] p-10 shadow-2xl modal-enter overflow-y-auto max-h-[90vh]">
+            <div class="flex justify-between items-center mb-8">
+                <div>
+                    <h2 class="text-3xl font-black text-white italic uppercase tracking-tighter">Поділитися подією</h2>
+                    <p class="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">Ми перевіримо опис та опублікуємо</p>
+                </div>
+                <button onclick="window.closeSubmissionModal()" class="w-12 h-12 flex items-center justify-center rounded-2xl bg-white/5 text-slate-400 hover:text-white transition text-2xl">×</button>
+            </div>
+
+            <form id="public-event-form" class="space-y-6">
+                <div class="grid grid-cols-1 gap-6">
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Назва заходу</label>
+                        <input type="text" id="sub-title" required class="w-full p-5 bg-white/5 border border-white/10 rounded-2xl text-white outline-none focus:border-orange-500/50 transition font-bold" placeholder="Благодійний ярмарок...">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Дата</label>
+                        <input type="date" id="sub-date" required class="w-full p-5 bg-white/5 border border-white/10 rounded-2xl text-white outline-none focus:border-orange-500/50 transition font-bold">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Час початку</label>
+                        <input type="time" id="sub-time" required class="w-full p-5 bg-white/5 border border-white/10 rounded-2xl text-white outline-none focus:border-orange-500/50 transition font-bold">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Де відбудеться (локація)</label>
+                    <input type="text" id="sub-location" required class="w-full p-5 bg-white/5 border border-white/10 rounded-2xl text-white outline-none focus:border-orange-500/50 transition" placeholder="ПК 'Юність', зал №1">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Детальний опис</label>
+                    <textarea id="sub-description" rows="4" required class="w-full p-5 bg-white/5 border border-white/10 rounded-2xl text-white outline-none focus:border-orange-500/50 transition" placeholder="Розкажіть про подію більше..."></textarea>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Контакти організатора</label>
+                        <input type="text" id="sub-contact" required class="w-full p-5 bg-white/5 border border-white/10 rounded-2xl text-white outline-none focus:border-orange-500/50 transition" placeholder="Телефон або посилання">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Організатор</label>
+                        <input type="text" id="sub-organizer" required class="w-full p-5 bg-white/5 border border-white/10 rounded-2xl text-white outline-none focus:border-orange-500/50 transition" placeholder="Назва Колективу / ГО">
+                    </div>
+                </div>
+
+                <div class="pt-4">
+                    <button type="submit" id="sub-submit-btn" class="w-full py-6 bg-orange-600 text-white rounded-[2rem] font-black text-xs uppercase tracking-[0.3em] hover:bg-orange-500 transition shadow-2xl shadow-orange-900/40 active:scale-95"> Надіслати на модерацію </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        const SUPABASE_URL = 'https://kgrxlznhimwuvwhjfzhv.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_L4_HhLhbj_m6wbEc3ZqhcQ_QNGOLWXU';
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        async function loadEvents() {
+            const grid = document.getElementById('events-grid');
+            
+            const { data: events, error } = await _supabase
+                .from('events')
+                .select('*')
+                .eq('is_published', true)
+                .gte('event_date', new Date().toISOString().split('T')[0]) // Only future events
+                .order('event_date', { ascending: true })
+                .order('event_time', { ascending: true });
+
+            if (error) {
+                grid.innerHTML = `<div class="col-span-full py-20 text-center text-red-400">Помилка завантаження. Спробуйте пізніше.</div>`;
+                return;
+            }
+
+            if (!events || events.length === 0) {
+                grid.innerHTML = `<div class="col-span-full py-20 text-center text-slate-400 italic">На жаль, найближчих подій не знайдено. Будьте першими, хто запропонує!</div>`;
+                return;
+            }
+
+            grid.innerHTML = events.map(e => {
+                const date = new Date(e.event_date);
+                const day = date.getDate();
+                const month = date.toLocaleDateString('uk-UA', { month: 'short' }).replace('.', '');
+                
+                return `
+                    <div class="glass p-4 rounded-[3rem] event-card border-white/5 hover:border-orange-500/30">
+                        <div class="relative aspect-[4/3] rounded-[2.5rem] overflow-hidden mb-6 shadow-2xl">
+                            <img src="${e.image_url || 'https://placehold.co/600x400?text=Event'}" class="w-full h-full object-cover">
+                            <div class="absolute top-4 left-4 date-badge text-white rounded-2xl p-3 flex flex-col items-center justify-center min-w-[60px] backdrop-blur-md">
+                                <span class="text-xl font-black leading-none">${day}</span>
+                                <span class="text-[9px] font-black uppercase tracking-widest mt-1">${month}</span>
+                            </div>
+                        </div>
+                        <div class="px-3 pb-4">
+                            <div class="flex items-center gap-2 mb-3">
+                                <span class="bg-orange-500/10 text-orange-500 text-[10px] font-black px-3 py-1.5 rounded-xl uppercase tracking-widest">
+                                    🕒 ${e.event_time.substring(0, 5)}
+                                </span>
+                                <span class="text-slate-500 text-[9px] font-black uppercase tracking-widest truncate">
+                                    📍 ${e.location}
+                                </span>
+                            </div>
+                            <h3 class="text-2xl font-black text-white mb-3 line-clamp-2 leading-tight uppercase italic">${e.title}</h3>
+                            <p class="text-slate-400 text-sm line-clamp-3 mb-6 font-medium leading-relaxed">
+                                ${e.description || 'Деталі події будуть згодом...'}
+                            </p>
+                            <div class="flex justify-between items-center bg-white/5 p-4 rounded-2xl border border-white/5">
+                                <div class="text-[10px] text-slate-500 font-bold uppercase">Організатор</div>
+                                <div class="text-[10px] text-white font-black uppercase tracking-widest">${e.organizer || '—'}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        window.openSubmissionModal = () => {
+            document.getElementById('submission-modal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        };
+
+        window.closeSubmissionModal = () => {
+            document.getElementById('submission-modal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        };
+
+        document.getElementById('public-event-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('sub-submit-btn');
+            btn.disabled = true;
+            btn.innerText = 'НАДСИЛАЄМО...';
+
+            const payload = {
+                title: document.getElementById('sub-title').value,
+                event_date: document.getElementById('sub-date').value,
+                event_time: document.getElementById('sub-time').value,
+                location: document.getElementById('sub-location').value,
+                description: document.getElementById('sub-description').value,
+                contact_info: document.getElementById('sub-contact').value,
+                organizer: document.getElementById('sub-organizer').value,
+                is_published: false,
+                city_slug: 'kalush'
+            };
+
+            try {
+                const { error } = await _supabase.from('events').insert([payload]);
+                if (error) throw error;
+                
+                alert('Дякуємо! Подія надіслана на модерацію та зʼявиться після підтвердження.');
+                window.closeSubmissionModal();
+                document.getElementById('public-event-form').reset();
+            } catch (err) {
+                alert('Помилка: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'НАДІСЛАТИ НА МОДЕРАЦІЮ';
+            }
+        });
+
+        // Load Header and Footer consistently
+        async function initPage() {
+            // Load header (similar to other pages)
+            // For now, we can just inject a simple back button or the standard header if available
+            // Assuming there's a loadHeader function or similar in an external script
+            // Using a simple placeholder for now
+            const header = document.getElementById('portal-header-container');
+            header.innerHTML = `
+                <nav class="fixed top-0 inset-x-0 z-[80] bg-slate-950/50 backdrop-blur-xl border-b border-white/5">
+                    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+                        <a href="/" class="flex items-center gap-3 active:scale-95 transition">
+                            <img src="/logo_footer.png" class="h-10 w-auto">
+                            <div class="font-black text-white italic uppercase leading-none tracking-tighter">
+                                Калуш<br><span class="text-orange-500">Портал</span>
+                            </div>
+                        </a>
+                        <div class="flex items-center gap-6">
+                            <a href="/" class="text-xs font-black uppercase text-slate-400 hover:text-white transition tracking-widest">Головна</a>
+                            <a href="/places/all/" class="text-xs font-black uppercase text-slate-400 hover:text-white transition tracking-widest">Заклади</a>
+                        </div>
+                    </div>
+                </nav>
+            `;
+            
+            await loadEvents();
+        }
+
+        initPage();
+    </script>
+</body>
+</html>

@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS public.rss_sources (
 
 -- Enable RLS
 ALTER TABLE public.rss_sources ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public Access" ON public.rss_sources;
 CREATE POLICY "Public Access" ON public.rss_sources FOR ALL USING (true) WITH CHECK (true);
 
 -- 4. RSS ARTICLES TABLE (Staging area for fetched news)
@@ -45,6 +46,7 @@ CREATE TABLE IF NOT EXISTS public.rss_articles (
 
 -- Enable RLS
 ALTER TABLE public.rss_articles ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public Access" ON public.rss_articles;
 CREATE POLICY "Public Access" ON public.rss_articles FOR ALL USING (true) WITH CHECK (true);
 
 -- 5. POPUPS TABLE (Management system)
@@ -60,4 +62,5 @@ CREATE TABLE IF NOT EXISTS public.popups (
 
 -- Enable RLS
 ALTER TABLE public.popups ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public Access" ON public.popups;
 CREATE POLICY "Public Access" ON public.popups FOR ALL USING (true) WITH CHECK (true);

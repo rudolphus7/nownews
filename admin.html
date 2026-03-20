@@ -558,6 +558,11 @@
                 <span class="text-xl">📢</span>
                 <span class="font-bold tracking-wide">Оголошення</span>
             </a>
+            <a href="#" onclick="showSection('section-events'); window.loadEvents();"
+                class="flex items-center space-x-4 p-4 rounded-2xl hover:bg-slate-800 transition-all group text-indigo-400">
+                <span class="text-xl">📅</span>
+                <span class="font-bold tracking-wide">Події</span>
+            </a>
             <hr class="border-slate-800 my-2">
             <a href="#" onclick="showSection('section-settings')" id="nav-settings"
                 class="flex items-center space-x-4 p-4 rounded-2xl hover:bg-slate-800 transition-all group">
@@ -1742,6 +1747,104 @@
                         <div class="flex gap-4 pt-4">
                             <button type="submit" class="flex-1 bg-slate-900 text-white py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-orange-600 transition shadow-xl">Зберегти</button>
                             <button type="button" onclick="window.closeAdEditor()" class="flex-1 bg-slate-100 text-slate-500 py-4 rounded-2xl font-black uppercase tracking-widest">Скасувати</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: EVENTS -->
+        <section id="section-events" class="admin-section hidden max-w-6xl">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+                <div>
+                    <h2 class="text-3xl font-extrabold text-slate-800 tracking-tight">Календар подій</h2>
+                    <p class="text-slate-500 font-medium">Концерти, виставки, фестивалі та інші заходи</p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="window.loadEvents()" class="bg-slate-100 text-slate-600 p-4 rounded-2xl hover:bg-slate-200 transition active:scale-95">
+                        <span class="text-xl">🔄</span>
+                    </button>
+                    <button onclick="window.openEventEditor()" class="bg-slate-900 text-white px-8 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl hover:bg-orange-600 transition">
+                        + Додати подію
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-[2.5rem] shadow-xl overflow-x-auto border border-white">
+                <table class="w-full text-left border-collapse min-w-[800px]">
+                    <thead class="bg-slate-50 text-slate-400 uppercase text-[10px] font-black tracking-widest border-b">
+                        <tr>
+                            <th class="p-6">Подія / Дата</th>
+                            <th class="p-6 text-center">Організатор</th>
+                            <th class="p-6 text-center">Статус</th>
+                            <th class="p-6 text-right">Дії</th>
+                        </tr>
+                    </thead>
+                    <tbody id="events-table-body" class="divide-y divide-slate-100">
+                        <tr>
+                            <td colspan="4" class="p-10 text-center text-slate-400 italic">Завантаження подій...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Event Editor Modal -->
+            <div id="event-editor-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-lg hidden z-[100] flex items-center justify-center p-4">
+                <div class="bg-white rounded-[3rem] p-8 w-full max-w-2xl shadow-2xl overflow-y-auto max-h-[90vh]">
+                    <h3 id="event-modal-title" class="text-2xl font-black mb-6 text-slate-800 uppercase italic">Редагувати подію</h3>
+                    <form id="event-form" class="space-y-4">
+                        <input type="hidden" id="event-id">
+                        <div class="grid grid-cols-1 gap-4">
+                            <div>
+                                <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">Назва події</label>
+                                <input type="text" id="event-title" class="w-full p-4 bg-slate-50 rounded-xl border-none font-bold" required placeholder="Наприклад: Благодійний концерт">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">Дата</label>
+                                <input type="date" id="event-date" class="w-full p-4 bg-slate-50 rounded-xl border-none font-bold" required>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">Час</label>
+                                <input type="time" id="event-time" class="w-full p-4 bg-slate-50 rounded-xl border-none font-bold" required>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">Локація</label>
+                                <input type="text" id="event-location" class="w-full p-4 bg-slate-50 rounded-xl border-none" required placeholder="ПК Юність">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">Організатор</label>
+                                <input type="text" id="event-organizer" class="w-full p-4 bg-slate-50 rounded-xl border-none" placeholder="Культурний центр">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">Фото (URL)</label>
+                            <div class="flex gap-2">
+                                <input type="text" id="event-image" class="flex-1 p-4 bg-slate-50 rounded-xl border-none" placeholder="https://...">
+                                <button type="button" onclick="document.getElementById('event_image_file_input').click()" class="bg-slate-900 text-white p-4 rounded-xl">📁</button>
+                                <input type="file" id="event_image_file_input" class="hidden" accept="image/*" onchange="window.handleImageUpload(this, 'event-image')">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">Опис події</label>
+                            <textarea id="event-description" rows="3" class="w-full p-4 bg-slate-50 rounded-xl border-none" placeholder="Деталі події..."></textarea>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">Контакти / Квитки</label>
+                                <input type="text" id="event-contact" class="w-full p-4 bg-slate-50 rounded-xl border-none" placeholder="099-000-00-00 або посилання">
+                            </div>
+                            <div class="flex items-center gap-3 p-4 bg-orange-50 rounded-2xl mt-4">
+                                <input type="checkbox" id="event-published" checked class="w-6 h-6 rounded-lg text-orange-600">
+                                <label for="event-published" class="text-[10px] font-black uppercase text-orange-600 tracking-widest">Опубліковано</label>
+                            </div>
+                        </div>
+                        <div class="flex gap-4 pt-4">
+                            <button type="submit" class="flex-1 bg-slate-900 text-white py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-orange-600 transition shadow-xl">Зберегти подію</button>
+                            <button type="button" onclick="window.closeEventEditor()" class="flex-1 bg-slate-100 text-slate-500 py-4 rounded-2xl font-black uppercase tracking-widest">Скасувати</button>
                         </div>
                     </form>
                 </div>

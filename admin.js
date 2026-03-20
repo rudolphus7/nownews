@@ -428,6 +428,7 @@ window.showSection = (id) => {
     if (id === 'section-portals' && window.loadPortals) window.loadPortals();
     if (id === 'section-places' && window.loadPlaces) window.loadPlaces();
     if (id === 'section-ads' && window.loadAds) window.loadAds();
+    if (id === 'section-events' && window.loadEvents) window.loadEvents();
 
     // Close mobile menu after navigation
     if (document.body.classList.contains('sidebar-open')) {
@@ -3300,3 +3301,158 @@ window.deleteAd = async (id) => {
 };
 
 console.log("🚀 BUKVA NEWS PRO: Admin.js fully loaded.");
+
+// ═══════════════════════════════════════════════════════════════════════
+// EVENTS MANAGEMENT
+// ═══════════════════════════════════════════════════════════════════════
+
+window.loadEvents = async () => {
+    const tbody = document.getElementById('events-table-body');
+    if (!tbody || !_supabase) return;
+
+    tbody.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-slate-400 italic">Завантаження подій...</td></tr>';
+
+    const { data: events, error } = await _supabase
+        .from('events')
+        .select('*')
+        .order('event_date', { ascending: true })
+        .order('event_time', { ascending: true });
+
+    if (error) {
+        console.error("Events fetch error:", error);
+        tbody.innerHTML = `<tr><td colspan="4" class="p-10 text-center text-red-500">${error.message}</td></tr>`;
+        return;
+    }
+
+    if (!events || events.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-slate-400 italic">Подій ще не додано</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = events.map(e => {
+        const dateObj = new Date(e.event_date);
+        const formattedDate = dateObj.toLocaleDateString('uk-UA', { day: 'numeric', month: 'long', year: 'numeric' });
+        
+        return `
+            <tr class="hover:bg-slate-50 transition border-b border-slate-50 group">
+                <td class="p-6">
+                    <div class="flex items-center gap-4">
+                        <img src="${e.image_url || 'https://placehold.co/200x120?text=No+Image'}" class="w-16 h-10 rounded-lg object-cover bg-slate-100 shadow-sm transition-transform group-hover:scale-105">
+                        <div>
+                            <div class="font-black text-slate-800 uppercase text-xs">${e.title}</div>
+                            <div class="text-[9px] text-orange-500 font-bold uppercase tracking-widest mt-1">
+                                📅 ${formattedDate} в ${e.event_time.substring(0, 5)} • 📍 ${e.location}
+                            </div>
+                        </div>
+                    </div>
+                </td>
+                <td class="p-6 text-center">
+                    <div class="text-[10px] font-black uppercase text-slate-400 tracking-widest">${e.organizer || '—'}</div>
+                </td>
+                <td class="p-6 text-center">
+                    <button onclick="window.toggleEventStatus('${e.id}', ${e.is_published})" 
+                        class="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${e.is_published ? 'bg-green-50 text-green-600 hover:bg-green-100' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'}">
+                        ${e.is_published ? 'Опубліковано' : 'Чернетка'}
+                    </button>
+                </td>
+                <td class="p-6 text-right whitespace-nowrap">
+                    <button onclick="window.openEventEditor('${e.id}')" class="inline-block bg-slate-100 text-slate-400 px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-white hover:text-orange-600 transition shadow-sm border border-transparent hover:border-orange-100">Редагувати</button>
+                    <button onclick="window.deleteEvent('${e.id}')" class="inline-block ml-1 bg-slate-100 text-slate-400 px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-red-50 hover:text-red-500 transition shadow-sm border border-transparent hover:border-red-100">🗑️</button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+};
+
+window.openEventEditor = async (id = null) => {
+    const form = document.getElementById('event-form');
+    if (!form) return;
+    form.reset();
+    document.getElementById('event-id').value = id || '';
+    document.getElementById('event-modal-title').innerText = id ? 'Редагувати подію' : 'Створити подію';
+
+    if (id) {
+        const { data: e } = await _supabase.from('events').select('*').eq('id', id).single();
+        if (e) {
+            document.getElementById('event-title').value = e.title;
+            document.getElementById('event-date').value = e.event_date;
+            document.getElementById('event-time').value = e.event_time;
+            document.getElementById('event-location').value = e.location;
+            document.getElementById('event-organizer').value = e.organizer || '';
+            document.getElementById('event-image').value = e.image_url || '';
+            document.getElementById('event-description').value = e.description || '';
+            document.getElementById('event-contact').value = e.contact_info || '';
+            document.getElementById('event-published').checked = e.is_published;
+        }
+    } else {
+        // Set default date to today
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('event-date').value = today;
+    }
+
+    document.getElementById('event-editor-modal').classList.remove('hidden');
+};
+
+window.closeEventEditor = () => {
+    document.getElementById('event-editor-modal').classList.add('hidden');
+};
+
+window.deleteEvent = async (id) => {
+    if (confirm('Видалити цю подію?')) {
+        try {
+            const { error } = await _supabase.from('events').delete().eq('id', id);
+            if (error) throw error;
+            window.loadEvents();
+        } catch (err) {
+            alert('Помилка видалення: ' + err.message);
+        }
+    }
+};
+
+window.toggleEventStatus = async (id, currentStatus) => {
+    try {
+        const { error } = await _supabase.from('events').update({ is_published: !currentStatus }).eq('id', id);
+        if (error) throw error;
+        window.loadEvents();
+    } catch (err) {
+        alert('Помилка оновлення статусу: ' + err.message);
+    }
+};
+
+document.getElementById('event-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = e.target.querySelector('button[type="submit"]');
+    const originalText = btn.innerText;
+    btn.disabled = true;
+    btn.innerText = 'Збереження...';
+
+    const id = document.getElementById('event-id').value;
+    const payload = {
+        title: document.getElementById('event-title').value.trim(),
+        event_date: document.getElementById('event-date').value,
+        event_time: document.getElementById('event-time').value,
+        location: document.getElementById('event-location').value.trim(),
+        organizer: document.getElementById('event-organizer').value.trim(),
+        image_url: document.getElementById('event-image').value.trim(),
+        description: document.getElementById('event-description').value.trim(),
+        contact_info: document.getElementById('event-contact').value.trim(),
+        is_published: document.getElementById('event-published').checked,
+        city_slug: 'kalush' // Default for now
+    };
+
+    try {
+        let res;
+        if (id) res = await _supabase.from('events').update(payload).eq('id', id);
+        else res = await _supabase.from('events').insert([payload]);
+
+        if (res.error) throw res.error;
+
+        window.closeEventEditor();
+        window.loadEvents();
+    } catch (err) {
+        alert('Помилка: ' + err.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerText = originalText;
+    }
+});
