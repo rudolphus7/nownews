@@ -13,7 +13,27 @@
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="seo-engine.js"></script>
+    <script id="seo-engine-script" src="seo-engine.js?v=2.1"></script>
+    <script>
+        // Robust loader for admin.js
+        const loadAdminScript = (isAbsolute) => {
+            const v = Date.now();
+            const src = isAbsolute ? `/admin.js?v=${v}` : `admin.js?v=${v}`;
+            console.log(`🔍 [LOADER] Attempting to load ${src}...`);
+            const s = document.createElement('script');
+            s.src = src;
+            s.id = 'admin-main-script';
+            s.onerror = () => {
+                if (!isAbsolute) {
+                    console.warn("⚠️ [LOADER] Relative load failed, trying absolute path...");
+                    loadAdminScript(true);
+                } else {
+                    console.error("🚨 [LOADER] All attempts to load admin.js failed!");
+                }
+            };
+            document.head.appendChild(s);
+        };
+    </script>
     <script>
         // Early stubs to prevent "is not a function" errors before admin.js loads
         const stub = (msg) => (...args) => console.warn(`[STUB] ${msg} logic not yet loaded`, args);
@@ -66,6 +86,9 @@
         window.deleteEvent = stub("Event");
         window.toggleEventStatus = stub("Event");
         window.closeEventEditor = stub("Event");
+
+        // Start loading the main script immediately after stubs
+        loadAdminScript(false);
     </script>
 
     <style>
@@ -2179,7 +2202,7 @@
         </div>
     </div>
 
-    <script src="admin.js?v=1.1" onerror="console.error('🚨 [ADMIN] Failed to load admin.js. Check path and server logs.')"></script>
+    <!-- Main script is now loaded via dynamic loader in <head> -->
 </body>
 
 </html>

@@ -2,19 +2,19 @@ console.log("🚀 Admin.js: Loading... v1.1 (Security Patch)");
 // SEOEngine is now provided globally by seo-engine.js
 
 // --- ГЛОБАЛЬНІ ЗМІННІ ТА ПЕРЕКЛАДИ ---
-let CATEGORIES_UK = {};
-let CITIES_UK = {};
-let rssInterval = null;
-let rssSources = [];
-let _allSubscribers = [];
-let readAlsoTimeout = null;
-let quill;
-let currentEditingId = null;
-let currentTags = [];
-let rssCurrentPage = 0; // Fix ReferenceError
+var CATEGORIES_UK = {};
+var CITIES_UK = {};
+var rssInterval = null;
+var rssSources = [];
+var _allSubscribers = [];
+var readAlsoTimeout = null;
+var quill;
+var currentEditingId = null;
+var currentTags = [];
+var rssCurrentPage = 0; // Fix ReferenceError
 
 // --- EARLY GLOBAL REGISTRATION (FOR STABILITY) ---
-const _stub = (m) => async (...a) => console.warn(`[JS-STUB] ${m} logic not loaded`, a);
+var _stub = (m) => async (...a) => console.warn(`[JS-STUB] ${m} logic not loaded`, a);
 window.loadPortals = _stub("Portal");
 window.loadPlaces = _stub("Place");
 window.loadAds = _stub("Ad");
