@@ -89,10 +89,10 @@ module.exports = async (req, res) => {
         const headerHtml = `
         <div class="fixed top-0 w-full z-50 px-4 py-4 md:px-10">
             <div class="container mx-auto px-6 py-4 bg-[#020617]/40 backdrop-blur-3xl rounded-[2.5rem] border border-white/10 flex justify-between items-center shadow-2xl">
-                <a href="/" class="flex items-center gap-4 group transition-all">
+                <a href="https://kalush.bukva.news/" class="flex items-center gap-4 group transition-all">
                     <img src="/logo_footer.png" class="w-10 md:w-12 group-hover:scale-110 transition duration-500">
                     <div class="flex flex-col">
-                        <span class="font-black text-white tracking-tighter uppercase text-sm md:text-xl leading-none">KALUSH <span class="text-orange-600">ПОРТАЛ</span></span>
+                        <span class="font-black text-white tracking-tighter uppercase text-sm md:text-xl leading-none">КАЛУШ <span class="text-orange-600">ПОРТАЛ</span></span>
                         <span class="text-[8px] font-black text-slate-500 uppercase tracking-[0.3em] mt-1">Оголошення Громади</span>
                     </div>
                 </a>
