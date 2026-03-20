@@ -23,6 +23,11 @@ window.savePasswordSettings = async () => { console.warn("Password logic not yet
 window.openPlaceEditor = async () => { console.warn("Place logic not yet loaded"); };
 window.loadAds = async () => { console.warn("Ad logic not yet loaded"); };
 window.openAdEditor = async () => { console.warn("Ad logic not yet loaded"); };
+window.loadEvents = async () => { console.warn("Events logic not yet loaded"); };
+window.openEventEditor = async () => { console.warn("Events logic not yet loaded"); };
+window.closeEventEditor = () => { console.warn("Events logic not yet loaded"); };
+window.toggleEventStatus = () => { console.warn("Events logic not yet loaded"); };
+window.deleteEvent = () => { console.warn("Events logic not yet loaded"); };
 console.log("✅ Admin.js: Early stubs registered");
 
 // --- ІНІЦІАЛІЗАЦІЯ SUPABASE ---
