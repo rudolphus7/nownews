@@ -77,11 +77,11 @@ module.exports = async (req, res) => {
 
         // Shared Header
         const headerHtml = `
-        <div class="fixed top-0 w-full z-50 px-4 py-4 md:px-10">
-            <div class="container mx-auto px-6 py-4 bg-[#020617]/40 backdrop-blur-3xl rounded-[2.5rem] border border-white/10 flex justify-between items-center shadow-2xl header-nav-main">
-                <a href="https://kalush.bukva.news/" class="flex items-center gap-4 group transition-all header-brand-box">
+        <div class="fixed top-0 w-full z-[100] px-4 py-4 md:px-10">
+            <div class="container mx-auto px-4 md:px-8 py-3 bg-[#020617]/60 backdrop-blur-[40px] rounded-[3rem] border border-white/10 flex justify-between items-center shadow-[0_20px_50px_rgba(0,0,0,0.5)] header-nav-main">
+                <a href="https://kalush.bukva.news/" class="flex items-center gap-3 md:gap-4 group transition-all header-brand-box">
                     <img src="/logo_footer.png" class="w-10 md:w-14 group-hover:scale-110 transition duration-500 header-brand-logo">
-                    <div class="flex flex-col leading-none">
+                    <div class="flex flex-col leading-[0.9]">
                         <span class="font-black text-white tracking-tighter uppercase text-base md:text-2xl header-brand-text">КАЛУШ</span>
                         <span class="font-black text-orange-600 tracking-tighter uppercase text-base md:text-2xl header-brand-text">ПОРТАЛ</span>
                     </div>
@@ -90,7 +90,7 @@ module.exports = async (req, res) => {
                     <a href="https://bukva.news/" class="hidden md:flex items-center text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] hover:text-white transition-all px-4 py-2">
                         Новини
                     </a>
-                    <a href="https://kalush.bukva.news/" class="px-6 md:px-10 py-4 bg-white/5 border border-white/10 rounded-[1.5rem] text-[10px] font-black uppercase text-white tracking-[0.2em] hover:bg-orange-600 hover:border-orange-600 transition-all shadow-xl active:scale-95 header-btn-home">
+                    <a href="https://kalush.bukva.news/" class="px-5 md:px-10 py-3.5 md:py-4 bg-white/5 border border-white/10 rounded-full text-[9px] md:text-[10px] font-black uppercase text-white tracking-[0.15em] md:tracking-[0.2em] hover:bg-orange-600 hover:border-orange-600 transition-all shadow-xl active:scale-95 header-btn-home">
                         На головну
                     </a>
                 </div>

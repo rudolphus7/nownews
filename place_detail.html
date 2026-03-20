@@ -9,10 +9,11 @@
     <style>
         :root {
             --brand-orange: #f97316;
+            --brand-orange-rgb: 249, 115, 22;
             --dark-slate: #020617;
-            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-bg: rgba(255, 255, 255, 0.04);
             --glass-border: rgba(255, 255, 255, 0.08);
-            --glass-blur: blur(30px);
+            --glass-blur: blur(40px);
         }
         body {
             font-family: 'Inter', sans-serif;
@@ -73,30 +74,40 @@
         @media (max-width: 768px) {
             body { padding-top: 0; }
             .place-hero { 
-                height: 60vh !important;
-                border-radius: 0 0 3.5rem 3.5rem;
-                margin-bottom: -4rem;
+                height: 50vh !important;
+                border-radius: 0 0 2.5rem 2.5rem;
+                margin-bottom: 0;
             }
             .hero-content {
-                padding: 2.5rem !important;
-                bottom: 4rem !important;
+                padding: 1.5rem !important;
                 z-index: 10 !important;
             }
-            .container { padding-left: 1.5rem; padding-right: 1.5rem; }
+            .container { padding-left: 0; padding-right: 0; }
+            .mobile-info-container {
+                margin: -2rem 1.5rem 0;
+                padding: 2.5rem 1.5rem;
+                position: relative;
+                z-index: 30;
+                border-radius: 2.5rem;
+                background: rgba(2, 6, 23, 0.6);
+                backdrop-filter: blur(40px);
+                border: 1px solid rgba(255,255,255,0.1);
+                box-shadow: 0 40px 80px rgba(0,0,0,0.8);
+            }
             .mobile-float-card {
                 position: relative;
                 z-index: 20;
-                margin-top: 0;
+                margin-top: 1rem;
             }
-            #place-title { font-size: 2.5rem !important; line-height: 1; }
+            #place-title { font-size: 2.8rem !important; line-height: 0.9; margin-top: 0.5rem; }
 
             /* Header Mobile Refinement */
-            .header-nav-main { padding: 0.75rem 1.25rem !important; border-radius: 2rem !important; }
-            .header-brand-box { gap: 0.5rem !important; }
-            .header-links-box { gap: 0.75rem !important; }
-            .header-btn-home { padding: 0.75rem 1rem !important; border-radius: 1.25rem !important; font-size: 8px !important; line-height: 1 !important; transform: scale(0.9); }
-            .header-brand-logo { width: 1.75rem !important; }
-            .header-brand-text { font-size: 10px !important; }
+            .header-nav-main { padding: 0.5rem 1rem !important; border-radius: 2.5rem !important; background: rgba(2, 6, 23, 0.7) !important; }
+            .header-brand-box { gap: 0.4rem !important; }
+            .header-links-box { gap: 0.5rem !important; }
+            .header-btn-home { padding: 0.6rem 0.9rem !important; border-radius: 1.5rem !important; font-size: 8px !important; letter-spacing: 0.1em !important; background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02)) !important; }
+            .header-brand-logo { width: 2rem !important; }
+            .header-brand-text { font-size: 11px !important; letter-spacing: -0.02em !important; }
             .header-brand-sub { display: none; }
         }
     </style>
@@ -112,13 +123,13 @@
         </div>
 
         <!-- Restructured Title Section -->
-        <div class="px-6 py-12 md:py-20">
+        <div class="mobile-info-container md:px-6 md:py-20">
             <div class="max-w-4xl">
-                <div class="flex flex-wrap items-center gap-6 mb-8">
-                    <span id="place-category" class="bg-orange-600 text-[10px] font-black uppercase tracking-[0.2em] px-6 py-2.5 rounded-full shadow-xl shadow-orange-600/20">Категорія</span>
-                    <div class="flex text-orange-500 text-xl gap-2" id="place-rating">⭐⭐⭐⭐⭐</div>
+                <div class="flex flex-wrap items-center gap-4 md:gap-6 mb-4 md:mb-8">
+                    <span id="place-category" class="bg-orange-600 text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] px-4 md:px-6 py-2 md:py-2.5 rounded-full shadow-xl shadow-orange-600/30">Категорія</span>
+                    <div class="flex text-orange-500 text-base md:text-2xl gap-1 md:gap-2 drop-shadow-[0_0_10px_rgba(249,115,22,0.3)]" id="place-rating">⭐⭐⭐⭐⭐</div>
                 </div>
-                <h1 id="place-title" class="text-6xl md:text-[120px] font-black text-white uppercase tracking-tighter leading-[0.8] italic">Назва закладу</h1>
+                <h1 id="place-title" class="text-4xl md:text-[120px] font-black text-white uppercase tracking-tighter leading-[0.8] italic drop-shadow-2xl">Назва закладу</h1>
             </div>
         </div>
 
