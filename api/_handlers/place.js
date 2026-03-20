@@ -31,12 +31,16 @@ module.exports = async (req, res) => {
         let html = fs.readFileSync(templatePath, 'utf8');
 
         // Inject data
-        html = html.replace(/<h1 id="place-title"[^>]*>.*?<\/h1>/s, `<h1 id="place-title" class="text-4xl md:text-6xl font-black text-white uppercase tracking-tighter">${place.name}</h1>`);
-        html = html.replace(/<div id="place-description"[^>]*>.*?<\/div>/s, `<div id="place-description" class="text-slate-300 text-lg leading-relaxed">${place.description || ''}</div>`);
-        html = html.replace(/<div id="place-address"[^>]*>.*?<\/div>/s, `<div id="place-address" class="font-bold">${place.address || '--'}</div>`);
-        html = html.replace(/<div id="place-phone"[^>]*>.*?<\/div>/s, `<div id="place-phone" class="font-bold">${place.phone || '--'}</div>`);
-        html = html.replace(/<span id="place-category"[^>]*>.*?<\/span>/s, `<span id="place-category" class="bg-orange-600 text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full">${place.category || 'Заклад'}</span>`);
+        html = html.replace(/<h1 id="place-title"[^>]*>.*?<\/h1>/s, `<h1 id="place-title" class="text-5xl md:text-7xl font-black text-white uppercase tracking-tighter" style="text-shadow: 0 10px 30px rgba(0,0,0,0.5);">${place.name}</h1>`);
+        html = html.replace(/<div id="place-description"[^>]*>.*?<\/div>/s, `<div id="place-description" class="text-slate-300 text-lg md:text-xl leading-relaxed font-medium">${place.description || ''}</div>`);
+        html = html.replace(/<div id="place-address"[^>]*>.*?<\/div>/s, `<div id="place-address" class="font-bold text-[15px] truncate">${place.address || '--'}</div>`);
+        html = html.replace(/<div id="place-phone"[^>]*>.*?<\/div>/s, `<div id="place-phone" class="font-bold text-[15px] truncate">${place.phone || '--'}</div>`);
+        html = html.replace(/<span id="place-category"[^>]*>.*?<\/span>/s, `<span id="place-category" class="bg-orange-600 text-[10px] font-black uppercase tracking-[0.2em] px-5 py-2 rounded-full shadow-lg shadow-orange-600/20">${place.category || 'Заклад'}</span>`);
         html = html.replace('id="place-image" src=""', `id="place-image" src="${place.image_url || '/logo_footer.png'}"`);
+
+        // Inject dynamic links
+        html = html.replace('id="place-nav-link" href="#"', `id="place-nav-link" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.address || place.name)}"`);
+        html = html.replace('id="place-phone-link" href="tel:"', `id="place-phone-link" href="tel:${place.phone || ''}"`);
 
         // Inject header (reuse dark glass design)
         const headerHtml = `
