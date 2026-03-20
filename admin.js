@@ -52,12 +52,12 @@ const logoLoadPromise = new Promise((resolve) => {
     };
 });
 
-window.handleImageUpload = async (input, targetId) => {
+window.handleImageUpload = async (input, targetId, previewId = 'image-preview') => {
     const file = input.files[0];
     if (!file) return;
 
     const overlay = document.getElementById('upload-progress-overlay');
-    const preview = document.getElementById('image-preview');
+    const preview = document.getElementById(previewId);
     const targetInput = document.getElementById(targetId);
 
     if (overlay) {
@@ -180,9 +180,76 @@ window.handleImageUpload = async (input, targetId) => {
     }
 };
 
+window.handleAdImageUpload = (input) => {
+    window.handleImageUpload(input, 'ad-image', 'ad-image-preview');
+};
+
+window.renderAdGallery = () => {
+    const container = document.getElementById('ad-gallery-previews');
+    if (!container) return;
+    container.innerHTML = currentAdGallery.map((img, index) => `
+        <div class="relative group aspect-square rounded-xl overflow-hidden border border-slate-200 shadow-sm anim-fade-in">
+            <img src="${img}" class="w-full h-full object-cover">
+            <button type="button" onclick="window.removeAdGalleryImage(${index})" class="absolute top-1 right-1 bg-red-600 text-white w-6 h-6 rounded-lg font-black text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">×</button>
+        </div>
+    `).join('');
+};
+
+window.removeAdGalleryImage = (index) => {
+    currentAdGallery.splice(index, 1);
+    window.renderAdGallery();
+};
+
+window.handleAdGalleryUpload = async (input) => {
+    const files = Array.from(input.files);
+    if (files.length === 0) return;
+
+    for (const file of files) {
+        // Simulating the upload process by reusing the existing logic in a controlled way
+        // We create a temporary input to pass to handleImageUpload
+        const tempInput = { 
+            files: [file], 
+            value: '', 
+            dispatchEvent: () => {},
+            get id() { return 'temp-gallery-input'; }
+        };
+        
+        // We need a way to capture the result. handleImageUpload writes to an input.
+        // I'll create a hidden temporary input.
+        let helperInput = document.getElementById('gallery-helper-input');
+        if (!helperInput) {
+            helperInput = document.createElement('input');
+            helperInput.id = 'gallery-helper-input';
+            helperInput.type = 'hidden';
+            document.body.appendChild(helperInput);
+        }
+
+        await window.handleImageUpload(tempInput, 'gallery-helper-input', 'ad-gallery-previews');
+        if (helperInput.value) {
+            currentAdGallery.push(helperInput.value);
+            helperInput.value = '';
+            window.renderAdGallery();
+        }
+    }
+    input.value = '';
+};
+
+// Update preview for ad image
+document.addEventListener('input', (e) => {
+    if (e.target.id === 'ad-image') {
+        const preview = document.getElementById('ad-image-preview');
+        if (preview && e.target.value) {
+            preview.innerHTML = `<img src="${e.target.value}" class="w-full h-full object-cover">`;
+        } else if (preview) {
+            preview.innerHTML = `<span class="text-slate-400 font-bold text-[10px] uppercase tracking-widest">Прев'ю відсутнє</span>`;
+        }
+    }
+});
+
 // --- СТАН РЕДАГУВАННЯ ---
 currentEditingId = null;
 currentTags = [];
+let currentAdGallery = [];
 
 // --- ТЕГИ (ЛОГІКА) ---
 const renderTags = () => {
@@ -3131,16 +3198,20 @@ window.loadAds = async () => {
 
     const { data: ads, error } = await _supabase.from('classifieds').select('*').order('created_at', { ascending: false });
 
-    if (error) {
-        tbody.innerHTML = `<tr><td colspan="4" class="p-10 text-center text-red-500">${error.message}</td></tr>`;
-        return;
-    }
+    const AD_CAT_MAP = {
+        'sale': 'Купівля / Продаж',
+        'rent': 'Оренда нерухомості',
+        'services': 'Послуги та сервіс',
+        'job': 'Робота / Вакансії',
+        'auto': 'Авто та транспорт',
+        'other': 'Різне'
+    };
 
     tbody.innerHTML = ads.map(a => `
         <tr class="hover:bg-slate-50 transition border-b border-slate-50">
             <td class="p-6">
                 <div class="font-black text-slate-800 uppercase text-xs">${a.title}</div>
-                <div class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1">${a.city_slug} • ${a.category}</div>
+                <div class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1">${a.city_slug} • ${AD_CAT_MAP[a.category] || a.category}</div>
             </td>
             <td class="p-6 text-center text-orange-600 font-black text-sm">${a.price || 'Договірна'}</td>
             <td class="p-6 text-center">
@@ -3160,6 +3231,10 @@ window.openAdEditor = async (id = null) => {
     const form = document.getElementById('ad-form');
     form.reset();
     document.getElementById('ad-id').value = id || '';
+    
+    // Reset preview
+    const adPreview = document.getElementById('ad-image-preview');
+    if (adPreview) adPreview.innerHTML = `<span class="text-slate-400 font-bold text-[10px] uppercase tracking-widest">Прев'ю відсутнє</span>`;
 
     if (id) {
         const { data: a } = await _supabase.from('classifieds').select('*').eq('id', id).single();
@@ -3171,9 +3246,20 @@ window.openAdEditor = async (id = null) => {
             document.getElementById('ad-phone').value = a.contact_phone || '';
             document.getElementById('ad-desc').value = a.description || '';
             document.getElementById('ad-image').value = a.image_url || '';
+            
+            if (adPreview && a.image_url) {
+                adPreview.innerHTML = `<img src="${a.image_url}" class="w-full h-full object-cover">`;
+            }
+            
             document.getElementById('ad-published').checked = a.is_published;
             document.getElementById('ad-featured').checked = a.is_featured;
+            
+            currentAdGallery = a.gallery || [];
+            window.renderAdGallery();
         }
+    } else {
+        currentAdGallery = [];
+        window.renderAdGallery();
     }
     document.getElementById('ad-editor-modal').classList.remove('hidden');
 };
@@ -3191,6 +3277,7 @@ document.getElementById('ad-form')?.addEventListener('submit', async (e) => {
         contact_phone: document.getElementById('ad-phone').value,
         description: document.getElementById('ad-desc').value,
         image_url: document.getElementById('ad-image').value,
+        gallery: currentAdGallery,
         is_published: document.getElementById('ad-published').checked,
         is_featured: document.getElementById('ad-featured').checked
     };

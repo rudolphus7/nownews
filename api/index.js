@@ -24,7 +24,8 @@ const handlers = {
     'portal': require('./_handlers/portal'),
     'home': require('./_handlers/home'),
     'place': require('./_handlers/place'),
-    'classifieds': require('./_handlers/classifieds')
+    'classifieds': require('./_handlers/classifieds'),
+    'classifieds_item': require('./_handlers/classifieds_item')
 };
 
 const BANNED_BOT_STRINGS = [

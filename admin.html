@@ -1665,7 +1665,14 @@
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">Категорія</label>
-                                <input type="text" id="ad-category" class="w-full p-4 bg-slate-50 rounded-xl border-none" placeholder="Нерухомість">
+                                <select id="ad-category" class="w-full p-4 bg-slate-50 rounded-xl border-none font-bold">
+                                    <option value="sale">Купівля / Продаж</option>
+                                    <option value="rent">Оренда нерухомості</option>
+                                    <option value="services">Послуги та сервіс</option>
+                                    <option value="job">Робота / Вакансії</option>
+                                    <option value="auto">Авто та транспорт</option>
+                                    <option value="other">Різне</option>
+                                </select>
                             </div>
                             <div>
                                 <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">Ціна</label>
@@ -1681,8 +1688,28 @@
                             <textarea id="ad-desc" rows="3" class="w-full p-4 bg-slate-50 rounded-xl border-none"></textarea>
                         </div>
                         <div>
-                            <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">Фото (URL)</label>
-                            <input type="text" id="ad-image" class="w-full p-4 bg-slate-50 rounded-xl border-none">
+                            <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">Основне фото (Прев'ю)</label>
+                            <div class="flex gap-2 mb-4">
+                                <input type="text" id="ad-image" class="flex-1 p-4 bg-slate-50 rounded-xl border-none" placeholder="https://...">
+                                <button type="button" onclick="document.getElementById('ad_image_file_input').click()" class="px-6 py-4 bg-orange-600 text-white rounded-xl font-black text-[10px] uppercase shadow-lg shadow-orange-600/20 active:scale-95 transition-all">Завантажити</button>
+                            </div>
+                            <input type="file" id="ad_image_file_input" class="hidden" accept="image/*" onchange="window.handleAdImageUpload(this)">
+                            <div id="ad-image-preview" class="w-full h-40 bg-slate-50 rounded-2xl flex items-center justify-center overflow-hidden border-2 border-dashed border-slate-200">
+                                <span class="text-slate-400 font-bold text-[10px] uppercase tracking-widest">Прев'ю відсутнє</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">Галерея (Додаткові фото)</label>
+                            <div class="flex gap-2 mb-4">
+                                <button type="button" onclick="document.getElementById('ad_gallery_file_input').click()" class="w-full py-4 bg-slate-900 text-white rounded-xl font-black text-[10px] uppercase shadow-xl hover:bg-orange-600 transition-all flex items-center justify-center gap-2">
+                                    <span>📸</span> Додати фото до галереї
+                                </button>
+                                <input type="file" id="ad_gallery_file_input" class="hidden" multiple accept="image/*" onchange="window.handleAdGalleryUpload(this)">
+                            </div>
+                            <div id="ad-gallery-previews" class="grid grid-cols-4 gap-2">
+                                <!-- Gallery thumbs -->
+                            </div>
                         </div>
                         <div class="flex items-center gap-6 p-4 bg-slate-50 rounded-2xl">
                             <label class="flex items-center gap-2 cursor-pointer">

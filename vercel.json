@@ -227,6 +227,10 @@
             "destination": "/api/index?__target=place&city=:city&id=:id"
         },
         {
+            "source": "/classifieds/item/:id/",
+            "destination": "/api/index?__target=classifieds_item&id=:id"
+        },
+        {
             "source": "/classifieds/:cat/",
             "destination": "/api/index?__target=classifieds&cat=:cat"
         },

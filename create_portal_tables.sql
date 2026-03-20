@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS public.classifieds (
     image_url text,
     is_published boolean DEFAULT true,
     is_featured boolean DEFAULT false,
+    gallery jsonb DEFAULT '[]'::jsonb,
     created_at timestamptz DEFAULT now()
 );
 
