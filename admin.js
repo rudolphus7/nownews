@@ -14,20 +14,58 @@ let currentTags = [];
 let rssCurrentPage = 0; // Fix ReferenceError
 
 // --- EARLY GLOBAL REGISTRATION (FOR STABILITY) ---
-// We assign these early so they are available even if later script parts fail
-window.loadPortals = async () => { console.warn("Portal logic not yet loaded"); };
-window.openPortalEditor = async () => { console.warn("Portal logic not yet loaded"); };
-window.loadPlaces = async () => { console.warn("Place logic not yet loaded"); };
-window.loadPasswordSettings = async () => { console.warn("Password logic not yet loaded"); };
-window.savePasswordSettings = async () => { console.warn("Password logic not yet loaded"); };
-window.openPlaceEditor = async () => { console.warn("Place logic not yet loaded"); };
-window.loadAds = async () => { console.warn("Ad logic not yet loaded"); };
-window.openAdEditor = async () => { console.warn("Ad logic not yet loaded"); };
-window.loadEvents = async () => { console.warn("Events logic not yet loaded"); };
-window.openEventEditor = async () => { console.warn("Events logic not yet loaded"); };
-window.closeEventEditor = () => { console.warn("Events logic not yet loaded"); };
-window.toggleEventStatus = () => { console.warn("Events logic not yet loaded"); };
-window.deleteEvent = () => { console.warn("Events logic not yet loaded"); };
+const _stub = (m) => async (...a) => console.warn(`[JS-STUB] ${m} logic not loaded`, a);
+window.loadPortals = _stub("Portal");
+window.loadPlaces = _stub("Place");
+window.loadAds = _stub("Ad");
+window.loadPopups = _stub("Popup");
+window.loadSubscribers = _stub("Subscribers");
+window.loadCommentsAdmin = _stub("Comments");
+window.loadEvents = _stub("Events");
+window.loadNews = _stub("Archive");
+window.loadRSS = _stub("RSS");
+window.loadAnalytics = _stub("Analytics");
+window.loadPasswordSettings = _stub("Password");
+window.savePasswordSettings = _stub("Password");
+
+window.openPortalEditor = _stub("Portal Editor");
+window.openPlaceEditor = _stub("Place Editor");
+window.openAdEditor = _stub("Ad Editor");
+window.openEventEditor = _stub("Event Editor");
+window.openPopupEditor = _stub("Popup Editor");
+window.openReadAlsoModal = _stub("Read Also");
+window.rewriteWithAI = _stub("AI");
+window.addFastTag = _stub("Tag");
+window.handleImageUpload = _stub("Upload");
+window.searchReadAlso = _stub("Search");
+window.insertSelectedReadAlso = _stub("Insert");
+window.closeReadAlsoModal = _stub("Modal");
+window.renderRSSArticles = _stub("RSS");
+window.refreshRSS = _stub("RSS");
+window.filterCommentsAdmin = _stub("Filter");
+window.handleAnalyticsDateFilterChange = _stub("Analytics");
+window.filterSubscribers = _stub("Filter");
+window.exportSubscribersCSV = _stub("Export");
+window.addPopupButtonRow = _stub("Popup");
+window.closePopupEditor = _stub("Popup");
+window.seedDefaults = _stub("Seed");
+window.saveAIConfig = _stub("Config");
+window.toggleKeyVisibility = _stub("UI");
+window.saveSocialSettings = _stub("Config");
+window.handleAdImageUpload = _stub("Upload");
+window.handleAdGalleryUpload = _stub("Upload");
+window.deleteAd = _stub("Ad");
+window.renderAdGallery = _stub("Gallery");
+window.closeAdEditor = _stub("Ad");
+window.closePortalEditor = _stub("Portal");
+window.closePlaceEditor = _stub("Place");
+window.closeSettingsModal = _stub("Settings");
+window.openSettingsModal = _stub("Settings");
+window.toggleMobileMenu = _stub("Navigation");
+window.deleteEvent = _stub("Event");
+window.toggleEventStatus = _stub("Event");
+window.closeEventEditor = _stub("Event");
+window.showSection = _stub("Navigation");
 console.log("✅ Admin.js: Early stubs registered");
 
 // --- ІНІЦІАЛІЗАЦІЯ SUPABASE ---

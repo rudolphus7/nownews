@@ -15,14 +15,57 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="/seo-engine.js"></script>
     <script>
-        // Early stubs to prevent "is not a function" errors
-        // Using traditional functions for maximum compatibility and hoisting
-        window.openPortalEditor = function(id) { console.warn("Portal logic not yet loaded", id); };
-        window.openPlaceEditor = function(id) { console.warn("Place logic not yet loaded", id); };
-        window.openAdEditor = function(id) { console.warn("Ad logic not yet loaded", id); };
-        window.loadPortals = function() { console.warn("Portal logic not yet loaded"); };
-        window.loadPlaces = function() { console.warn("Place logic not yet loaded"); };
-        window.loadAds = function() { console.warn("Ad logic not yet loaded"); };
+        // Early stubs to prevent "is not a function" errors before admin.js loads
+        const stub = (msg) => (...args) => console.warn(`[STUB] ${msg} logic not yet loaded`, args);
+        window.showSection = stub("Navigation");
+        window.loadNews = stub("Archive");
+        window.loadRSS = stub("RSS");
+        window.loadCommentsAdmin = stub("Comments");
+        window.loadSubscribers = stub("Subscribers");
+        window.loadAnalytics = stub("Analytics");
+        window.loadPopups = stub("Popup");
+        window.loadPortals = stub("Portal");
+        window.loadPlaces = stub("Place");
+        window.loadAds = stub("Ad");
+        window.loadEvents = stub("Events");
+        window.openPortalEditor = stub("Portal Editor");
+        window.openPlaceEditor = stub("Place Editor");
+        window.openAdEditor = stub("Ad Editor");
+        window.openEventEditor = stub("Event Editor");
+        window.openPopupEditor = stub("Popup Editor");
+        window.openReadAlsoModal = stub("Read Also");
+        window.rewriteWithAI = stub("AI");
+        window.addFastTag = stub("Tag");
+        window.handleImageUpload = stub("Upload");
+        window.searchReadAlso = stub("Search");
+        window.insertSelectedReadAlso = stub("Insert");
+        window.closeReadAlsoModal = stub("Modal");
+        window.renderRSSArticles = stub("RSS");
+        window.refreshRSS = stub("RSS");
+        window.filterCommentsAdmin = stub("Filter");
+        window.handleAnalyticsDateFilterChange = stub("Analytics");
+        window.filterSubscribers = stub("Filter");
+        window.exportSubscribersCSV = stub("Export");
+        window.addPopupButtonRow = stub("Popup");
+        window.closePopupEditor = stub("Popup");
+        window.seedDefaults = stub("Seed");
+        window.saveAIConfig = stub("Config");
+        window.toggleKeyVisibility = stub("UI");
+        window.savePasswordSettings = stub("Config");
+        window.saveSocialSettings = stub("Config");
+        window.handleAdImageUpload = stub("Upload");
+        window.handleAdGalleryUpload = stub("Upload");
+        window.deleteAd = stub("Ad");
+        window.renderAdGallery = stub("Gallery");
+        window.closeAdEditor = stub("Ad");
+        window.closePortalEditor = stub("Portal");
+        window.closePlaceEditor = stub("Place");
+        window.closeSettingsModal = stub("Settings");
+        window.openSettingsModal = stub("Settings");
+        window.toggleMobileMenu = stub("Navigation");
+        window.deleteEvent = stub("Event");
+        window.toggleEventStatus = stub("Event");
+        window.closeEventEditor = stub("Event");
     </script>
 
     <style>
