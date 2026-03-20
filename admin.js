@@ -86,7 +86,7 @@ console.log("✅ Admin.js: Supabase initialization call made");
 // --- IMAGE UPLOAD & OPTIMIZATION ---
 // Pre-load logo once to avoid repeated network requests and timing issues on mobile
 const logoImage = new Image();
-logoImage.src = window.location.origin + '/logo.png';
+logoImage.src = 'logo.png';
 const logoLoadPromise = new Promise((resolve) => {
     logoImage.onload = () => resolve(true);
     logoImage.onerror = () => {
