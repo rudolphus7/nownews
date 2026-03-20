@@ -3138,8 +3138,7 @@ window.openPlaceEditor = async (id = null) => {
         if (p) {
             document.getElementById('place-city').value = p.city_slug;
             document.getElementById('place-name').value = p.name;
-            document.getElementById('place-cat-slug').value = p.category_slug;
-            document.getElementById('place-cat-name').value = p.category_name;
+            document.getElementById('place-category').value = p.category_slug || 'other';
             document.getElementById('place-address').value = p.address || '';
             document.getElementById('place-phone').value = p.phone || '';
             document.getElementById('place-image').value = p.image_url || '';
@@ -3159,8 +3158,8 @@ document.getElementById('place-form')?.addEventListener('submit', async (e) => {
     const payload = {
         city_slug: document.getElementById('place-city').value,
         name: document.getElementById('place-name').value,
-        category_slug: document.getElementById('place-cat-slug').value,
-        category_name: document.getElementById('place-cat-name').value,
+        category_slug: document.getElementById('place-category').value,
+        category_name: document.getElementById('place-category').options[document.getElementById('place-category').selectedIndex].text,
         address: document.getElementById('place-address').value,
         phone: document.getElementById('place-phone').value,
         image_url: document.getElementById('place-image').value,

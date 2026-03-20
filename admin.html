@@ -1568,14 +1568,32 @@
                                 <input type="text" id="place-name" class="w-full p-4 bg-slate-50 rounded-xl border-none font-bold" required>
                             </div>
                         </div>
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 gap-4">
                             <div>
-                                <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">Категорія (Slug)</label>
-                                <input type="text" id="place-cat-slug" class="w-full p-4 bg-slate-50 rounded-xl border-none" placeholder="restaurants">
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">Категорія (Назва)</label>
-                                <input type="text" id="place-cat-name" class="w-full p-4 bg-slate-50 rounded-xl border-none" placeholder="Ресторани">
+                                <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">Категорія закладу</label>
+                                <select id="place-category" class="w-full p-4 bg-slate-50 rounded-xl border-none font-bold" required>
+                                    <option value="restaurants">🍽️ Ресторани</option>
+                                    <option value="cafes">☕ Кафе та Кав'ярні</option>
+                                    <option value="fastfood">🍕 Фаст-фуд та Піца</option>
+                                    <option value="pubs">🍺 Паби та Бари</option>
+                                    <option value="shops">🛍️ Магазини та Шопінг</option>
+                                    <option value="medicine">🏥 Медицина</option>
+                                    <option value="pharmacy">💊 Аптеки</option>
+                                    <option value="beauty">💇 Салони краси</option>
+                                    <option value="sport">🏆 Спорт та Фітнес</option>
+                                    <option value="kids">👶 Дитячий розвиток</option>
+                                    <option value="services">🛠️ Побутові послуги</option>
+                                    <option value="education">🎓 Освіта</option>
+                                    <option value="entertainment">🎡 Розваги</option>
+                                    <option value="auto">🚗 Автосервіс та АЗС</option>
+                                    <option value="hotels">🏨 Готелі</option>
+                                    <option value="culture">🏛️ Культура</option>
+                                    <option value="government">🏢 Державні установи</option>
+                                    <option value="construction">🏗️ Будівництво та Дім</option>
+                                    <option value="pets">🐾 Зоотовари та Ветдопомога</option>
+                                    <option value="it">💻 IT та Зв'язок</option>
+                                    <option value="other">✨ Інше</option>
+                                </select>
                             </div>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
