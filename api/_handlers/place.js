@@ -31,22 +31,32 @@ module.exports = async (req, res) => {
         let html = fs.readFileSync(templatePath, 'utf8');
 
         // Inject data
-        html = html.replace('id="place-title">', `id="place-title">${place.name}`);
-        html = html.replace('id="place-description">', `id="place-description">${place.description || ''}`);
-        html = html.replace('id="place-address">', `id="place-address">${place.address || '--'}`);
-        html = html.replace('id="place-phone">', `id="place-phone">${place.phone || '--'}`);
-        html = html.replace('id="place-category">', `id="place-category">${place.category || 'Заклад'}`);
-        html = html.replace('src="" alt="Place Image"', `src="${place.image_url || '/logo.png'}" alt="${place.name}"`);
+        html = html.replace(/<h1 id="place-title"[^>]*>.*?<\/h1>/s, `<h1 id="place-title" class="text-4xl md:text-6xl font-black text-white uppercase tracking-tighter">${place.name}</h1>`);
+        html = html.replace(/<div id="place-description"[^>]*>.*?<\/div>/s, `<div id="place-description" class="text-slate-300 text-lg leading-relaxed">${place.description || ''}</div>`);
+        html = html.replace(/<div id="place-address"[^>]*>.*?<\/div>/s, `<div id="place-address" class="font-bold">${place.address || '--'}</div>`);
+        html = html.replace(/<div id="place-phone"[^>]*>.*?<\/div>/s, `<div id="place-phone" class="font-bold">${place.phone || '--'}</div>`);
+        html = html.replace(/<span id="place-category"[^>]*>.*?<\/span>/s, `<span id="place-category" class="bg-orange-600 text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full">${place.category || 'Заклад'}</span>`);
+        html = html.replace('id="place-image" src=""', `id="place-image" src="${place.image_url || '/logo_footer.png'}"`);
 
-        // Inject header (reuse from city/portal logic if needed, or define in template)
-        // For now, simple injection
-        const headerHtml = `<div class="bg-white/95 backdrop-blur-xl fixed top-0 w-full z-50 p-6 border-b border-slate-100">
-            <div class="container mx-auto flex justify-between items-center">
-                <a href="/" class="flex items-center gap-3">
-                    <img src="/logo_footer.png" class="w-20">
-                    <span class="font-black text-slate-900 tracking-tighter uppercase">KALUSH <span class="text-orange-600">NEWS</span></span>
+        // Inject header (reuse dark glass design)
+        const headerHtml = `
+        <div class="fixed top-0 w-full z-50 px-4 py-4 md:px-10">
+            <div class="container mx-auto px-6 py-4 bg-[#020617]/40 backdrop-blur-3xl rounded-[2.5rem] border border-white/10 flex justify-between items-center shadow-2xl">
+                <a href="https://kalush.bukva.news/" class="flex items-center gap-4 group transition-all">
+                    <img src="/logo_footer.png" class="w-10 md:w-12 group-hover:scale-110 transition duration-500">
+                    <div class="flex flex-col">
+                        <span class="font-black text-white tracking-tighter uppercase text-sm md:text-xl leading-none">КАЛУШ <span class="text-orange-600">ПОРТАЛ</span></span>
+                        <span class="text-[8px] font-black text-slate-500 uppercase tracking-[0.3em] mt-1">Оголошення Громади</span>
+                    </div>
                 </a>
-                <a href="#" onclick="history.back()" class="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-orange-600">Назад</a>
+                <div class="flex items-center gap-3 md:gap-6">
+                    <a href="https://bukva.news/" class="hidden md:flex items-center text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] hover:text-white transition-all px-4 py-2">
+                        Новини
+                    </a>
+                    <a href="https://kalush.bukva.news/" class="px-6 md:px-10 py-4 bg-white/5 border border-white/10 rounded-[1.5rem] text-[10px] font-black uppercase text-white tracking-[0.2em] hover:bg-orange-600 hover:border-orange-600 transition-all shadow-xl active:scale-95">
+                        На головну
+                    </a>
+                </div>
             </div>
         </div>`;
         html = html.replace('<div id="site-header-placeholder"></div>', headerHtml);

@@ -31,9 +31,9 @@ module.exports = async (req, res) => {
         const settingsArr = await fetchFromSupabase('portal_settings', `city_slug=eq.${citySlug}&select=*`);
         const settings = (settingsArr && settingsArr.length > 0) ? settingsArr[0] : null;
 
-        // Map database fields to our config
-        const portalName = settings?.portal_name || `${citySlug.toUpperCase()} ПОРТАЛ`;
-        const logoUrl = settings?.logo_url || '/logo_footer.png';
+        // Map database fields to our config (Overridden for consistency)
+        const portalName = 'КАЛУШ ПОРТАЛ';
+        const logoUrl = '/logo_footer.png';
         const seo = settings?.seo_config || {};
         
         const title = seo.title || `${portalName} | Новини, заклади, оголошення`;
