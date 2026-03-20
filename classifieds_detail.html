@@ -16,6 +16,22 @@
         .img-container { border-radius: 2.5rem; overflow: hidden; background: #000; border: 1px solid rgba(255, 255, 255, 0.1); }
         .btn-call { background: var(--brand-orange); color: white; border-radius: 1.5rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; transition: all 0.3s ease; box-shadow: 0 15px 30px rgba(249, 115, 22, 0.3); }
         .btn-call:hover { transform: translateY(-3px); box-shadow: 0 20px 40px rgba(249, 115, 22, 0.4); }
+
+        @media (max-width: 768px) {
+            body { padding-top: 1.5rem; }
+            .container { padding-left: 0.75rem; padding-right: 0.75rem; }
+            .glass-container { border-radius: 2.25rem; padding: 1.5rem; }
+            h1 { font-size: 1.75rem !important; line-height: 1.1 !important; }
+            
+            /* Header Mobile Refinement */
+            .header-nav-main { padding: 0.75rem 1.25rem !important; border-radius: 2rem !important; }
+            .header-brand-box { gap: 0.5rem !important; }
+            .header-links-box { gap: 0.75rem !important; }
+            .header-btn-home { padding: 0.75rem 1rem !important; border-radius: 1.25rem !important; font-size: 8px !important; line-height: 1 !important; transform: scale(0.9); }
+            .header-brand-logo { width: 1.75rem !important; }
+            .header-brand-text { font-size: 10px !important; }
+            .header-brand-sub { display: none; }
+        }
     </style>
 </head>
 <body class="pt-32 pb-20">

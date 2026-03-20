@@ -39,6 +39,22 @@
             transform: translateY(-4px) scale(1.01);
             box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 0.6);
         }
+
+        @media (max-width: 768px) {
+            body { padding-top: 1.5rem; }
+            .container { padding-left: 1rem; padding-right: 1rem; }
+            h1 { font-size: 1.75rem !important; line-height: 1.1 !important; margin-bottom: 0.5rem !important; }
+            p { font-size: 12px !important; }
+
+            /* Header Mobile Refinement */
+            .header-nav-main { padding: 0.75rem 1.25rem !important; border-radius: 2rem !important; }
+            .header-brand-box { gap: 0.5rem !important; }
+            .header-links-box { gap: 0.75rem !important; }
+            .header-btn-home { padding: 0.75rem 1rem !important; border-radius: 1.25rem !important; font-size: 8px !important; line-height: 1 !important; transform: scale(0.9); }
+            .header-brand-logo { width: 1.75rem !important; }
+            .header-brand-text { font-size: 10px !important; }
+            .header-brand-sub { display: none; }
+        }
     </style>
 </head>
 <body class="pt-32 pb-20">
