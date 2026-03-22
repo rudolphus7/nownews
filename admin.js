@@ -14,35 +14,46 @@ var currentTags = [];
 var rssCurrentPage = 0; // Fix ReferenceError
 
 // --- EARLY GLOBAL REGISTRATION (FOR STABILITY) ---
-var _stub = (m) => async (...a) => console.warn(`[JS-STUB] ${m} logic not loaded`, a);
-window.loadPortals = _stub("Portal");
-window.loadPlaces = _stub("Place");
-window.loadAds = _stub("Ad");
-window.loadPopups = _stub("Popup");
-window.loadSubscribers = _stub("Subscribers");
-window.loadCommentsAdmin = _stub("Comments");
-window.loadEvents = _stub("Events");
-window.loadNews = _stub("Archive");
-window.loadRSS = _stub("RSS");
-window.loadAnalytics = _stub("Analytics");
-window.loadPasswordSettings = _stub("Password");
-window.savePasswordSettings = _stub("Password");
+const _createProxy = (fnName, msg) => async (...args) => {
+    if (typeof window[fnName] === 'function' && window[fnName].name !== '') {
+        return window[fnName](...args);
+    }
+    // Fallback if not overwritten yet
+    console.warn(`[JS-PROXY] ${msg} logic called before ready, retrying...`);
+    setTimeout(() => {
+        if (typeof window[fnName] === 'function' && window[fnName].name !== '') {
+            window[fnName](...args);
+        }
+    }, 500);
+};
 
-window.openPortalEditor = _stub("Portal Editor");
-window.openPlaceEditor = _stub("Place Editor");
-window.openAdEditor = _stub("Ad Editor");
-window.openEventEditor = _stub("Event Editor");
-window.openPopupEditor = _stub("Popup Editor");
-window.openReadAlsoModal = _stub("Read Also");
-window.rewriteWithAI = _stub("AI");
-window.addFastTag = _stub("Tag");
-window.handleImageUpload = _stub("Upload");
-window.searchReadAlso = _stub("Search");
-window.insertSelectedReadAlso = _stub("Insert");
-window.closeReadAlsoModal = _stub("Modal");
-window.renderRSSArticles = _stub("RSS");
-window.refreshRSS = _stub("RSS");
-window.filterCommentsAdmin = _stub("Filter");
+window.loadPortals = _createProxy('loadPortals_real', "Portal");
+window.loadPlaces = _createProxy('loadPlaces_real', "Place");
+window.loadAds = _createProxy('loadAds_real', "Ad");
+window.loadPopups = _createProxy('loadPopups_real', "Popup");
+window.loadSubscribers = _createProxy('loadSubscribers_real', "Subscribers");
+window.loadCommentsAdmin = _createProxy('loadCommentsAdmin_real', "Comments");
+window.loadEvents = _createProxy('loadEvents_real', "Events");
+window.loadNews = _createProxy('loadNews_real', "Archive");
+window.loadRSS = _createProxy('loadRSS_real', "RSS");
+window.renderRSSArticles = _createProxy('renderRSSArticles_real', "RSS");
+window.refreshRSS = _createProxy('refreshRSS_real', "RSS");
+window.loadAnalytics = _createProxy('loadAnalytics_real', "Analytics");
+window.loadPasswordSettings = _createProxy('loadPasswordSettings_real', "Password");
+window.savePasswordSettings = _createProxy('savePasswordSettings_real', "Password");
+
+window.openPortalEditor = _createProxy('openPortalEditor_real', "Portal Editor");
+window.openPlaceEditor = _createProxy('openPlaceEditor_real', "Place Editor");
+window.openAdEditor = _createProxy('openAdEditor_real', "Ad Editor");
+window.openEventEditor = _createProxy('openEventEditor_real', "Event Editor");
+window.openPopupEditor = _createProxy('openPopupEditor_real', "Popup Editor");
+window.openReadAlsoModal = _createProxy('openReadAlsoModal_real', "Read Also");
+window.rewriteWithAI = _createProxy('rewriteWithAI_real', "AI");
+window.addFastTag = _createProxy('addFastTag_real', "Tag");
+window.searchReadAlso = _createProxy('searchReadAlso_real', "Search");
+window.insertSelectedReadAlso = _createProxy('insertSelectedReadAlso_real', "Insert");
+window.closeReadAlsoModal = _createProxy('closeReadAlsoModal_real', "Modal");
+window.filterCommentsAdmin = _createProxy('filterCommentsAdmin_real', "Filter");
 window.handleAnalyticsDateFilterChange = _stub("Analytics");
 window.filterSubscribers = _stub("Filter");
 window.exportSubscribersCSV = _stub("Export");
@@ -1103,6 +1114,7 @@ async function refreshRSS() {
     }
 }
 window.refreshRSS = refreshRSS;
+window.refreshRSS_real = refreshRSS;
 
 async function loadRSS() {
     await loadRSSSources();
@@ -1113,6 +1125,7 @@ async function loadRSS() {
     rssInterval = setInterval(fetchRSSArticles, 300000);
 }
 window.loadRSS = loadRSS;
+window.loadRSS_real = loadRSS;
 
 // rssCurrentPage declared at top
 const rssPageSize = 20;
@@ -1194,6 +1207,7 @@ async function renderRSSArticles(page = 0) {
     renderRSSPagination(count);
 }
 window.renderRSSArticles = renderRSSArticles;
+window.renderRSSArticles_real = renderRSSArticles;
 
 function renderRSSPagination(total) {
     const container = document.getElementById('rss-pagination-controls');
