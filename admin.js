@@ -86,7 +86,7 @@ console.log("✅ Admin.js: Supabase initialization call made. _supabase defined:
 // --- IMAGE UPLOAD & OPTIMIZATION ---
 // Pre-load logo once to avoid repeated network requests and timing issues on mobile
 const logoImage = new Image();
-logoImage.src = 'logo.png';
+logoImage.src = '/logo.png';
 const logoLoadPromise = new Promise((resolve) => {
     logoImage.onload = () => resolve(true);
     logoImage.onerror = () => {
@@ -473,6 +473,10 @@ window.showSection = (id) => {
     if (id === 'section-places' && window.loadPlaces) window.loadPlaces();
     if (id === 'section-ads' && window.loadAds) window.loadAds();
     if (id === 'section-events' && window.loadEvents) window.loadEvents();
+    if (id === 'section-rss' && window.loadRSS) window.loadRSS();
+    if (id === 'section-comments' && window.loadCommentsAdmin) window.loadCommentsAdmin();
+    if (id === 'section-analytics' && window.loadAnalytics) window.loadAnalytics();
+    if (id === 'section-subscribers' && window.loadSubscribers) window.loadSubscribers();
 
     // Close mobile menu after navigation
     if (document.body.classList.contains('sidebar-open')) {
@@ -991,10 +995,15 @@ rssInterval = null;
 
 async function loadRSSSources() {
     if (!_supabase) return;
-    const { data, error } = await _supabase.from('rss_sources').select('*').order('created_at', { ascending: true });
-    if (!error && data) {
+    const { data, error } = await _supabase.from('rss_sources').select('*');
+    if (error) {
+        console.error("Помилка завантаження джерел:", error);
+        rssSources = [];
+    } else if (data) {
         rssSources = data;
-        renderRSSSources();
+    }
+    
+    renderRSSSources();
 
         // Populate filter dropdown
         const filter = document.getElementById('rss-source-filter');
@@ -1009,7 +1018,6 @@ async function loadRSSSources() {
             });
             filter.value = currentVal;
         }
-    }
 }
 
 function renderRSSSources() {
@@ -1135,7 +1143,13 @@ async function renderRSSArticles(page = 0) {
         .order('pub_date', { ascending: false })
         .range(from, to);
 
-    if (error || !articles || articles.length === 0) {
+    if (error) {
+        console.error("Помилка завантаження статей RSS:", error);
+        grid.innerHTML = `<div class="text-center py-20 text-red-500 font-bold">Помилка: ${error.message}</div>`;
+        return;
+    }
+
+    if (!articles || articles.length === 0) {
         grid.innerHTML = `
                 <div class="text-center py-32 bg-white rounded-[3rem] border border-dashed border-slate-200">
                      <div class="text-5xl mb-6 opacity-20">📭</div>
