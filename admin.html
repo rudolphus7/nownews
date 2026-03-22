@@ -39,7 +39,10 @@
         const stub = (msg) => (...args) => console.warn(`[STUB] ${msg} logic not yet loaded`, args);
         window.showSection = stub("Navigation");
         window.loadNews = stub("Archive");
-        window.loadRSS = stub("RSS");
+        window.loadRSS = (...args) => {
+            if (typeof loadRSS === "function") return loadRSS(...args);
+            stub("RSS")(...args);
+        };
         window.loadCommentsAdmin = stub("Comments");
         window.loadSubscribers = stub("Subscribers");
         window.loadAnalytics = stub("Analytics");
