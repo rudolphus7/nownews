@@ -374,19 +374,19 @@ const updateSEO = () => {
         const title = titleInput?.value || "";
         const contentText = quill ? quill.getText() : "";
 
-        if (title) {
+        if (title && typeof SEOEngine !== 'undefined') {
             const generatedSlug = SEOEngine.generateSlug(title);
             if (slugInput) slugInput.value = generatedSlug;
             const slugDisplay = document.getElementById('slug-display');
             if (slugDisplay) slugDisplay.innerHTML = `<a href="/${generatedSlug}" target="_blank" class="text-orange-600 hover:underline">/${generatedSlug}</a>`;
-            if (metaTitleInput) {
+            if (metaTitleInput && typeof SEOEngine !== 'undefined') {
                 metaTitleInput.value = SEOEngine.generateMetaTitle(title);
                 const titleCount = document.getElementById('title-count');
                 if (titleCount) titleCount.innerText = metaTitleInput.value.length;
             }
         }
 
-        if (contentText.trim().length > 10 && metaDescInput) {
+        if (contentText.trim().length > 10 && metaDescInput && typeof SEOEngine !== 'undefined') {
             metaDescInput.value = SEOEngine.generateMetaDesc(contentText);
             const descCount = document.getElementById('desc-count');
             if (descCount) descCount.innerText = metaDescInput.value.length;
@@ -1023,7 +1023,12 @@ function renderRSSSources() {
 
     list.innerHTML = rssSources.map((source) => {
         const statusColor = source.last_status === 'online' ? 'bg-green-500' : (source.last_status === 'error' ? 'bg-red-500' : 'bg-slate-300');
-        const sourceHost = new URL(source.url).hostname;
+        let sourceHost = 'RSS Source';
+        try {
+            sourceHost = new URL(source.url).hostname;
+        } catch (ue) {
+            console.warn("Invalid RSS URL:", source.url);
+        }
 
         return `
             <div class="bg-white p-4 rounded-3xl flex justify-between items-center shadow-lg border border-white transition-all hover:border-orange-200 group relative overflow-hidden">
@@ -1523,7 +1528,10 @@ async function fetchRSSArticles() {
 
     for (const source of rssSources) {
         const url = source.url;
-        const sourceHost = new URL(url).hostname;
+        let sourceHost = 'RSS';
+        try {
+            sourceHost = new URL(url).hostname;
+        } catch (ue) { }
         const statusId = `status-${sourceHost.replace(/\./g, '-')}`;
         statusList.insertAdjacentHTML('beforeend', `
             <div id="${statusId}" class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center justify-between bg-white/50 p-3 rounded-2xl border border-slate-50">
