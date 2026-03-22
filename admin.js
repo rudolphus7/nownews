@@ -15,17 +15,34 @@ var rssCurrentPage = 0; // Fix ReferenceError
 
 // --- EARLY GLOBAL REGISTRATION (FOR STABILITY) ---
 const _createProxy = (fnName, msg) => async (...args) => {
-    if (typeof window[fnName] === 'function' && window[fnName].name !== '') {
+    // Check if the real function is already defined in the global scope
+    if (typeof window[fnName] === 'function') {
         return window[fnName](...args);
     }
     // Fallback if not overwritten yet
-    console.warn(`[JS-PROXY] ${msg} logic called before ready, retrying...`);
+    console.warn(`[JS-PROXY] ${msg} logic not ready (looking for ${fnName}), retrying in 500ms...`);
     setTimeout(() => {
-        if (typeof window[fnName] === 'function' && window[fnName].name !== '') {
+        if (typeof window[fnName] === 'function') {
             window[fnName](...args);
+        } else {
+             console.error(`[JS-PROXY] ${msg} logic CRITICAL: ${fnName} still not found after retry.`);
         }
     }, 500);
 };
+
+// --- MISSING HELPERS (RESTORED) ---
+function getRSSCache() {
+    try {
+        const raw = localStorage.getItem('rss_cache');
+        return raw ? JSON.parse(raw) : [];
+    } catch (e) { return []; }
+}
+function saveRSSCache(data) {
+    try {
+        localStorage.setItem('rss_cache', JSON.stringify((data || []).slice(0, 100)));
+    } catch (e) { }
+}
+
 
 var _stub = (m) => async (...a) => console.warn(`[JS-STUB] ${m} logic not loaded`, a);
 
@@ -81,6 +98,9 @@ window.toggleEventStatus = _stub("Event");
 window.closeEventEditor = _stub("Event");
 window.showSection = _stub("Navigation");
 console.log("✅ Admin.js: Early stubs registered");
+
+try {
+
 
 // --- ІНІЦІАЛІЗАЦІЯ SUPABASE ---
 let _supabase;
@@ -3539,3 +3559,6 @@ document.getElementById('event-form')?.addEventListener('submit', async (e) => {
         btn.innerText = originalText;
     }
 });
+} catch (globalErr) {
+    console.error("❌ [CRITICAL] Admin.js Global Initialization Error:", globalErr);
+}
