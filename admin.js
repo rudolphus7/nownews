@@ -27,6 +27,9 @@ const _createProxy = (fnName, msg) => async (...args) => {
     }, 500);
 };
 
+var _stub = (m) => async (...a) => console.warn(`[JS-STUB] ${m} logic not loaded`, a);
+
+
 window.loadPortals = _createProxy('loadPortals_real', "Portal");
 window.loadPlaces = _createProxy('loadPlaces_real', "Place");
 window.loadAds = _createProxy('loadAds_real', "Ad");
