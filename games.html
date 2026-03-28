@@ -19,17 +19,20 @@ body{font-family:'Outfit',sans-serif;color:#f1f5f9;background:#060a0d url('/back
 .rc svg{width:13px;height:13px}.rc .v{font-weight:900;font-size:13px}
 .rank-pill{background:linear-gradient(135deg,var(--sol),#ea580c);border-radius:50px;padding:4px 10px;font-weight:900;font-size:11px}
 
-/* FLOATING INFO PILL */
-#info-pill{position:absolute;top:70px;left:50%;transform:translateX(-50%);background:rgba(6,10,13,0.6);backdrop-filter:blur(15px);border:1px solid var(--br);border-radius:50px;padding:6px 16px;display:flex;align-items:center;gap:12px;z-index:25;box-shadow:0 8px 20px rgba(0,0,0,0.5)}
-.ip-item{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:900;color:#fff}
-.ip-stage{color:var(--g);display:flex;align-items:center;gap:4px;padding-right:8px;border-right:1px solid rgba(255,255,255,0.1)}
-.ip-label{font-size:9px;text-transform:uppercase;opacity:0.5;letter-spacing:0.05em}
+/* COMPACT DARK GLASS REFERRAL PILL (Top) */
+#ref-promo-top{position:absolute;top:10px;left:14px;right:14px;z-index:35;background:rgba(6,10,13,0.6);backdrop-filter:blur(25px);border:1px solid rgba(255,255,255,0.12);border-radius:50px;height:58px;padding:0 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 12px 30px rgba(0,0,0,0.4);overflow:hidden;transition:all 0.3s}
+.ref-promo-icon{font-size:26px;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.4))}
+.ref-promo-text{flex:1;text-align:left}
+.ref-promo-t1{font-size:13px;font-weight:900;color:#fff;text-transform:uppercase;letter-spacing:0.04em}
+.ref-promo-t2{font-size:10px;font-weight:600;color:rgba(255,255,255,0.5)}
+.ref-btn-3d{background:linear-gradient(180deg,#22c55e 0%,#16a34a 100%);border:none;border-radius:50px;padding:8px 16px;font-family:'Outfit',sans-serif;font-size:11px;font-weight:900;color:#fff;box-shadow:0 4px 0 #15803d;cursor:pointer;transition:all 0.1s}
+.ref-btn-3d:active{transform:translateY(3px);box-shadow:0 0 0 transparent}
 
-/* COMPACT REFERRAL CHIP (Top Left) */
-#ref-chip{position:absolute;top:16px;left:16px;background:rgba(34,197,94,0.15);backdrop-filter:blur(10px);border:1px solid rgba(34,197,94,0.3);border-radius:50px;padding:6px 12px;display:flex;align-items:center;gap:8px;z-index:35;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 15px rgba(0,0,0,0.3)}
-#ref-chip:active{transform:scale(0.95)}
-.ref-chip-icon{font-size:16px}
-.ref-chip-text{font-size:11px;font-weight:900;color:#f1f5f9;text-transform:uppercase;letter-spacing:0.02em}
+/* Info Pill integrated below Ref Card or as center bar */
+#info-pill{position:absolute;top:78px;left:50%;transform:translateX(-50%);background:rgba(6,10,13,0.5);backdrop-filter:blur(10px);border:1px solid var(--br);border-radius:50px;padding:5px 14px;display:flex;align-items:center;gap:12px;z-index:25}
+.ip-item{display:flex;align-items:center;gap:4px;font-size:11px;font-weight:900;color:#fff}
+.ip-stage{color:var(--g);display:flex;align-items:center;gap:4px;padding-right:8px;border-right:1px solid rgba(255,255,255,0.1)}
+.ip-label{font-size:8px;text-transform:uppercase;opacity:0.5}
 
 /* SCREENS */
 #area{flex:1;overflow:hidden;position:relative}
@@ -49,46 +52,39 @@ body{font-family:'Outfit',sans-serif;color:#f1f5f9;background:#060a0d url('/back
 #mtn, #forest-bg-trees {display:none}
 
 /* THE OAK - grounded on backgr.png */
-#oak-wrap{position:absolute;bottom:12%;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;transition:all 1s cubic-bezier(.34,1.56,.64,1);z-index:5}
+#oak-wrap{position:absolute;bottom:11%;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;transition:all 1s cubic-bezier(.34,1.56,.64,1);z-index:5}
 #oak-svg{display:block;transition:all 1s cubic-bezier(.34,1.56,.64,1);filter:drop-shadow(0 8px 30px rgba(0,0,0,.4))}
 
 /* Particle effects */
 .particle{position:absolute;pointer-events:none;z-index:10;font-size:18px;animation:float-up 1.2s ease forwards}
 @keyframes float-up{0%{transform:translateY(0) scale(1);opacity:1}100%{transform:translateY(-80px) scale(.5);opacity:0}}
 
-#h-chip{position:absolute;bottom:calc(15% + 10px);left:50%;transform:translateX(-50%);background:rgba(6,10,13,.88);border:1px solid var(--br);border-radius:50px;padding:5px 14px;font-size:12px;font-weight:800;white-space:nowrap;backdrop-filter:blur(10px);z-index:6;transition:all .5s}
+#h-chip{position:absolute;bottom:calc(10% + 15px);left:50%;transform:translateX(-50%);background:rgba(6,10,13,.88);border:1px solid var(--br);border-radius:50px;padding:5px 14px;font-size:12px;font-weight:800;white-space:nowrap;backdrop-filter:blur(10px);z-index:6;transition:all .5s}
 
 
 
-/* PROFESSIONAL FLOATING ACTION BUTTONS (FABs) */
-.ab{position:absolute;width:68px;height:68px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;border:none;cursor:pointer;z-index:25;box-shadow:0 8px 15px rgba(0,0,0,0.5);transition:all 0.15s cubic-bezier(0.4,0,0.2,1);outline:none}
+/* PROFESSIONAL SIDE CIRCULAR BUTTONS + CENTER NAME */
+#oak-panel{position:absolute;bottom:0;left:0;right:0;height:140px;z-index:25;display:flex;align-items:center;justify-content:center;pointer-events:none;background:linear-gradient(to top, rgba(6,10,13,0.6), transparent)}
+.act-grid{width:100%;height:100%;display:flex;justify-content:space-between;align-items:center;padding:0 15px;pointer-events:none}
+.ab{width:86px;height:86px;border-radius:50%;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition:all 0.15s cubic-bezier(0.4,0,0.2,1);box-shadow:0 10px 15px rgba(0,0,0,0.5);outline:none;pointer-events:auto}
 .ab:active{transform:scale(0.9) translateY(4px)}
-.ab svg{width:24px;height:24px;margin-bottom:2px}
-.ab-sub{font-size:8px;font-weight:900;opacity:0.9;text-transform:uppercase}
-.ab.water{bottom:25px;left:20px;background:linear-gradient(180deg,#0ea5e9 0%,#0284c7 100%);box-shadow:0 6px 0 #0369a1, 0 10px 20px rgba(2,132,199,0.5)}
-.ab.fert{bottom:25px;right:20px;background:linear-gradient(180deg,#fbbf24 0%,#d97706 100%);box-shadow:0 6px 0 #b45309, 0 10px 20px rgba(217,119,6,0.5)}
+.ab:disabled{filter:grayscale(1) brightness(0.7);opacity:0.6;cursor:not-allowed}
+.ab svg{width:24px;height:24px}
+.ab b{font-size:12px;font-weight:900;color:#fff}
+.ab-sub{font-size:9px;font-weight:700;color:rgba(255,255,255,0.9);text-transform:uppercase;letter-spacing:0.05em}
 
-/* Gifting / Tree Name Pills */
-#oak-panel{display:contents} /* We don't need a panel wrapper anymore, elements will float */
-#tree-name-row{position:absolute;bottom:25px;left:50%;transform:translateX(-50%);z-index:25;background:rgba(6,10,13,0.5);backdrop-filter:blur(10px);border:1px solid var(--br);border-radius:50px;padding:6px 12px;display:flex;align-items:center;gap:6px}
+.ab.water{background:linear-gradient(180deg,#0ea5e9 0%,#0284c7 100%);box-shadow:0 6px 0 #0369a1}
+.ab.fert{background:linear-gradient(180deg,#fbbf24 0%,#d97706 100%);box-shadow:0 6px 0 #b45309}
+
+#tree-name-row{background:rgba(6,10,13,0.5);backdrop-filter:blur(10px);border:1px solid var(--br);border-radius:50px;padding:6px 14px;display:flex;align-items:center;gap:8px;pointer-events:auto}
 #tree-name-disp{font-size:14px;font-weight:900;color:#fff}
-#btn-rename{background:none;border:none;font-size:12px;cursor:pointer}
+#btn-rename{background:none;border:none;font-size:12px;opacity:0.5;cursor:pointer}
+#btn-rename:hover{opacity:1}
 
 
+/* Cleaning up redundant styles */
 #tip-bar{padding:0}
 
-/* REFERRAL PREMIUM CARD */
-.ref-promo{background:linear-gradient(145deg,rgba(34,197,94,0.1 5) 0%,rgba(6,182,212,0.1) 100%);border:1px solid rgba(255,255,255,0.08);border-radius:24px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:6px;box-shadow:0 10px 30px rgba(0,0,0,0.3);position:relative;overflow:hidden}
-.ref-promo::before{content:'';position:absolute;top:0;left:0;right:0;height:40%;background:linear-gradient(180deg,rgba(255,255,255,0.06),transparent);pointer-events:none}
-.ref-promo-icon{font-size:32px;line-height:1;filter:drop-shadow(0 6px 10px rgba(0,0,0,0.4));animation:float 3s ease-in-out infinite}
-@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
-.ref-promo-text{flex:1;text-align:left}
-.ref-promo-t1{font-size:14px;font-weight:900;color:#a7f3d0;text-transform:uppercase;letter-spacing:0.03em;margin-bottom:2px;text-shadow:0 2px 4px rgba(0,0,0,0.5)}
-.ref-promo-t2{font-size:11px;font-weight:600;color:rgba(255,255,255,0.7)}
-.ref-btn-3d{background:linear-gradient(180deg,#22c55e 0%,#16a34a 100%);border:none;border-radius:14px;padding:12px 16px;font-family:'Outfit',sans-serif;font-size:12px;font-weight:900;color:#fff;box-shadow:0 5px 0 #15803d, 0 10px 15px rgba(22,163,74,0.4);cursor:pointer;transition:all 0.1s}
-.ref-btn-3d:active{transform:translateY(5px);box-shadow:0 0 0 #15803d}
-.user-pill{position:absolute;top:-8px;right:10px;background:var(--card);border:1px solid var(--br);border-radius:50px;padding:4px 10px;font-size:10px;font-weight:700;display:flex;align-items:center;gap:6px;cursor:pointer;backdrop-filter:blur(5px);box-shadow:0 4px 10px rgba(0,0,0,0.4)}
-.user-pill img{width:16px;height:16px;border-radius:50%;object-fit:cover}
 
 /* QUESTS SCREEN */
 .qw{padding:12px 14px 20px}
@@ -210,61 +206,68 @@ body{font-family:'Outfit',sans-serif;color:#f1f5f9;background:#060a0d url('/back
 
 <div id="area">
   <!-- MY OAK -->
-  <div id="scr-oak" class="scr on">
-    <div id="forest">
-      <div id="sky-bg"></div>
-      <div id="stars"></div>
-      <div id="moon"></div>
-      <div id="mtn">
-        <svg viewBox="0 0 1000 300" preserveAspectRatio="none">
-          <path d="M0,300 L0,180 Q80,160 160,110 T400,160 T700,90 T1000,170 L1000,300 Z" fill="#061e0f" opacity="0.7"/>
-          <path d="M0,300 L0,220 Q120,200 250,230 T600,190 T1000,240 L1000,300 Z" fill="#082d15" opacity="0.9"/>
-        </svg>
+    <div id="scr-oak" class="scr on">
+      <div id="forest">
+        <div id="sky-bg"></div>
+        <div id="ground"></div>
+        
+        <!-- LARGE TOP REFERRAL -->
+        <div id="ref-promo-top">
+          <div class="ref-promo-icon">🎁</div>
+          <div class="ref-promo-text">
+            <div class="ref-promo-t1">Запроси друга</div>
+            <div class="ref-promo-t2">Разом отримайте +50 💧 бонусу</div>
+          </div>
+          <button class="ref-btn-3d" onclick="copyRefLink()">🔗 Запросити</button>
+        </div>
+
+        <div id="h-chip">🌳 0 см</div>
+        <div id="oak-wrap">
+          <svg id="oak-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300" width="120" height="180"></svg>
+        </div>
+
+        <!-- INTEGRATED INFO PILL -->
+        <div id="info-pill">
+          <div class="ip-stage" id="ip-stage-text">🌱 Насіння</div>
+          <div class="ip-item"><span id="si-h">0</span><span class="ip-label">см</span></div>
+          <div class="ip-item">💧 <span id="si-w">0</span></div>
+          <div class="ip-item">☀️ <span id="si-f">0</span></div>
+        </div>
       </div>
-      <div id="forest-bg-trees">
-        <svg viewBox="0 0 1000 200" preserveAspectRatio="none">
-          <path d="M0,200 L0,150 Q100,120 280,160 T650,130 T1000,150 L1000,200 Z" fill="#0b401b"/>
-          <path d="M0,200 L0,180 Q150,150 400,190 T850,160 T1000,180 L1000,200 Z" fill="#0d4d20"/>
-        </svg>
-      </div>
-      <div id="ground"></div>
-      <div id="ref-chip" onclick="copyRefLink()">
-        <span class="ref-chip-icon">🎁</span>
-        <span class="ref-chip-text">Запроси</span>
-      </div>
-      <div id="h-chip">🌳 0 см</div>
-      <div id="oak-wrap">
-        <svg id="oak-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300" width="120" height="180"></svg>
-      </div>
-      <!-- NEW PROFESSIONAL INFO PILL -->
-      <div id="info-pill">
-        <div class="ip-stage" id="ip-stage-text">🌱 Насіння</div>
-        <div class="ip-item"><span id="si-h">0</span><span class="ip-label">см</span></div>
-        <div class="ip-item">💧 <span id="si-w">0</span></div>
-        <div class="ip-item">☀️ <span id="si-f">0</span></div>
+
+      <div id="oak-panel">
+        <div class="act-grid">
+          <button class="ab water" id="btn-w" onclick="doWater()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+            <b>-5 | +1см</b>
+            <span class="ab-sub">Полити</span>
+          </button>
+
+          <div id="tree-name-row">
+            <div id="tree-name-disp">Мій Дуб</div>
+            <button id="btn-rename" onclick="openModal()">✏️</button>
+          </div>
+
+          <button class="ab fert" id="btn-f" onclick="doFertilize()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M10 2l1 1h4l1-1M12 22V7M2 12c4 0 10-4 10-10 0 6 6 10 10 10"/></svg>
+            <b>-15 | 🌿3см</b>
+            <span class="ab-sub">Удобрити</span>
+          </button>
+        </div>
       </div>
     </div>
 
-    <!-- FLOATING ACTION BUTTONS -->
-    <button class="ab water" id="btn-w" onclick="doWater()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
-      <span class="ab-sub">-5 💧</span>
-    </button>
-
-    <button class="ab fert" id="btn-f" onclick="doFertilize()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M12 22V12M2 12c4 0 10-4 10-10 0 6 6 10 10 10"/></svg>
-      <span class="ab-sub">-15 ☀️</span>
-    </button>
-
-    <div id="oak-panel">
-      <div id="tree-name-row">
-        <div id="tree-name-disp">Мій Дуб</div>
-        <button id="btn-rename" onclick="openModal()">✏️</button>
-      </div>
-
-      <div id="tip-bar">
-        <div class="user-pill" id="user-pill" onclick="showUserMenu()" title="Профіль"></div>
-        <div style="padding:4px 0 8px;font-size:10px;font-weight:700;color:rgba(255,255,255,0.3);text-align:center;text-transform:uppercase;letter-spacing:0.05em">📰 Читайте новини → Шукайте іконки 💧 та ☀️</div>
+    <!-- PROFILE SCREEN -->
+    <div id="scr-p" class="scr">
+      <div class="pw">
+        <div class="p-header" id="p-header"></div>
+        <div class="p-stats">
+          <div class="ps-box"><span class="ps-val" id="ps-h">0 см</span><span class="ps-lab">Висота</span></div>
+          <div class="ps-box"><span class="ps-val" id="ps-w">0</span><span class="ps-lab">Поливів</span></div>
+        </div>
+        <div class="qlabel" style="text-align:center">🏆 Досягнення</div>
+        <div class="ach-grid" id="ach-grid"></div>
+        <button class="p-logout" onclick="showUserMenu()">🚪 Вийти з акаунту</button>
       </div>
     </div>
   </div>
@@ -298,9 +301,9 @@ body{font-family:'Outfit',sans-serif;color:#f1f5f9;background:#060a0d url('/back
     <span>Завдання</span>
     <div class="nb-badge" id="badge-quests">0</div>
   </button>
-  <button class="nb" id="nb-f" onclick="go('f')">
-    <svg viewBox="0 0 24 24"><path d="M8 21H5a2 2 0 01-2-2v-5m18 7h-3a2 2 0 01-2-2v-5M3 10l9-9 9 9"/><path d="M9 21V12h6v9"/></svg>
-    <span>Ліс</span>
+  <button class="nb" id="nb-p" onclick="go('p')">
+    <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    <span>Профіль</span>
   </button>
 </nav>
 <div id="toast"></div>
@@ -320,7 +323,7 @@ body{font-family:'Outfit',sans-serif;color:#f1f5f9;background:#060a0d url('/back
 </div>
 
 <!-- NAME MODAL -->
-<div id="modal"><div id="mbox"><div class="mhandle"></div><div class="mtitle">🌳 Назвіть своє дерево</div><input id="minput" type="text" maxlength="24" placeholder="Дуб Прикарпаття"><button class="msave" onclick="saveName()">Зберегти</button><button class="mcancel" onclick="closeModal()">Скасувати</button></div></div>
+<div id="modal"><div id="mbox"><div class="mhandle"></div><div class="mtitle">🌳 Ласкаво просимо!<br>Як назвемо ваш дуб?</div><input id="minput" type="text" maxlength="24" placeholder="Дуб Прикарпаття"><button class="msave" onclick="saveName()">Зберегти</button><button class="mcancel" onclick="closeModal()">Скасувати</button></div></div>
 
 <script>
 // ── CONFIG
@@ -555,11 +558,19 @@ async function save(){try{await sc.from('user_gamification').upsert(buildSave())
 
 // ── WELCOME BONUS
 async function welcome(){
-  if(localStorage.getItem('oak_wel2'))return;
+  if(localStorage.getItem('oak_wel2')){
+    // Auto-prompt to name if still default
+    if(G.name === 'Мій Дуб' && !sessionStorage.getItem('oak_name_prompt')){
+      sessionStorage.setItem('oak_name_prompt','1');
+      setTimeout(openModal, 2500);
+    }
+    return;
+  }
   localStorage.setItem('oak_wel2','1');
   G.w+=50; G.s+=30;
   await save();
   setTimeout(()=>toast('🎉 Ласкаво просимо! +50 Води, +30 Сонця'),700);
+  if(G.name === 'Мій Дуб') setTimeout(openModal, 3000);
 }
 
 // ── DAILY QUEST CHECK
@@ -804,11 +815,13 @@ function ftab(i){
 // ── NAV
 function go(s){
   document.querySelectorAll('.scr').forEach(x=>x.classList.remove('on'));
-  document.getElementById('scr-'+s).classList.add('on');
+  const target=document.getElementById('scr-'+s);
+  if(target)target.classList.add('on');
   document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
   document.getElementById('nb-'+s).classList.add('on');
   if(s==='q'){renderQuests();}
   if(s==='f'){loadRank();}
+  if(s==='p'){renderProfile();}
 }
 
 // ── MODAL (rename)
@@ -837,19 +850,44 @@ function copyRefLink(){
     prompt('Скопіюйте посилання:',url);
   });
 }
-function renderUserPill(user){
-  const p=document.getElementById('user-pill');
-  if(user&&user.user_metadata){
-    const av=user.user_metadata.avatar_url;
-    const nm=(user.user_metadata.name||user.email||'').split(' ')[0].slice(0,8);
-    p.innerHTML=av?`<img src="${av}" onerror="this.remove()">${nm}`:nm;
+async function renderProfile(){
+  const h=document.getElementById('p-header');
+  const{data:{session}}=await sc.auth.getSession();
+  if(session&&session.user){
+    const u=session.user.user_metadata;
+    const av=u.avatar_url;
+    h.innerHTML=`
+      <div class="p-av">${av?`<img src="${av}">`:'👤'}</div>
+      <div class="p-name">${u.full_name||G.name}</div>
+      <div class="p-mail">${session.user.email}</div>
+    `;
   } else {
-    p.innerHTML='👤 Гість';
+    h.innerHTML='<div class="p-av">👤</div><div class="p-name">Гість</div><div class="p-mail">Увійдіть для збереження прогресу</div>';
   }
+  document.getElementById('ps-h').textContent=`${G.h} см`;
+  document.getElementById('ps-w').textContent=G.watered;
+  
+  const ag=document.getElementById('ach-grid');ag.innerHTML='';
+  const achs=[
+    {n:'Перший паросток',t:'Досягніть 10 см',on:G.h>=10,i:'🌱'},
+    {n:'Садівник',t:'Досягніть 50 см',on:G.h>=50,i:'🌿'},
+    {n:'Майстер лісу',t:'Досягніть 100 см',on:G.h>=100,i:'🌳'},
+    {n:'Читач',t:'Прочитано 3 новини',on:G.reads>=3,i:'📰'},
+    {n:'Покровитель',t:'100 поливів',on:G.watered>=100,i:'💧'},
+    {n:'Синтез',t:'50 зруйновано',on:G.fert>=50,i:'☀️'}
+  ];
+  achs.forEach(a=>{
+    const d=document.createElement('div');
+    d.className='ach'+(a.on?' on':'');
+    d.title=a.t;
+    d.innerHTML=`<span class="ach-ico">${a.i}</span><span class="ach-name">${a.n}</span>`;
+    ag.appendChild(d);
+  });
 }
+
 function showUserMenu(){
-  if(confirm('Вийти з Google акаунту?')){
-    sc.auth.signOut().then(()=>{localStorage.removeItem('bukva_uid_google');location.reload();});
+  if(confirm('Вийти з акаунту?')){
+    sc.auth.signOut().then(()=>{localStorage.clear();location.reload();});
   }
 }
 
@@ -921,7 +959,6 @@ async function init(){
     // Logged in via Google — use auth uid
     uid=session.user.id;
     localStorage.setItem('bukva_uid',uid);
-    renderUserPill(session.user);
     await startGame();
   } else {
     // Check if guest mode was previously confirmed
@@ -929,7 +966,6 @@ async function init(){
     uid=localStorage.getItem('bukva_uid');
     if(!uid){uid='u'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);localStorage.setItem('bukva_uid',uid);}
     if(guestConfirmed){
-      renderUserPill(null);
       await startGame();
     } else {
       // Show auth modal
@@ -944,7 +980,6 @@ async function init(){
       localStorage.setItem('bukva_uid',uid);
       localStorage.setItem('bukva_guest_confirmed','1');
       document.getElementById('auth-modal').classList.remove('on');
-      renderUserPill(session.user);
       if(!document.getElementById('av').textContent||document.getElementById('av').textContent==='0'){
         await startGame();
       }
