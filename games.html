@@ -1,1144 +1,684 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Цифровий Садівник | BUKVA NEWS</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Дуб Громади | BUKVA NEWS</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--g:#22c55e;--g2:#16a34a;--aq:#06b6d4;--sol:#f59e0b;--pur:#7c3aed;--dk:#060a0d;--card:rgba(255,255,255,.05);--br:rgba(255,255,255,.08)}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Outfit',sans-serif;color:#f1f5f9;background:var(--dk);display:flex;flex-direction:column;height:100dvh}
 
-        :root {
-            --green: #22c55e;
-            --aqua: #06b6d4;
-            --gold: #f59e0b;
-            --purple: #7c3aed;
-            --orange: #ea580c;
-            --dark: #0a0a0f;
-            --card: rgba(255,255,255,0.05);
-            --border: rgba(255,255,255,0.08);
-        }
+/* HUD */
+#hud{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:10px 14px;gap:8px;background:rgba(6,10,13,.95);border-bottom:1px solid var(--br);backdrop-filter:blur(20px);z-index:30}
+.hud-logo{font-size:10px;font-weight:900;opacity:.35;letter-spacing:.05em;line-height:1.3}
+.hud-res{display:flex;gap:6px;flex:1;justify-content:center}
+.rc{display:flex;align-items:center;gap:5px;background:var(--card);border:1px solid var(--br);padding:5px 10px;border-radius:50px}
+.rc svg{width:14px;height:14px;flex-shrink:0}.rc .v{font-weight:900;font-size:14px}.rc .l{font-size:8px;font-weight:700;opacity:.5;text-transform:uppercase}
+.rank-pill{background:linear-gradient(135deg,var(--sol),#ea580c);border-radius:50px;padding:5px 11px;font-weight:900;font-size:12px;white-space:nowrap}
 
-        html, body { height: 100%; overflow: hidden; }
+/* SCREENS */
+#area{flex:1;overflow:hidden;position:relative}
+.scr{display:none;position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+.scr.on{display:flex;flex-direction:column}
+.scr::-webkit-scrollbar{display:none}
 
-        body {
-            font-family: 'Outfit', sans-serif;
-            background: var(--dark);
-            background-image:
-                radial-gradient(ellipse at top, rgba(34,197,94,0.12) 0%, transparent 60%),
-                radial-gradient(ellipse at bottom right, rgba(124,58,237,0.10) 0%, transparent 50%);
-            color: #f1f5f9;
-            display: flex;
-            flex-direction: column;
-            height: 100dvh;
-        }
+/* ── FOREST SCENE ── */
+#forest{flex:1;position:relative;overflow:hidden;min-height:320px;user-select:none}
 
-        /* ── TOP HUD ── */
-        #hud {
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 14px 16px 10px;
-            gap: 10px;
-            background: rgba(10,10,15,0.9);
-            border-bottom: 1px solid var(--border);
-            backdrop-filter: blur(20px);
-            position: relative;
-            z-index: 20;
-        }
+/* Sky layers */
+#sky-bg{position:absolute;inset:0;background:linear-gradient(180deg,#060d1a 0%,#0a1f0a 55%,#071a07 100%);transition:background 3s}
+#stars{position:absolute;inset:0;pointer-events:none}
+.star{position:absolute;border-radius:50%;background:white;animation:twinkle var(--d,3s) infinite alternate}
+@keyframes twinkle{from{opacity:.2}to{opacity:.9}}
 
-        .hud-logo {
-            font-size: 12px;
-            font-weight: 900;
-            letter-spacing: 0.05em;
-            opacity: 0.5;
-            white-space: nowrap;
-        }
+/* Moon */
+#moon{position:absolute;top:18px;right:30px;width:36px;height:36px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff9c4,#f59e0b);box-shadow:0 0 20px rgba(245,158,11,.4);opacity:.85}
 
-        .hud-resources {
-            display: flex;
-            gap: 8px;
-            flex: 1;
-            justify-content: center;
-        }
+/* Mountain silhouettes */
+#mtn{position:absolute;bottom:30%;left:0;right:0;height:120px;pointer-events:none}
+#mtn svg{width:100%;height:100%}
 
-        .res-chip {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            background: var(--card);
-            border: 1px solid var(--border);
-            padding: 6px 12px;
-            border-radius: 50px;
-        }
+/* Forest background silhouette */
+#forest-bg-trees{position:absolute;bottom:22%;left:0;right:0;height:90px;pointer-events:none}
+#forest-bg-trees svg{width:100%;height:100%}
 
-        .res-chip svg { width: 16px; height: 16px; flex-shrink: 0; }
-        .res-chip .val { font-weight: 900; font-size: 15px; }
-        .res-chip .lbl { font-size: 9px; font-weight: 700; opacity: 0.5; text-transform: uppercase; letter-spacing: 0.05em; }
+/* Ground */
+#ground{position:absolute;bottom:0;left:0;right:0;height:22%;background:linear-gradient(180deg,#14421a,#0a2a0c,#071a07);border-radius:50% 50% 0 0/40px 40px 0 0}
+#ground::before{content:'';position:absolute;top:0;left:0;right:0;height:10px;background:linear-gradient(180deg,rgba(34,197,94,.25),transparent);border-radius:50% 50% 0 0/10px 10px 0 0}
 
-        .hud-level {
-            background: linear-gradient(135deg, var(--gold), var(--orange));
-            border-radius: 50px;
-            padding: 6px 14px;
-            font-weight: 900;
-            font-size: 13px;
-            white-space: nowrap;
-        }
+/* THE OAK */
+#oak-wrap{position:absolute;bottom:22%;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;transition:all .8s cubic-bezier(.19,1,.22,1);z-index:5}
+#oak-svg{display:block;transition:all .8s cubic-bezier(.19,1,.22,1);filter:drop-shadow(0 4px 20px rgba(34,197,94,.25))}
 
-        /* ── SCREEN AREA ── */
-        #screen-area {
-            flex: 1;
-            overflow: hidden;
-            position: relative;
-        }
+/* Particle effects */
+.particle{position:absolute;pointer-events:none;z-index:10;font-size:18px;animation:float-up 1.2s ease forwards}
+@keyframes float-up{0%{transform:translateY(0) scale(1);opacity:1}100%{transform:translateY(-80px) scale(.5);opacity:0}}
 
-        .screen {
-            display: none;
-            position: absolute;
-            inset: 0;
-            overflow-y: auto;
-            overflow-x: hidden;
-            -webkit-overflow-scrolling: touch;
-        }
+/* Height chip */
+#h-chip{position:absolute;bottom:calc(22% + 8px);left:50%;transform:translateX(-50%);background:rgba(6,10,13,.88);border:1px solid var(--br);border-radius:50px;padding:5px 14px;font-size:12px;font-weight:800;white-space:nowrap;backdrop-filter:blur(10px);z-index:6;transition:all .5s}
 
-        .screen.active { display: block; }
+/* Stage label */
+#stage-badge{position:absolute;top:16px;left:16px;background:rgba(6,10,13,.75);border:1px solid var(--g);border-radius:12px;padding:6px 12px;font-size:11px;font-weight:800;color:var(--g);backdrop-filter:blur(8px)}
 
-        /* ── GARDEN SCREEN ── */
-        #garden-bg {
-            width: 100%;
-            height: 100%;
-            background:
-                radial-gradient(ellipse at 50% 30%, rgba(34,197,94,0.08) 0%, transparent 70%),
-                linear-gradient(180deg, #0a1a0f 0%, #0d1f0d 50%, #0a150a 100%);
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
+/* Actions panel */
+#oak-panel{flex-shrink:0;padding:12px 14px 8px;background:rgba(6,10,13,.95);border-top:1px solid var(--br)}
+#tree-name-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+#tree-name-disp{font-size:17px;font-weight:900;flex:1}
+#btn-rename{background:var(--card);border:1px solid var(--br);padding:5px 10px;border-radius:10px;font-family:'Outfit',sans-serif;font-size:11px;font-weight:700;color:rgba(255,255,255,.5);cursor:pointer}
+.stats3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px}
+.sp{background:var(--card);border:1px solid var(--br);border-radius:14px;padding:8px;text-align:center}.sp .sv{font-size:17px;font-weight:900}.sp .sl{font-size:8px;opacity:.5;font-weight:700;text-transform:uppercase}
+.act-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.ab{border:none;border-radius:18px;padding:13px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .2s;letter-spacing:.01em}
+.ab:active{transform:scale(.97)}.ab:disabled{opacity:.35;background:#374151!important;box-shadow:none!important;cursor:not-allowed}
+.ab.water{background:linear-gradient(135deg,var(--aq),#0284c7);color:#fff;box-shadow:0 6px 20px rgba(6,182,212,.3)}
+.ab.fert{background:linear-gradient(135deg,var(--sol),#d97706);color:#fff;box-shadow:0 6px 20px rgba(245,158,11,.3)}
+.ab-sub{font-size:10px;opacity:.7;font-weight:600;display:block}
+#tip-bar{padding:8px 12px;background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.2);border-radius:14px;font-size:11px;font-weight:600;color:#86efac;text-align:center;margin-bottom:4px}
 
-        /* Isometric garden */
-        #iso-viewport {
-            perspective: 800px;
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            min-height: 380px;
-        }
+/* QUESTS SCREEN */
+.qw{padding:12px 14px 20px}
+.qtabs{display:flex;gap:6px;margin-bottom:14px;background:var(--card);border:1px solid var(--br);border-radius:16px;padding:5px}
+.qt{flex:1;padding:9px;border-radius:11px;border:none;background:transparent;color:rgba(255,255,255,.45);font-family:'Outfit',sans-serif;font-size:13px;font-weight:800;cursor:pointer;transition:all .2s}
+.qt.on{background:var(--pur);color:#fff}
+.qlabel{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.12em;opacity:.4;margin:0 0 8px}
+.qcard{background:var(--card);border:1px solid var(--br);border-radius:18px;padding:13px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;transition:all .2s}
+.qcard.done{opacity:.5}.qcard.claimable{border-color:var(--g);background:rgba(34,197,94,.08);cursor:pointer}
+.qcard:active{transform:scale(.98)}
+.qi{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.qinfo{flex:1;min-width:0}.qname{font-weight:800;font-size:14px;margin-bottom:3px}.qdesc{font-size:11px;opacity:.55;margin-bottom:5px}
+.qbar{height:3px;background:rgba(255,255,255,.1);border-radius:99px;overflow:hidden}
+.qbar-f{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--pur),var(--aq));transition:width .6s}
+.qrew{font-size:12px;font-weight:900;color:var(--sol);white-space:nowrap;text-align:right}
+.qbtn{width:34px;height:34px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.qbtn svg{width:17px;height:17px;stroke:#fff;fill:none;stroke-width:2.5;stroke-linecap:round}
+.weekly-box{background:linear-gradient(135deg,rgba(124,58,237,.2),rgba(6,182,212,.1));border:1.5px solid rgba(124,58,237,.4);border-radius:20px;padding:16px;margin-bottom:12px;text-align:center}
+.wb-title{font-size:16px;font-weight:900;margin-bottom:4px}
+.wb-sub{font-size:11px;opacity:.55;margin-bottom:10px}
+.wb-podium{display:flex;justify-content:center;gap:8px}
+.wb-item{background:rgba(255,255,255,.05);border-radius:14px;padding:10px 12px;text-align:center;min-width:80px}
+.wbi-pos{font-size:13px;font-weight:900;margin-bottom:2px}
+.wbi-name{font-size:10px;opacity:.6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:70px}
+.wbi-val{font-size:14px;font-weight:900;color:var(--g);margin-top:2px}
 
-        #iso-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 72px);
-            grid-template-rows: repeat(3, 72px);
-            gap: 4px;
-            transform: rotateX(50deg) rotateZ(-20deg);
-            transform-style: preserve-3d;
-        }
+/* FOREST/LEADERBOARD SCREEN */
+.fw{padding:12px 14px 20px}
+.ftabs{display:flex;gap:6px;margin-bottom:14px;background:var(--card);border:1px solid var(--br);border-radius:16px;padding:5px}
+.ft{flex:1;padding:9px;border-radius:11px;border:none;background:transparent;color:rgba(255,255,255,.45);font-family:'Outfit',sans-serif;font-size:13px;font-weight:800;cursor:pointer;transition:all .2s}
+.ft.on{background:var(--g2);color:#fff}
+.lb-card{background:var(--card);border:1px solid var(--br);border-radius:18px;padding:12px 13px;display:flex;align-items:center;gap:11px;margin-bottom:8px;transition:all .2s;cursor:pointer}
+.lb-card:active{transform:scale(.98)}
+.lb-card.t1{border-color:rgba(245,158,11,.4);background:rgba(245,158,11,.06)}
+.lb-card.t2{border-color:rgba(156,163,175,.3)}
+.lb-card.t3{border-color:rgba(180,83,9,.3)}
+.lb-card.me{border-color:rgba(34,197,94,.4);background:rgba(34,197,94,.07)}
+.lbpos{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;flex-shrink:0;background:rgba(255,255,255,.08)}
+.p1{background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff}
+.p2{background:linear-gradient(135deg,#9ca3af,#6b7280);color:#fff}
+.p3{background:linear-gradient(135deg,#b45309,#92400e);color:#fff}
+.lbinfo{flex:1;min-width:0}.lbname{font-weight:800;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lbsub{font-size:10px;opacity:.5;margin-top:2px}
+.lbh{text-align:right}.lbhv{font-weight:900;font-size:16px;color:var(--g)}.lbhu{font-size:9px;opacity:.55}
+.online-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.dot-on{background:#22c55e;box-shadow:0 0 6px rgba(34,197,94,.6)}
+.dot-off{background:#475569}
+.steal-btn{font-size:11px;font-weight:900;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.35);border-radius:50px;padding:4px 10px;white-space:nowrap;cursor:pointer;color:var(--sol)}
+.steal-btn:disabled{opacity:.4;cursor:not-allowed}
 
-        .iso-tile {
-            width: 72px;
-            height: 72px;
-            background: rgba(34,197,94,0.07);
-            border: 1.5px solid rgba(34,197,94,0.15);
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.25s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            font-size: 28px;
-        }
+/* BOTTOM NAV */
+#nav{flex-shrink:0;display:flex;background:rgba(6,10,13,.96);border-top:1px solid var(--br);backdrop-filter:blur(30px);padding:8px 8px calc(8px + env(safe-area-inset-bottom));gap:4px;z-index:30}
+.nb{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 4px;border-radius:16px;border:none;background:transparent;color:rgba(255,255,255,.35);cursor:pointer;transition:all .25s;font-family:'Outfit',sans-serif}
+.nb svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.nb span{font-size:9px;font-weight:700}
+.nb.on{color:var(--g);background:rgba(34,197,94,.1)}.nb.on svg{stroke:var(--g)}
 
-        .iso-tile:hover, .iso-tile.hover {
-            background: rgba(34,197,94,0.18);
-            border-color: rgba(34,197,94,0.5);
-            transform: translateZ(8px) scale(1.04);
-            box-shadow: 0 8px 24px rgba(34,197,94,0.25);
-        }
+/* TOAST */
+#toast{position:fixed;top:70px;left:50%;transform:translateX(-50%) translateY(-14px);background:#0d2010;border:1px solid rgba(34,197,94,.4);border-radius:18px;padding:10px 18px;font-weight:800;font-size:13px;color:#86efac;opacity:0;pointer-events:none;transition:all .4s cubic-bezier(.175,.885,.32,1.275);z-index:999;white-space:nowrap}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-        .iso-tile.occupied { cursor: default; background: rgba(34,197,94,0.05); }
+/* MODAL */
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(10px);z-index:100;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s}
+#modal.on{opacity:1;pointer-events:all}
+#mbox{background:#12121a;border:1px solid var(--br);border-radius:26px 26px 0 0;padding:22px 18px calc(22px + env(safe-area-inset-bottom));width:100%;max-width:480px;transform:translateY(100%);transition:transform .35s cubic-bezier(.32,.72,0,1)}
+#modal.on #mbox{transform:translateY(0)}
+.mhandle{width:38px;height:4px;background:rgba(255,255,255,.14);border-radius:2px;margin:0 auto 16px}
+.mtitle{font-size:17px;font-weight:900;margin-bottom:14px}
+#minput{width:100%;background:var(--card);border:1.5px solid var(--br);border-radius:14px;padding:12px 14px;margin-bottom:10px;font-family:'Outfit',sans-serif;font-size:15px;font-weight:700;color:#fff;outline:none;transition:border-color .2s}
+#minput:focus{border-color:var(--g)}
+.msave{width:100%;padding:13px;border:none;background:linear-gradient(135deg,var(--g),var(--g2));border-radius:16px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:900;color:#fff;cursor:pointer;margin-bottom:8px}
+.mcancel{width:100%;padding:11px;border:none;background:rgba(255,255,255,.05);border-radius:14px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;color:rgba(255,255,255,.45);cursor:pointer}
 
-        .plant-emoji { font-size: 26px; line-height:1; display: block; }
-        .stage-seed { font-size: 18px; opacity: 0.7; }
-        .stage-sprout { font-size: 24px; }
-        .stage-tree { font-size: 30px; }
-        .stage-bloom { font-size: 32px; filter: drop-shadow(0 0 8px rgba(34,197,94,0.6)); }
-
-        .tile-progress {
-            position: absolute;
-            bottom: 4px;
-            left: 4px; right: 4px;
-            height: 3px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 99px;
-            overflow: hidden;
-        }
-        .tile-progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, var(--green), var(--aqua));
-            border-radius: 99px;
-            transition: width 0.8s ease;
-        }
-
-        /* Garden info bar */
-        #garden-info {
-            padding: 12px 20px 0;
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .stat-pill {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 50px;
-            padding: 6px 14px;
-            font-size: 12px;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        #plant-tip {
-            margin: 12px 20px;
-            padding: 14px 18px;
-            background: rgba(34,197,94,0.08);
-            border: 1px solid rgba(34,197,94,0.2);
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 600;
-            color: #86efac;
-            text-align: center;
-        }
-
-        /* Action button (water/plant) */
-        #garden-action {
-            margin: 0 20px 12px;
-            padding: 16px;
-            background: linear-gradient(135deg, var(--green), #16a34a);
-            border: none;
-            border-radius: 22px;
-            font-family: 'Outfit', sans-serif;
-            font-size: 16px;
-            font-weight: 900;
-            color: white;
-            cursor: pointer;
-            width: calc(100% - 40px);
-            letter-spacing: 0.02em;
-            box-shadow: 0 8px 24px rgba(34,197,94,0.35);
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        #garden-action:active { transform: scale(0.97); }
-        #garden-action:disabled { opacity: 0.4; background: #374151; box-shadow: none; cursor: not-allowed; }
-
-        /* ── QUESTS SCREEN ── */
-        .quests-wrap { padding: 16px; }
-        .quest-tabs {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 16px;
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 18px;
-            padding: 6px;
-        }
-        .qtab {
-            flex: 1;
-            padding: 10px;
-            border-radius: 12px;
-            border: none;
-            background: transparent;
-            color: rgba(255,255,255,0.5);
-            font-family: 'Outfit', sans-serif;
-            font-size: 14px;
-            font-weight: 800;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .qtab.active {
-            background: var(--purple);
-            color: white;
-        }
-
-        .quest-card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 16px;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .quest-card:active { transform: scale(0.98); }
-        .quest-card.done { opacity: 0.5; }
-        .quest-card.done .qc-btn { background: var(--green); }
-
-        .qc-icon {
-            width: 48px; height: 48px;
-            border-radius: 16px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 22px;
-            flex-shrink: 0;
-        }
-
-        .qc-info { flex: 1; min-width: 0; }
-        .qc-name { font-weight: 800; font-size: 15px; margin-bottom: 4px; }
-        .qc-desc { font-size: 12px; opacity: 0.6; margin-bottom: 6px; }
-        .qc-bar { height: 4px; background: rgba(255,255,255,0.1); border-radius: 99px; overflow: hidden; }
-        .qc-bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--purple), var(--aqua)); transition: width 0.6s; }
-
-        .qc-reward {
-            font-size: 12px;
-            font-weight: 900;
-            color: var(--gold);
-            white-space: nowrap;
-            text-align: right;
-        }
-
-        .qc-btn {
-            width: 36px; height: 36px;
-            border-radius: 12px;
-            background: var(--purple);
-            display: flex; align-items: center; justify-content: center;
-            flex-shrink: 0;
-        }
-        .qc-btn svg { width: 18px; height: 18px; stroke: white; fill: none; stroke-width: 2.5; stroke-linecap: round; }
-
-        .section-label {
-            font-size: 11px;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 0.12em;
-            opacity: 0.4;
-            margin: 4px 0 10px;
-        }
-
-        /* ── SHOP SCREEN ── */
-        .shop-wrap { padding: 16px; }
-        .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .shop-card {
-            background: var(--card);
-            border: 1.5px solid var(--border);
-            border-radius: 24px;
-            padding: 20px 16px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .shop-card:active { transform: scale(0.97); }
-        .shop-card.locked { opacity: 0.45; }
-        .shop-card.owned { border-color: var(--green); background: rgba(34,197,94,0.08); }
-        .shop-plant-icon { font-size: 42px; margin-bottom: 10px; display: block; line-height:1; }
-        .shop-name { font-weight: 900; font-size: 15px; margin-bottom: 4px; }
-        .shop-desc { font-size: 11px; opacity: 0.5; margin-bottom: 12px; }
-        .shop-price {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            background: rgba(6,182,212,0.12);
-            border: 1px solid rgba(6,182,212,0.25);
-            border-radius: 50px;
-            padding: 5px 12px;
-            font-size: 13px;
-            font-weight: 900;
-            color: var(--aqua);
-        }
-        .shop-price.gold-price { background: rgba(245,158,11,0.12); border-color: rgba(245,158,11,0.25); color: var(--gold); }
-        .shop-price.owned-label { background: rgba(34,197,94,0.12); border-color: rgba(34,197,94,0.25); color: var(--green); }
-
-        /* ── PROFILE SCREEN ── */
-        .profile-wrap { padding: 16px; }
-        .profile-hero {
-            background: linear-gradient(135deg, rgba(124,58,237,0.3), rgba(6,182,212,0.2));
-            border: 1px solid var(--border);
-            border-radius: 28px;
-            padding: 28px 20px;
-            text-align: center;
-            margin-bottom: 16px;
-        }
-        .profile-avatar {
-            width: 80px; height: 80px;
-            background: linear-gradient(135deg, var(--green), var(--aqua));
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 40px;
-            margin: 0 auto 14px;
-            box-shadow: 0 0 30px rgba(34,197,94,0.4);
-        }
-        .profile-name { font-size: 22px; font-weight: 900; margin-bottom: 4px; }
-        .profile-title { font-size: 13px; opacity: 0.6; margin-bottom: 16px; }
-        .profile-xp-bar { height: 8px; background: rgba(255,255,255,0.1); border-radius: 99px; overflow: hidden; margin-bottom: 6px; }
-        .profile-xp-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--purple), var(--aqua)); transition: width 1s; }
-        .profile-xp-text { font-size: 11px; opacity: 0.5; font-weight: 700; }
-
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
-        .stat-card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 16px;
-            text-align: center;
-        }
-        .stat-card .s-val { font-size: 26px; font-weight: 900; }
-        .stat-card .s-label { font-size: 11px; opacity: 0.5; font-weight: 700; margin-top: 4px; }
-
-        .badge-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-        .badge-item {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 18px;
-            padding: 12px 8px;
-            text-align: center;
-        }
-        .badge-item .b-icon { font-size: 26px; display: block; margin-bottom: 4px; }
-        .badge-item .b-name { font-size: 9px; opacity: 0.5; font-weight: 700; }
-        .badge-item.locked { opacity: 0.25; filter: grayscale(1); }
-
-        /* ── BOTTOM NAV ── */
-        #bottom-nav {
-            flex-shrink: 0;
-            display: flex;
-            background: rgba(10,10,15,0.95);
-            border-top: 1px solid var(--border);
-            backdrop-filter: blur(30px);
-            padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
-            gap: 4px;
-            z-index: 20;
-        }
-
-        .nav-btn {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            padding: 8px 4px;
-            border-radius: 18px;
-            border: none;
-            background: transparent;
-            color: rgba(255,255,255,0.35);
-            cursor: pointer;
-            transition: all 0.25s ease;
-            font-family: 'Outfit', sans-serif;
-        }
-
-        .nav-btn svg { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink:0; }
-        .nav-btn span { font-size: 10px; font-weight: 700; letter-spacing: 0.02em; }
-        .nav-btn.active { color: var(--green); background: rgba(34,197,94,0.1); }
-        .nav-btn.active svg { stroke: var(--green); }
-
-        /* ── TOAST ── */
-        #toast {
-            position: fixed;
-            top: 80px;
-            left: 50%;
-            transform: translateX(-50%) translateY(-20px);
-            background: linear-gradient(135deg, #1a2e1a, #0f2d1a);
-            border: 1px solid rgba(34,197,94,0.4);
-            border-radius: 20px;
-            padding: 12px 20px;
-            font-weight: 800;
-            font-size: 14px;
-            color: #86efac;
-            opacity: 0;
-            pointer-events: none;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            z-index: 999;
-            white-space: nowrap;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-        }
-        #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-        /* ── TILE SELECTION MODAL ── */
-        #tile-modal {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(10px);
-            z-index: 100;
-            display: flex;
-            align-items: flex-end;
-            justify-content: center;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s;
-        }
-        #tile-modal.open { opacity: 1; pointer-events: all; }
-        #tile-modal-content {
-            background: #12121a;
-            border: 1px solid var(--border);
-            border-radius: 32px 32px 0 0;
-            padding: 24px 20px calc(24px + env(safe-area-inset-bottom));
-            width: 100%;
-            max-width: 480px;
-            transform: translateY(100%);
-            transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
-        }
-        #tile-modal.open #tile-modal-content { transform: translateY(0); }
-        .modal-handle { width: 40px; height: 4px; background: rgba(255,255,255,0.15); border-radius: 2px; margin: 0 auto 20px; }
-        .modal-title { font-size: 20px; font-weight: 900; margin-bottom: 16px; }
-        .modal-action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .modal-action {
-            background: var(--card);
-            border: 1.5px solid var(--border);
-            border-radius: 20px;
-            padding: 16px;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-            font-family: 'Outfit', sans-serif;
-        }
-        .modal-action:active { transform: scale(0.97); }
-        .modal-action .ma-icon { font-size: 30px; }
-        .modal-action .ma-name { font-weight: 800; font-size: 14px; }
-        .modal-action .ma-cost { font-size: 12px; opacity: 0.6; }
-        .modal-action.primary { border-color: var(--green); background: rgba(34,197,94,0.1); }
-        .modal-action.danger { border-color: rgba(239,68,68,0.4); background: rgba(239,68,68,0.08); }
-        #modal-close {
-            width: 100%;
-            margin-top: 12px;
-            padding: 14px;
-            border: none;
-            background: rgba(255,255,255,0.05);
-            border-radius: 18px;
-            font-family: 'Outfit', sans-serif;
-            font-size: 14px;
-            font-weight: 700;
-            color: rgba(255,255,255,0.5);
-            cursor: pointer;
-        }
-
-        /* scrollbar hide */
-        .screen::-webkit-scrollbar { display: none; }
-        .screen { -ms-overflow-style: none; scrollbar-width: none; }
-    </style>
+/* Grow animation */
+@keyframes grow-pop{0%{transform:translateX(-50%) scaleY(.95)}60%{transform:translateX(-50%) scaleY(1.03)}100%{transform:translateX(-50%) scaleY(1)}}
+.grew{animation:grow-pop .5s ease}
+</style>
 </head>
 <body>
-
-<!-- HUD -->
 <div id="hud">
-    <div class="hud-logo">BUKVA<br>NEWS</div>
-    <div class="hud-resources">
-        <div class="res-chip">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#06b6d4" stroke-width="2.5"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
-            <div>
-                <div class="val" id="aqua-val">0</div>
-                <div class="lbl">Вода</div>
-            </div>
-        </div>
-        <div class="res-chip">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.5"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
-            <div>
-                <div class="val" id="solar-val">0</div>
-                <div class="lbl">Сонце</div>
-            </div>
-        </div>
+  <div class="hud-logo">BUKVA<br>NEWS</div>
+  <div class="hud-res">
+    <div class="rc">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#06b6d4" stroke-width="2.5"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+      <div><div class="v" id="av">0</div><div class="l">Вода</div></div>
     </div>
-    <div class="hud-level" id="level-badge">Рівень 1</div>
+    <div class="rc">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.5"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
+      <div><div class="v" id="sv">0</div><div class="l">Сонце</div></div>
+    </div>
+  </div>
+  <div class="rank-pill" id="rnk">#–</div>
 </div>
 
-<!-- SCREEN AREA -->
-<div id="screen-area">
-
-    <!-- ① GARDEN -->
-    <div id="screen-garden" class="screen active">
-        <div id="garden-bg">
-            <div id="garden-info">
-                <div class="stat-pill">🌱 <span id="plants-planted">0</span> рослин</div>
-                <div class="stat-pill">💧 Сьогодні: <span id="watered-today">0</span></div>
-                <div class="stat-pill">🏆 Врожай: <span id="harvested-total">0</span></div>
-            </div>
-            <div id="iso-viewport">
-                <div id="iso-grid"></div>
-            </div>
-            <div id="plant-tip">👆 Оберіть клітинку щоб посадити або доглянути рослину</div>
-            <button id="garden-action" onclick="onGardenAction()">
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="white" stroke-width="2.5"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
-                Полити весь сад (−10 Води)
-            </button>
-        </div>
+<div id="area">
+  <!-- MY OAK -->
+  <div id="scr-oak" class="scr on">
+    <div id="forest">
+      <div id="sky-bg"></div>
+      <div id="stars"></div>
+      <div id="moon"></div>
+      <div id="mtn"><svg viewBox="0 0 400 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><polygon points="0,120 60,30 130,80 190,10 260,70 320,20 400,60 400,120" fill="#061a08" opacity=".8"/><polygon points="0,120 40,50 100,90 160,30 230,75 290,35 360,65 400,45 400,120" fill="#071f09" opacity=".6"/></svg></div>
+      <div id="forest-bg-trees"><svg viewBox="0 0 400 90" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="20,90 35,30 50,90" fill="#0d2e0f"/><polygon points="40,90 58,15 76,90" fill="#0f3510"/><polygon points="70,90 82,40 94,90" fill="#0d2e0f"/><polygon points="90,90 108,22 126,90" fill="#112e13"/><polygon points="130,90 148,35 166,90" fill="#0d2e0f"/><polygon points="155,90 170,18 185,90" fill="#0f3311"/><polygon points="200,90 220,42 240,90" fill="#0d2e0f"/><polygon points="240,90 255,28 270,90" fill="#112e13"/><polygon points="280,90 296,36 312,90" fill="#0d2e0f"/><polygon points="320,90 340,20 360,90" fill="#0f3311"/><polygon points="355,90 372,44 389,90" fill="#0d2e0f"/>
+      </svg></div>
+      <div id="ground"></div>
+      <div id="stage-badge" id="sbadge">🌱 Насіння</div>
+      <div id="h-chip">🌳 0 см</div>
+      <div id="oak-wrap">
+        <svg id="oak-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300" width="120" height="180"></svg>
+      </div>
     </div>
-
-    <!-- ② ЗАВДАННЯ -->
-    <div id="screen-quests" class="screen">
-        <div class="quests-wrap">
-            <div class="quest-tabs">
-                <button class="qtab active" onclick="switchQuestTab('daily')">Щоденні</button>
-                <button class="qtab" onclick="switchQuestTab('achievements')">Досягнення</button>
-            </div>
-            <div id="quests-daily">
-                <div class="section-label">Щоденні завдання</div>
-            </div>
-            <div id="quests-achievements" style="display:none">
-                <div class="section-label">Досягнення</div>
-            </div>
-        </div>
+    <div id="oak-panel">
+      <div id="tree-name-row">
+        <div id="tree-name-disp">Мій Дуб</div>
+        <button id="btn-rename" onclick="openModal()">✏️ Назвати</button>
+      </div>
+      <div class="stats3">
+        <div class="sp"><div class="sv" id="si-h">0</div><div class="sl">Висота см</div></div>
+        <div class="sp"><div class="sv" id="si-w">0</div><div class="sl">Поливів</div></div>
+        <div class="sp"><div class="sv" id="si-f">0</div><div class="sl">Добрив</div></div>
+      </div>
+      <div class="act-grid">
+        <button class="ab water" id="btn-w" onclick="doWater()">
+          <svg viewBox="0 0 24 24" width="18" fill="none" stroke="white" stroke-width="2.5"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+          <div><div>Полити</div><span class="ab-sub">−5 💧 → +1 см</span></div>
+        </button>
+        <button class="ab fert" id="btn-f" onclick="doFertilize()">
+          <svg viewBox="0 0 24 24" width="18" fill="none" stroke="white" stroke-width="2.5"><path d="M12 22V12M2 12c4 0 10-4 10-10 0 6 6 10 10 10"/></svg>
+          <div><div>Удобрити</div><span class="ab-sub">−15 ☀️ → +3 см</span></div>
+        </button>
+      </div>
+      <div id="tip-bar">📰 Читайте новини → отримуйте 💧 Воду та ☀️ Сонце</div>
     </div>
+  </div>
 
-    <!-- ③ КРАМНИЦЯ -->
-    <div id="screen-shop" class="screen">
-        <div class="shop-wrap">
-            <div class="section-label" style="margin-top:4px">Вибір рослин</div>
-            <div class="shop-grid" id="shop-grid"></div>
-        </div>
+  <!-- QUESTS -->
+  <div id="scr-q" class="scr">
+    <div class="qw">
+      <div class="qtabs"><button class="qt on" id="qt0" onclick="qtab(0)">Щоденні</button><button class="qt" id="qt1" onclick="qtab(1)">Тижневе змагання</button></div>
+      <div id="qd-daily"></div>
+      <div id="qd-weekly" style="display:none"></div>
     </div>
+  </div>
 
-    <!-- ④ ПРОФІЛЬ -->
-    <div id="screen-profile" class="screen">
-        <div class="profile-wrap">
-            <div class="profile-hero">
-                <div class="profile-avatar">🌳</div>
-                <div class="profile-name" id="profile-name">Садівник</div>
-                <div class="profile-title" id="profile-title">Початківець</div>
-                <div class="profile-xp-bar"><div class="profile-xp-fill" id="xp-fill" style="width:0%"></div></div>
-                <div class="profile-xp-text" id="xp-text">0 / 100 ОД</div>
-            </div>
-            <div class="stats-grid">
-                <div class="stat-card"><div class="s-val" id="ps-aqua">0</div><div class="s-label">💧 Вода зібрана</div></div>
-                <div class="stat-card"><div class="s-val" id="ps-solar">0</div><div class="s-label">☀️ Сонце зібране</div></div>
-                <div class="stat-card"><div class="s-val" id="ps-plants">0</div><div class="s-label">🌱 Посаджено</div></div>
-                <div class="stat-card"><div class="s-val" id="ps-harvest">0</div><div class="s-label">🏆 Врожаїв</div></div>
-            </div>
-            <div class="section-label">Нагороди</div>
-            <div class="badge-grid" id="badge-grid"></div>
-        </div>
+  <!-- FOREST / LB -->
+  <div id="scr-f" class="scr">
+    <div class="fw">
+      <div class="ftabs"><button class="ft on" id="ft0" onclick="ftab(0)">🏆 Рейтинг</button><button class="ft" id="ft1" onclick="ftab(1)">🌲 Відвідати</button></div>
+      <div id="fd-rank"></div>
+      <div id="fd-visit" style="display:none"></div>
     </div>
-
+  </div>
 </div>
 
-<!-- BOTTOM NAV -->
-<nav id="bottom-nav">
-    <button class="nav-btn active" id="nav-garden" onclick="switchScreen('garden')">
-        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-        <span>Мій Сад</span>
-    </button>
-    <button class="nav-btn" id="nav-quests" onclick="switchScreen('quests')">
-        <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-        <span>Завдання</span>
-    </button>
-    <button class="nav-btn" id="nav-shop" onclick="switchScreen('shop')">
-        <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-        <span>Крамниця</span>
-    </button>
-    <button class="nav-btn" id="nav-profile" onclick="switchScreen('profile')">
-        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        <span>Профіль</span>
-    </button>
+<nav id="nav">
+  <button class="nb on" id="nb-oak" onclick="go('oak')">
+    <svg viewBox="0 0 24 24"><path d="M17 8C8 10 5.9 16.17 3.82 19.32A1 1 0 004.7 21C13 21 22 14 22 3a1 1 0 00-1.28-.96C19 2.55 17.78 3.53 17 5c-1-2-2.5-3-4.5-3C7.86 2 5 6.86 5 9.5"/></svg>
+    <span>Мій Дуб</span>
+  </button>
+  <button class="nb" id="nb-q" onclick="go('q')">
+    <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+    <span>Завдання</span>
+  </button>
+  <button class="nb" id="nb-f" onclick="go('f')">
+    <svg viewBox="0 0 24 24"><path d="M8 21H5a2 2 0 01-2-2v-5m18 7h-3a2 2 0 01-2-2v-5M3 10l9-9 9 9"/><path d="M9 21V12h6v9"/></svg>
+    <span>Ліс</span>
+  </button>
 </nav>
-
-<!-- TOAST -->
 <div id="toast"></div>
-
-<!-- TILE MODAL -->
-<div id="tile-modal">
-    <div id="tile-modal-content">
-        <div class="modal-handle"></div>
-        <div class="modal-title" id="modal-title">Обрати дію</div>
-        <div class="modal-action-grid" id="modal-actions"></div>
-        <button id="modal-close" onclick="closeModal()">Закрити</button>
-    </div>
-</div>
+<div id="modal"><div id="mbox"><div class="mhandle"></div><div class="mtitle">🌳 Назвіть своє дерево</div><input id="minput" type="text" maxlength="24" placeholder="Дуб Прикарпаття"><button class="msave" onclick="saveName()">Зберегти</button><button class="mcancel" onclick="closeModal()">Скасувати</button></div></div>
 
 <script>
-// ── CONFIG ──────────────────────────────────────────────────
-const SUPABASE_URL = 'https://kgrxlznhimwuvwhjfzhv.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_L4_HhLhbj_m6wbEc3ZqhcQ_QNGOLWXU';
-const COLS = 4, ROWS = 3;
-const GRID_SIZE = COLS * ROWS;
+// ── CONFIG
+const SB='https://kgrxlznhimwuvwhjfzhv.supabase.co', SK='sb_publishable_L4_HhLhbj_m6wbEc3ZqhcQ_QNGOLWXU';
+const WCOST=5,WGROW=1,FCOST=15,FGROW=3;
 
-// ── PLANT TYPES ─────────────────────────────────────────────
-const PLANTS = [
-    { id:'oak',   name:'Дуб',      desc:'Класика Прикарпаття', icon:'🌳', cost:0,  costType:'aqua', stages:['🌱','🪴','🌲','🌳'], growTime:3,  reward:15, owned:true },
-    { id:'flower',name:'Квітка',   desc:'Символ краси',       icon:'🌸', cost:20, costType:'solar',stages:['🌱','🪴','🌿','🌸'], growTime:2,  reward:10, owned:false },
-    { id:'apple', name:'Яблуня',   desc:'Плоди праці',        icon:'🍎', cost:50, costType:'aqua', stages:['🌱','🪴','🌿','🍎'], growTime:4,  reward:25, owned:false },
-    { id:'pine',  name:'Ялинка',   desc:'Карпатська гордість',icon:'🎄', cost:80, costType:'solar',stages:['🌱','🪴','🌲','🎄'], growTime:5,  reward:40, owned:false },
-    { id:'wheat', name:'Пшениця',  desc:'Золото України',     icon:'🌾', cost:30, costType:'aqua', stages:['🌱','🪴','🌿','🌾'], growTime:2,  reward:20, owned:false },
-    { id:'rose',  name:'Троянда',  desc:'Королева квітів',    icon:'🌹', cost:100,costType:'solar',stages:['🌱','🪴','🌿','🌹'], growTime:3,  reward:30, owned:false },
+// ── QUESTS
+const DQ=[
+  {id:'login',name:'Зайти в гру',desc:'Відкрийте дуб і перевірте його',icon:'🌅',bg:'#1e3a5f',r:{w:10},total:1},
+  {id:'read3',name:'Прочитати 3 новини',desc:'Читайте та заробляйте ресурси',icon:'📰',bg:'#3b1f6e',r:{s:30},total:3},
+  {id:'water5',name:'Полити 5 разів',desc:'Доглядайте за своїм дубом',icon:'💧',bg:'#0e3a4a',r:{s:20},total:5},
+  {id:'fertilize2',name:'Удобрити двічі',desc:'Дайте дубу поживу',icon:'🌿',bg:'#1a3d1a',r:{w:15},total:2},
+  {id:'visit',name:'Відвідати чужий дуб',desc:'Зайдіть до сусіда в ліс',icon:'🚶',bg:'#3d2a10',r:{w:20},total:1},
 ];
 
-const DAILY_QUESTS = [
-    { id:'read3',   name:'Прочитати 3 новини',      desc:'Читайте новини та заробляйте ресурси', icon:'📰', color:'#7c3aed', reward:{aqua:20},  total:3  },
-    { id:'visit',   name:'Завітати до саду',         desc:'Відкрийте сад та перевірте рослини',   icon:'🌿', color:'#16a34a', reward:{aqua:5},   total:1  },
-    { id:'water5',  name:'Полити 5 разів',           desc:'Доглядайте за своїми рослинами',       icon:'💧', color:'#0891b2', reward:{solar:30}, total:5  },
-    { id:'harvest', name:'Зібрати врожай',           desc:'Виростіть рослину до кінця',           icon:'🏆', color:'#d97706', reward:{solar:50}, total:1  },
+// ── TREE STAGES
+const STAGES=[
+  {minH:0,  name:'Насіння',  badge:'🌱 Насіння'},
+  {minH:5,  name:'Паросток', badge:'🌿 Паросток'},
+  {minH:20, name:'Молоде',   badge:'🌲 Молоде дерево'},
+  {minH:50, name:'Дорослий', badge:'🌳 Дорослий дуб'},
+  {minH:100,name:'Могутній', badge:'🌳 Могутній дуб'},
+  {minH:200,name:'Легенда',  badge:'🏆 Дуб-Легенда'},
 ];
 
-const ACHIEVEMENTS = [
-    { id:'first_plant', name:'Перша рослина',  desc:'Посадіть першу рослину', icon:'🌱', color:'#16a34a', reward:{aqua:50},  req:1,  stat:'plants' },
-    { id:'ten_plants',  name:'Зелені пальці',  desc:'Посадіть 10 рослин',     icon:'🖐️', color:'#0891b2', reward:{aqua:100}, req:10, stat:'plants' },
-    { id:'first_harvest',name:'Перший врожай', desc:'Зберіть перший врожай',  icon:'🏆', color:'#d97706', reward:{solar:100},req:1,  stat:'harvests' },
-    { id:'five_harvest', name:'Досвідчений',   desc:'Зберіть 5 врожаїв',      icon:'👨‍🌾', color:'#7c3aed', reward:{solar:200},req:5,  stat:'harvests' },
-    { id:'read100',      name:'Новинар',        desc:'Прочитайте 100 новин',   icon:'📰', color:'#ea580c', reward:{aqua:200}, req:100,stat:'reads' },
+// ── MILESTONES
+const MS=[
+  {h:5,   r:{w:20}, msg:'🌿 Паросток! +20 Води'},
+  {h:20,  r:{s:30}, msg:'🌲 Молоде дерево! +30 Сонця'},
+  {h:50,  r:{w:50}, msg:'🌳 Дорослий дуб! +50 Води'},
+  {h:100, r:{s:100},msg:'💪 Могутній дуб! +100 Сонця'},
+  {h:200, r:{w:200},msg:'🏆 Дуб-Легенда! +200 Води'},
 ];
 
-const TITLES = ['Початківець','Садівник','Знавець рослин','Майстер саду','Легенда Прикарпаття'];
+// ── STATE
+let sc,uid;
+let G={w:0,s:0,h:0,watered:0,fert:0,name:'Мій Дуб',reads:0,ms:{},qp:{},qd:{},ql:{},stealLog:{}};
+let myRank=null,allTrees=[];
 
-// ── STATE ────────────────────────────────────────────────────
-let state = {
-    aqua: 0, solar: 0,
-    level: 1, xp: 0,
-    tiles: Array(GRID_SIZE).fill(null),
-    plantedCount: 0, harvestedCount: 0, wateredToday: 0,
-    reads: 0,
-    ownedPlants: ['oak'],
-    dailyProgress: { read3:0, visit:0, water5:0, harvest:0 },
-    dailyDone: {},
-    achievementsDone: {},
-    questsDone: {},
-    selectedTile: null,
-    selectedPlantId: 'oak',
-};
+// ── OAK SVG GENERATOR
+function oakSVG(h){
+  const s=document.getElementById('oak-svg');
+  // Stage calculation
+  const stage=h<5?0:h<20?1:h<50?2:h<100?3:h<200?4:5;
+  // Scale oak proportionally
+  const scale=Math.min(1,Math.max(0.08, h/120));
+  const tw=Math.max(8,Math.min(32,8+h*0.12));  // trunk width
+  const th=Math.max(6,Math.min(160,h*1.1));     // trunk height
+  const cr=Math.max(0,Math.min(110,h*0.9));     // crown radius
+  const cx=100, cy=280-th;
 
-let sc, userId;
+  let svgContent='';
 
-// ── SUPABASE ─────────────────────────────────────────────────
-async function initSupabase() {
-    try {
-        sc = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        userId = localStorage.getItem('bukva_guest_id');
-        if (!userId) {
-            userId = 'guest_' + Math.random().toString(36).substr(2,9);
-            localStorage.setItem('bukva_guest_id', userId);
-        }
-        const { data } = await sc.from('user_gamification').select('*').eq('user_id', userId).single();
-        if (data) {
-            state.aqua = data.aqua_data || 0;
-            state.solar = data.solar_insight || 0;
-            if (data.garden_state) {
-                const gs = typeof data.garden_state === 'string' ? JSON.parse(data.garden_state) : data.garden_state;
-                if (gs.tiles) state.tiles = gs.tiles;
-                if (gs.plantedCount) state.plantedCount = gs.plantedCount;
-                if (gs.harvestedCount) state.harvestedCount = gs.harvestedCount;
-                if (gs.ownedPlants) state.ownedPlants = gs.ownedPlants;
-                if (gs.dailyProgress) state.dailyProgress = gs.dailyProgress;
-                if (gs.dailyDone) state.dailyDone = gs.dailyDone;
-                if (gs.achievementsDone) state.achievementsDone = gs.achievementsDone;
-                if (gs.reads !== undefined) state.reads = gs.reads;
-            }
-        }
-    } catch(e) { console.warn('Supabase init failed:', e); }
+  if(h===0){
+    // Seed
+    svgContent=`
+      <ellipse cx="100" cy="285" rx="14" ry="7" fill="#14421a" opacity=".8"/>
+      <ellipse cx="100" cy="282" rx="8" ry="6" fill="#5c3317"/>
+      <line x1="100" y1="276" x2="100" y2="268" stroke="#22c55e" stroke-width="2"/>
+      <ellipse cx="100" cy="265" rx="6" ry="4" fill="#22c55e" opacity=".8"/>`;
+  } else if(stage===1){
+    // Sprout
+    svgContent=`
+      <rect x="${cx-tw/2}" y="${280-th}" width="${tw}" height="${th}" rx="${tw/2}" fill="url(#trunk-g)"/>
+      <ellipse cx="${cx-8}" cy="${280-th-5}" rx="12" ry="8" fill="#22c55e" transform="rotate(-30,${cx-8},${280-th-5})"/>
+      <ellipse cx="${cx+8}" cy="${280-th-8}" rx="10" ry="7" fill="#16a34a" transform="rotate(20,${cx+8},${280-th-8})"/>`;
+  } else {
+    // Grown tree with crown layers
+    const mul=stage>=4?1.15:1;
+    svgContent=`
+      <ellipse cx="${cx+cr*0.15}" cy="${cy-cr*0.1}" rx="${cr*0.85*mul}" ry="${cr*0.75*mul}" fill="#14532d" opacity=".9"/>
+      <ellipse cx="${cx-cr*0.1}" cy="${cy+cr*0.05}" rx="${cr*0.9*mul}" ry="${cr*0.8*mul}" fill="#166534" opacity=".9"/>
+      <ellipse cx="${cx}" cy="${cy-cr*0.05}" rx="${cr*0.82*mul}" ry="${cr*0.72*mul}" fill="#15803d"/>
+      <ellipse cx="${cx-cr*0.08}" cy="${cy-cr*0.15}" rx="${cr*0.7*mul}" ry="${cr*0.62*mul}" fill="#16a34a"/>
+      <ellipse cx="${cx+cr*0.05}" cy="${cy-cr*0.2}" rx="${cr*0.6*mul}" ry="${cr*0.52*mul}" fill="#22c55e"/>
+      ${stage>=3?`<ellipse cx="${cx}" cy="${cy-cr*0.3}" rx="${cr*0.45*mul}" ry="${cr*0.35*mul}" fill="#4ade80" opacity=".6"/>`:''}
+      ${stage>=4?`<ellipse cx="${cx-cr*0.2}" cy="${cy+cr*0.2}" rx="${cr*0.35}" ry="${cr*0.25}" fill="#166534" opacity=".7"/>
+        <ellipse cx="${cx+cr*0.25}" cy="${cy+cr*0.15}" rx="${cr*0.3}" ry="${cr*0.22}" fill="#15803d" opacity=".7"/>`:''}
+      ${stage>=5?`<ellipse cx="${cx}" cy="${cy-cr*0.4}" rx="${cr*0.35}" ry="${cr*0.25}" fill="#bbf7d0" opacity=".25"/>
+        <ellipse cx="${cx-cr*0.35}" cy="${cy+cr*0.3}" rx="${cr*0.25}" ry="${cr*0.18}" fill="#166534"/>`:''}
+      <rect x="${cx-tw/2}" y="${280-th}" width="${tw}" height="${th}" rx="${tw/2}" fill="url(#trunk-g)"/>`;
+  }
+
+  s.innerHTML=`
+    <defs>
+      <radialGradient id="trunk-g" cx="30%" cy="50%">
+        <stop offset="0%" stop-color="#7c4a1d"/><stop offset="100%" stop-color="#3d200d"/>
+      </radialGradient>
+      <radialGradient id="glow-g" cx="50%" cy="50%">
+        <stop offset="0%" stop-color="rgba(34,197,94,.3)"/><stop offset="100%" stop-color="rgba(34,197,94,0)"/>
+      </radialGradient>
+    </defs>
+    ${svgContent}
+    ${stage>=3?`<ellipse cx="${cx}" cy="${cy}" rx="${cr*1.1}" ry="${cr*0.4}" fill="url(#glow-g)" opacity=".4"/>`:''}`;
+
+  // Update wrapper size
+  const w=Math.max(60,Math.min(220,60+h*1.3));
+  const hh=Math.max(100,Math.min(350,100+h*1.8));
+  s.setAttribute('width',w);s.setAttribute('height',hh);
+  s.setAttribute('viewBox',`0 0 200 300`);
+
+  // Stage badge
+  const stg=STAGES.filter(sg=>G.h>=sg.minH).pop()||STAGES[0];
+  document.getElementById('stage-badge').textContent=stg.badge;
+  document.getElementById('h-chip').textContent=`🌳 ${G.h} см`;
 }
 
-async function saveState() {
-    try {
-        if (!sc) return;
-        const gardenState = {
-            tiles: state.tiles, plantedCount: state.plantedCount,
-            harvestedCount: state.harvestedCount, ownedPlants: state.ownedPlants,
-            dailyProgress: state.dailyProgress, dailyDone: state.dailyDone,
-            achievementsDone: state.achievementsDone, reads: state.reads,
-        };
-        await sc.from('user_gamification').upsert({
-            user_id: userId,
-            aqua_data: state.aqua,
-            solar_insight: state.solar,
-            garden_state: gardenState,
-            updated_at: new Date().toISOString()
-        });
-    } catch(e) { console.warn('Save failed:', e); }
+function renderOak(){
+  oakSVG(G.h);
+  document.getElementById('si-h').textContent=G.h;
+  document.getElementById('si-w').textContent=G.watered;
+  document.getElementById('si-f').textContent=G.fert;
+  document.getElementById('tree-name-disp').textContent=G.name;
+  document.getElementById('av').textContent=G.w;
+  document.getElementById('sv').textContent=G.s;
+  document.getElementById('rnk').textContent=myRank?'#'+myRank:'#–';
+  document.getElementById('btn-w').disabled=G.w<WCOST;
+  document.getElementById('btn-f').disabled=G.s<FCOST;
 }
 
-// ── GARDEN ───────────────────────────────────────────────────
-function buildGrid() {
-    const grid = document.getElementById('iso-grid');
-    grid.innerHTML = '';
-    for (let i = 0; i < GRID_SIZE; i++) {
-        const tile = document.createElement('div');
-        tile.className = 'iso-tile';
-        tile.id = 'tile-' + i;
-        tile.onclick = () => openTileModal(i);
-        grid.appendChild(tile);
+// ── STARS
+function buildStars(){
+  const c=document.getElementById('stars');c.innerHTML='';
+  for(let i=0;i<50;i++){
+    const d=document.createElement('div');d.className='star';
+    const s=Math.random()*2+1;
+    d.style.cssText=`width:${s}px;height:${s}px;top:${Math.random()*60}%;left:${Math.random()*100}%;--d:${2+Math.random()*4}s;animation-delay:${Math.random()*4}s`;
+    c.appendChild(d);
+  }
+}
+
+// Sky colour based on time
+function setSky(){
+  const h=new Date().getHours();
+  let bg;
+  if(h>=6&&h<9) bg='linear-gradient(180deg,#1a1030 0%,#2d1b4e 25%,#7c3a12 55%,#0a1f0a 100%)';
+  else if(h>=9&&h<17) bg='linear-gradient(180deg,#061428 0%,#0a3018 50%,#0a1f0a 100%)';
+  else if(h>=17&&h<20) bg='linear-gradient(180deg,#1a0a30 0%,#4a1510 35%,#0a1f0a 100%)';
+  else bg='linear-gradient(180deg,#010408 0%,#020d02 55%,#061006 100%)';
+  document.getElementById('sky-bg').style.background=bg;
+  document.getElementById('moon').style.opacity=h>=20||h<7?'.85':'0';
+}
+
+// ── SUPABASE
+async function loadDB(){
+  try{
+    const{data}=await sc.from('user_gamification').select('*').eq('user_id',uid).maybeSingle();
+    if(data){
+      G.w=data.aqua_data||0; G.s=data.solar_insight||0;
+      G.h=data.tree_height||0; G.watered=data.tree_watered||0;
+      G.fert=data.tree_fertilized||0; G.name=data.tree_name||'Мій Дуб';
+      const gs=data.garden_state||{};
+      G.reads=gs.reads||0; G.ms=gs.ms||{};
+      const qs=data.quests_state||{};
+      G.qp=qs.p||{}; G.qd=qs.d||{}; G.ql=qs.l||new Date(0).toISOString();
+      G.stealLog=data.steal_log||{};
     }
-    renderGrid();
-    updateStats();
+    // Touch last_active
+    sc.from('user_gamification').update({last_active:new Date().toISOString()}).eq('user_id',uid).then(()=>{});
+  }catch(e){console.warn('DB load:',e);}
 }
 
-function renderGrid() {
-    for (let i = 0; i < GRID_SIZE; i++) {
-        const el = document.getElementById('tile-' + i);
-        if (!el) continue;
-        const plant = state.tiles[i];
-        if (!plant) {
-            el.innerHTML = '<span style="font-size:18px;opacity:0.2">＋</span>';
-            el.classList.remove('occupied');
-            el.innerHTML += '<div class="tile-progress" style="display:none"></div>';
-        } else {
-            const plantDef = PLANTS.find(p => p.id === plant.typeId);
-            if (!plantDef) continue;
-            const stage = Math.min(plant.stage, plantDef.stages.length - 1);
-            const emoji = plantDef.stages[stage];
-            const stageClass = ['stage-seed','stage-seed','stage-sprout','stage-tree','stage-bloom'][stage] || 'stage-tree';
-            const pct = (plant.waterCount / (plantDef.growTime * 3)) * 100;
-            el.innerHTML = `
-                <span class="plant-emoji ${stageClass}">${emoji}</span>
-                <div class="tile-progress"><div class="tile-progress-bar" style="width:${Math.min(pct,100)}%"></div></div>
-            `;
-            el.classList.add('occupied');
-        }
+function buildSave(){
+  return{
+    user_id:uid, aqua_data:G.w, solar_insight:G.s,
+    tree_height:G.h, tree_watered:G.watered, tree_fertilized:G.fert,
+    tree_name:G.name, last_active:new Date().toISOString(),
+    garden_state:{reads:G.reads,ms:G.ms},
+    quests_state:{p:G.qp,d:G.qd,l:G.ql},
+    steal_log:G.stealLog, updated_at:new Date().toISOString()
+  };
+}
+async function save(){try{await sc.from('user_gamification').upsert(buildSave());}catch(e){console.warn(e);}}
+
+// ── WELCOME BONUS
+async function welcome(){
+  if(localStorage.getItem('oak_wel2'))return;
+  localStorage.setItem('oak_wel2','1');
+  G.w+=50; G.s+=30;
+  await save();
+  setTimeout(()=>toast('🎉 Ласкаво просимо! +50 Води, +30 Сонця'),700);
+}
+
+// ── DAILY QUEST CHECK
+function checkDailyReset(){
+  const lastDay=G.ql?new Date(G.ql).toDateString():'';
+  const today=new Date().toDateString();
+  if(lastDay!==today){G.qp={};G.qd={};G.ql=new Date().toISOString();}
+}
+
+function trackQ(id,n=1){
+  if(G.qd[id])return;
+  G.qp[id]=(G.qp[id]||0)+n;
+  const q=DQ.find(x=>x.id===id);
+  if(q&&G.qp[id]>=q.total){
+    // auto-award
+    claimQ(id,q);
+  }
+  renderQuests();
+}
+
+function claimQ(id,q){
+  if(G.qd[id])return;
+  G.qd[id]=true;
+  if(q.r.w)G.w+=q.r.w;
+  if(q.r.s)G.s+=q.r.s;
+  renderOak();save();
+  toast(`✅ ${q.name}: отримано ${q.r.w?'+'+q.r.w+' 💧':'+'+q.r.s+' ☀️'}`);
+}
+
+// ── MILESTONES
+function checkMS(){
+  MS.forEach(m=>{
+    if(!G.ms[m.h]&&G.h>=m.h){
+      G.ms[m.h]=true;
+      if(m.r.w)G.w+=m.r.w;
+      if(m.r.s)G.s+=m.r.s;
+      setTimeout(()=>toast(m.msg),300);
     }
+  });
 }
 
-function updateStats() {
-    const planted = state.tiles.filter(t => t !== null).length;
-    document.getElementById('plants-planted').textContent = planted;
-    document.getElementById('watered-today').textContent = state.wateredToday;
-    document.getElementById('harvested-total').textContent = state.harvestedCount;
-    document.getElementById('aqua-val').textContent = state.aqua;
-    document.getElementById('solar-val').textContent = state.solar;
-    const lvl = Math.floor(state.xp / 100) + 1;
-    state.level = lvl;
-    document.getElementById('level-badge').textContent = 'Рівень ' + lvl;
+// ── ACTIONS
+function particle(emoji){
+  const p=document.createElement('div');p.className='particle';p.textContent=emoji;
+  const x=window.innerWidth/2-20+Math.random()*60-30;
+  p.style.cssText=`left:${x}px;top:${window.innerHeight*0.35}px;position:fixed;pointer-events:none;z-index:500;font-size:22px;animation:float-up 1.2s ease forwards`;
+  document.body.appendChild(p);
+  setTimeout(()=>p.remove(),1300);
 }
 
-function openTileModal(idx) {
-    state.selectedTile = idx;
-    const plant = state.tiles[idx];
-    const modal = document.getElementById('tile-modal');
-    const actionsEl = document.getElementById('modal-actions');
-    actionsEl.innerHTML = '';
-
-    if (!plant) {
-        document.getElementById('modal-title').textContent = '🌱 Посадити рослину';
-        const plantSel = document.createElement('select');
-        plantSel.id = 'plant-select';
-        plantSel.style.cssText = 'width:100%;padding:12px;border-radius:14px;background:var(--card);border:1px solid var(--border);color:white;font-size:14px;font-family:Outfit,sans-serif;margin-bottom:10px;';
-        state.ownedPlants.forEach(pid => {
-            const pd = PLANTS.find(p => p.id === pid);
-            if (pd) {
-                const opt = document.createElement('option');
-                opt.value = pid;
-                opt.textContent = pd.icon + ' ' + pd.name;
-                plantSel.appendChild(opt);
-            }
-        });
-        actionsEl.parentNode.insertBefore(plantSel, actionsEl);
-        addModalAction(actionsEl, '🌱', 'Посадити', 'Безкоштовно', 'primary', () => plantTile(idx));
-    } else {
-        const pd = PLANTS.find(p => p.id === plant.typeId);
-        const stageNames = ['','Насіння','Паросток','Рослина','Зріла рослина'];
-        document.getElementById('modal-title').textContent = `${pd?.icon || '🌱'} ${pd?.name || 'Рослина'} — ${stageNames[plant.stage] || 'Росте'}`;
-        const canHarvest = plant.stage >= 3;
-        addModalAction(actionsEl, '💧', 'Полити', '−5 Води', 'primary', () => waterTile(idx));
-        if (canHarvest) addModalAction(actionsEl, '🏆', 'Зібрати врожай', '+' + (pd?.reward||10) + ' Сонця', '', () => harvestTile(idx));
-        addModalAction(actionsEl, '🗑️', 'Прибрати', 'Безкоштовно', 'danger', () => removeTile(idx));
-    }
-
-    modal.classList.add('open');
+async function doWater(){
+  if(G.w<WCOST){toast('❌ Не вистачає Води! Читайте новини');return;}
+  G.w-=WCOST; G.h+=WGROW; G.watered++;
+  checkMS(); trackQ('water5',1);
+  renderOak();particle('💧');
+  document.getElementById('oak-wrap').classList.remove('grew');
+  void document.getElementById('oak-wrap').offsetWidth;
+  document.getElementById('oak-wrap').classList.add('grew');
+  toast(`💧 Полито! Дуб: ${G.h} см`);
+  save();
 }
 
-function addModalAction(container, icon, name, cost, cls, fn) {
-    const btn = document.createElement('button');
-    btn.className = 'modal-action ' + cls;
-    btn.innerHTML = `<span class="ma-icon">${icon}</span><span class="ma-name">${name}</span><span class="ma-cost">${cost}</span>`;
-    btn.onclick = () => { fn(); closeModal(); };
-    container.appendChild(btn);
+async function doFertilize(){
+  if(G.s<FCOST){toast('❌ Не вистачає Сонця! Читайте новини');return;}
+  G.s-=FCOST; G.h+=FGROW; G.fert++;
+  checkMS(); trackQ('fertilize2',1);
+  renderOak();particle('🌿');
+  document.getElementById('oak-wrap').classList.remove('grew');
+  void document.getElementById('oak-wrap').offsetWidth;
+  document.getElementById('oak-wrap').classList.add('grew');
+  toast(`🌿 Удобрено! Дуб: ${G.h} см`);
+  save();
 }
 
-function closeModal() {
-    document.getElementById('tile-modal').classList.remove('open');
-    // remove injected select if any
-    const sel = document.getElementById('plant-select');
-    if (sel) sel.remove();
+// ── QUESTS RENDER
+function renderQuests(){
+  checkDailyReset();
+  const dd=document.getElementById('qd-daily');dd.innerHTML='';
+  dd.innerHTML='<div class="qlabel">Щоденні завдання — оновлюються кожен день</div>';
+  DQ.forEach(q=>{
+    const pr=G.qp[q.id]||0;const done=!!G.qd[q.id];
+    const pct=Math.min(100,(pr/q.total)*100);
+    const rStr=q.r.w?`+${q.r.w} 💧`:`+${q.r.s} ☀️`;
+    const d=document.createElement('div');
+    d.className='qcard'+(done?' done':'');
+    d.innerHTML=`<div class="qi" style="background:${q.bg}22;font-size:22px">${q.icon}</div>
+      <div class="qinfo"><div class="qname">${q.name}</div><div class="qdesc">${q.desc}</div>
+        <div class="qbar"><div class="qbar-f" style="width:${pct}%"></div></div>
+        <div style="font-size:10px;opacity:.4;margin-top:3px">${pr}/${q.total}</div>
+      </div>
+      <div><div class="qrew">${rStr}</div>
+        <div class="qbtn" style="background:${done?'#166534':q.bg}">
+          <svg viewBox="0 0 24 24">${done?'<polyline points="20 6 9 17 4 12"/>':'<polyline points="9 18 15 12 9 6"/>'}</svg>
+        </div>
+      </div>`;
+    dd.appendChild(d);
+  });
 }
 
-function plantTile(idx) {
-    const sel = document.getElementById('plant-select');
-    const pid = sel ? sel.value : (state.ownedPlants[0] || 'oak');
-    if (state.tiles[idx]) return;
-    state.tiles[idx] = { typeId: pid, stage: 1, waterCount: 0 };
-    state.plantedCount++;
-    state.xp += 10;
-    updateStats(); renderGrid();
-    trackQuest('visit', 1);
-    checkAchievements();
-    toast('🌱 Посаджено! +10 ОД');
-    saveState();
+function renderWeekly(){
+  const wd=document.getElementById('qd-weekly');wd.innerHTML='';
+  wd.innerHTML='<div class="qlabel">Тижневе змагання — хто більше виросте</div>';
+
+  const box=document.createElement('div');box.className='weekly-box';
+  box.innerHTML=`<div class="wb-title">🏆 Гонка дубів цього тижня</div>
+    <div class="wb-sub">Хто найбільше виросте — отримає великий приз</div>
+    <div id="wpodium" class="wb-podium"><div style="opacity:.4;font-size:12px">Завантаження...</div></div>`;
+  wd.appendChild(box);
+
+  // Load weekly data
+  sc.from('user_gamification')
+    .select('user_id,tree_name,tree_height,weekly_height_start,last_active')
+    .gt('tree_height',0).order('tree_height',{ascending:false}).limit(20)
+    .then(({data})=>{
+      if(!data||!data.length)return;
+      const sorted=data.map(r=>({...r,wg:(r.tree_height||0)-(r.weekly_height_start||0)})).sort((a,b)=>b.wg-a.wg).slice(0,3);
+      const medals=['🥇','🥈','🥉'];
+      document.getElementById('wpodium').innerHTML=sorted.map((r,i)=>`
+        <div class="wb-item">
+          <div class="wbi-pos">${medals[i]||i+1}</div>
+          <div class="wbi-name">${(r.tree_name||'Дуб').slice(0,12)}</div>
+          <div class="wbi-val">+${r.wg} см</div>
+        </div>`).join('');
+    }).catch(()=>{});
 }
 
-function waterTile(idx) {
-    if (state.aqua < 5) { toast('❌ Не вистачає Води! Читайте новини'); return; }
-    const plant = state.tiles[idx];
-    if (!plant) return;
-    const pd = PLANTS.find(p => p.id === plant.typeId);
-    if (!pd) return;
-    state.aqua -= 5;
-    plant.waterCount++;
-    state.wateredToday++;
-    const threshold = pd.growTime;
-    if (plant.waterCount >= threshold && plant.stage < 4) {
-        plant.stage++;
-        toast('🌿 Рослина виросла! Стадія ' + plant.stage);
-    } else {
-        toast('💧 Полито! Прогрес: ' + plant.waterCount + '/' + (threshold * 3));
-    }
-    state.xp += 5;
-    trackQuest('water5', 1);
-    updateStats(); renderGrid(); saveState();
+function qtab(i){
+  document.getElementById('qt0').classList.toggle('on',i===0);
+  document.getElementById('qt1').classList.toggle('on',i===1);
+  document.getElementById('qd-daily').style.display=i===0?'':'none';
+  document.getElementById('qd-weekly').style.display=i===1?'':'none';
+  if(i===1)renderWeekly();
 }
 
-function harvestTile(idx) {
-    const plant = state.tiles[idx];
-    if (!plant || plant.stage < 3) { toast('🌱 Рослина ще не виросла'); return; }
-    const pd = PLANTS.find(p => p.id === plant.typeId);
-    const reward = pd?.reward || 10;
-    state.solar += reward;
-    state.harvestedCount++;
-    state.xp += 20;
-    state.tiles[idx] = null;
-    trackQuest('harvest', 1);
-    checkAchievements();
-    updateStats(); renderGrid();
-    toast('🏆 Зібрано врожай! +' + reward + ' Сонця');
-    saveState();
-}
-
-function removeTile(idx) {
-    state.tiles[idx] = null;
-    updateStats(); renderGrid();
-    toast('🗑️ Рослину прибрано');
-    saveState();
-}
-
-function onGardenAction() {
-    const cost = 10;
-    if (state.aqua < cost) { toast('❌ Не вистачає Води! Читайте новини для поповнення'); return; }
-    state.aqua -= cost;
-    let watered = 0;
-    for (let i = 0; i < GRID_SIZE; i++) {
-        if (state.tiles[i]) {
-            const pd = PLANTS.find(p => p.id === state.tiles[i].typeId);
-            if (!pd) continue;
-            state.tiles[i].waterCount++;
-            state.wateredToday++;
-            watered++;
-            if (state.tiles[i].waterCount >= pd.growTime && state.tiles[i].stage < 4) {
-                state.tiles[i].stage++;
-            }
-        }
-    }
-    if (watered === 0) { toast('🌿 Немає рослин для поливу'); return; }
-    state.xp += watered * 3;
-    trackQuest('water5', watered);
-    updateStats(); renderGrid();
-    toast(`💧 Полито ${watered} рослин!`);
-    saveState();
-}
-
-// ── QUESTS ───────────────────────────────────────────────────
-function trackQuest(id, amount = 1) {
-    if (state.dailyDone[id]) return;
-    state.dailyProgress[id] = (state.dailyProgress[id] || 0) + amount;
-    const q = DAILY_QUESTS.find(q => q.id === id);
-    if (q && state.dailyProgress[id] >= q.total) {
-        completeQuest(id, q);
-    }
-    renderQuests();
-}
-
-function completeQuest(id, q) {
-    if (state.dailyDone[id]) return;
-    state.dailyDone[id] = true;
-    if (q.reward.aqua) state.aqua += q.reward.aqua;
-    if (q.reward.solar) state.solar += q.reward.solar;
-    state.xp += 25;
-    updateStats();
-    toast(`🏆 Завдання виконано! ${q.name}`);
-    saveState();
-}
-
-function switchQuestTab(tab) {
-    document.querySelectorAll('.qtab').forEach((b,i) => b.classList.toggle('active', (i===0) === (tab==='daily')));
-    document.getElementById('quests-daily').style.display = tab === 'daily' ? '' : 'none';
-    document.getElementById('quests-achievements').style.display = tab === 'achievements' ? '' : 'none';
-}
-
-function renderQuests() {
-    const dailyEl = document.getElementById('quests-daily');
-    dailyEl.innerHTML = '<div class="section-label">Щоденні завдання</div>';
-    DAILY_QUESTS.forEach(q => {
-        const progress = state.dailyProgress[q.id] || 0;
-        const done = !!state.dailyDone[q.id];
-        const pct = Math.min((progress / q.total) * 100, 100);
-        const rewardStr = q.reward.aqua ? `+${q.reward.aqua} 💧` : `+${q.reward.solar} ☀️`;
-        const card = document.createElement('div');
-        card.className = 'quest-card' + (done ? ' done' : '');
-        card.onclick = () => !done && completeQuest(q.id, q);
-        card.innerHTML = `
-            <div class="qc-icon" style="background:${q.color}22;color:${q.color}">${q.icon}</div>
-            <div class="qc-info">
-                <div class="qc-name">${q.name}</div>
-                <div class="qc-desc">${q.desc}</div>
-                <div class="qc-bar"><div class="qc-bar-fill" style="width:${pct}%"></div></div>
-            </div>
-            <div>
-                <div class="qc-reward">${rewardStr}</div>
-                <div class="qc-btn">
-                    <svg viewBox="0 0 24 24">${done ? '<polyline points="20 6 9 17 4 12"/>' : '<polyline points="9 18 15 12 9 6"/>'}</svg>
-                </div>
-            </div>`;
-        dailyEl.appendChild(card);
+// ── LEADERBOARD
+async function loadRank(){
+  const rd=document.getElementById('fd-rank');rd.innerHTML='<div style="text-align:center;padding:30px;opacity:.4">Завантаження...</div>';
+  try{
+    const{data}=await sc.from('user_gamification')
+      .select('user_id,tree_name,tree_height,tree_watered,tree_fertilized,last_active')
+      .gt('tree_height',0).order('tree_height',{ascending:false}).limit(50);
+    if(!data||!data.length){rd.innerHTML='<div style="text-align:center;padding:20px;opacity:.4">Поки нікого немає. Стань першим!</div>';return;}
+    allTrees=data;
+    rd.innerHTML='<div class="qlabel">Таблиця лідерів — Дуби Прикарпаття</div>';
+    let mp=null;
+    data.forEach((r,i)=>{
+      const pos=i+1;const isMe=r.user_id===uid;if(isMe)mp=pos;
+      const now=Date.now();const la=new Date(r.last_active||0).getTime();
+      const minsAgo=Math.floor((now-la)/60000);
+      const online=minsAgo<30;
+      const div=document.createElement('div');
+      div.className='lb-card'+(pos===1?' t1':pos===2?' t2':pos===3?' t3':isMe?' me':'');
+      div.innerHTML=`
+        <div class="lbpos ${pos===1?'p1':pos===2?'p2':pos===3?'p3':''}">${pos<=3?['🥇','🥈','🥉'][pos-1]:pos}</div>
+        <div class="online-dot ${online?'dot-on':'dot-off'}"></div>
+        <div class="lbinfo">
+          <div class="lbname">${isMe?'🟢 Ваш дуб: '+'':''} ${(r.tree_name||'Дуб садівника').slice(0,20)}</div>
+          <div class="lbsub">💧${r.tree_watered||0} поливів · 🌿${r.tree_fertilized||0} добрив · ${online?'онлайн':minsAgo+'хв тому'}</div>
+        </div>
+        <div class="lbh"><div class="lbhv">${r.tree_height||0}</div><div class="lbhu">см</div></div>`;
+      rd.appendChild(div);
     });
-
-    const achEl = document.getElementById('quests-achievements');
-    achEl.innerHTML = '<div class="section-label">Досягнення</div>';
-    ACHIEVEMENTS.forEach(a => {
-        const done = !!state.achievementsDone[a.id];
-        const val = a.stat === 'plants' ? state.plantedCount : a.stat === 'harvests' ? state.harvestedCount : state.reads;
-        const pct = Math.min((val / a.req) * 100, 100);
-        const rewardStr = a.reward.aqua ? `+${a.reward.aqua} 💧` : `+${a.reward.solar} ☀️`;
-        const card = document.createElement('div');
-        card.className = 'quest-card' + (done ? ' done' : '');
-        card.innerHTML = `
-            <div class="qc-icon" style="background:${a.color}22;color:${a.color}">${a.icon}</div>
-            <div class="qc-info">
-                <div class="qc-name">${a.name}</div>
-                <div class="qc-desc">${a.desc}</div>
-                <div class="qc-bar"><div class="qc-bar-fill" style="width:${pct}%"></div></div>
-            </div>
-            <div>
-                <div class="qc-reward">${rewardStr}</div>
-                <div class="qc-btn"><svg viewBox="0 0 24 24">${done ? '<polyline points="20 6 9 17 4 12"/>' : '<polyline points="9 18 15 12 9 6"/>'}</svg></div>
-            </div>`;
-        achEl.appendChild(card);
-    });
+    myRank=mp;
+    document.getElementById('rnk').textContent=mp?'#'+mp:'#–';
+    const ref=document.createElement('button');ref.style.cssText='width:100%;padding:12px;border:none;margin-top:8px;background:rgba(255,255,255,.05);border-radius:16px;font-family:Outfit,sans-serif;font-size:13px;font-weight:700;color:rgba(255,255,255,.5);cursor:pointer';ref.textContent='↻ Оновити рейтинг';ref.onclick=loadRank;rd.appendChild(ref);
+  }catch(e){rd.innerHTML='<div style="text-align:center;padding:20px;opacity:.4;color:#f87171">Помилка. Запустіть SQL схему в Supabase.</div>';console.error(e);}
 }
 
-function checkAchievements() {
-    ACHIEVEMENTS.forEach(a => {
-        if (state.achievementsDone[a.id]) return;
-        const val = a.stat === 'plants' ? state.plantedCount : a.stat === 'harvests' ? state.harvestedCount : state.reads;
-        if (val >= a.req) {
-            state.achievementsDone[a.id] = true;
-            if (a.reward.aqua) state.aqua += a.reward.aqua;
-            if (a.reward.solar) state.solar += a.reward.solar;
-            state.xp += 50;
-            toast(`🏆 Досягнення: ${a.name}!`);
-            updateStats(); saveState();
-        }
-    });
+// ── VISIT / STEAL
+function renderVisit(){
+  const vd=document.getElementById('fd-visit');vd.innerHTML='';
+  if(!allTrees.length){loadRank().then(renderVisit);return;}
+  vd.innerHTML='<div class="qlabel">Відвідайте дуб сусіда. Якщо він не заходив 4+ год — можна зібрати ресурси!</div>';
+  const now=Date.now();
+  allTrees.filter(r=>r.user_id!==uid).forEach(r=>{
+    const la=new Date(r.last_active||0).getTime();
+    const hoursAgo=(now-la)/3600000;
+    const canSteal=hoursAgo>4;
+    const lastSteal=G.stealLog[r.user_id]?new Date(G.stealLog[r.user_id]).getTime():0;
+    const cooldownOk=(now-lastSteal)>3600000;// 1h cooldown per target
+    const stealOk=canSteal&&cooldownOk;
+    const div=document.createElement('div');div.className='lb-card';
+    div.innerHTML=`
+      <div class="online-dot ${hoursAgo<0.5?'dot-on':'dot-off'}"></div>
+      <div style="font-size:22px;flex-shrink:0">${hoursAgo<1?'🌳':hoursAgo<4?'🌲':'🍂'}</div>
+      <div class="lbinfo">
+        <div class="lbname">${(r.tree_name||'Дуб садівника').slice(0,20)}</div>
+        <div class="lbsub">${r.tree_height||0} см · ${Math.floor(hoursAgo)}год тому</div>
+      </div>
+      <button class="steal-btn" ${stealOk?'':'disabled'} onclick="doSteal('${r.user_id}','${(r.tree_name||'').replace(/'/g,'')}')">${stealOk?'🍂 Зібрати':'⏳ Зачекайте'}</button>`;
+    vd.appendChild(div);
+  });
+  if(!allTrees.filter(r=>r.user_id!==uid).length)
+    vd.innerHTML+='<div style="text-align:center;padding:20px;opacity:.4">Інших гравців поки немає</div>';
 }
 
-// ── SHOP ─────────────────────────────────────────────────────
-function renderShop() {
-    const grid = document.getElementById('shop-grid');
-    grid.innerHTML = '';
-    PLANTS.forEach(p => {
-        const owned = state.ownedPlants.includes(p.id);
-        const card = document.createElement('div');
-        card.className = 'shop-card' + (owned ? ' owned' : '');
-        const costIcon = p.costType === 'aqua' ? '💧' : '☀️';
-        const priceHtml = owned
-            ? `<div class="shop-price owned-label">✓ Маєте</div>`
-            : `<div class="shop-price ${p.costType==='solar'?'gold-price':''}">${costIcon} ${p.cost}</div>`;
-        card.innerHTML = `
-            <span class="shop-plant-icon">${p.icon}</span>
-            <div class="shop-name">${p.name}</div>
-            <div class="shop-desc">${p.desc}</div>
-            ${priceHtml}`;
-        if (!owned) card.onclick = () => buyPlant(p);
-        grid.appendChild(card);
-    });
+async function doSteal(targetId,targetName){
+  const amt=5;
+  G.w+=amt;
+  G.stealLog[targetId]=new Date().toISOString();
+  trackQ('visit',1);
+  renderOak();save();
+  toast(`🍂 Зібрано ${amt} Води від "${targetName||'сусіда'}"!`);
+  renderVisit();
 }
 
-function buyPlant(p) {
-    if (state.ownedPlants.includes(p.id)) return;
-    const bal = p.costType === 'aqua' ? state.aqua : state.solar;
-    if (bal < p.cost) { toast(`❌ Не вистачає ${p.costType==='aqua'?'💧 Води':'☀️ Сонця'}!`); return; }
-    if (p.costType === 'aqua') state.aqua -= p.cost;
-    else state.solar -= p.cost;
-    state.ownedPlants.push(p.id);
-    updateStats(); renderShop();
-    toast(`🎉 Купили: ${p.name}!`);
-    saveState();
+function ftab(i){
+  document.getElementById('ft0').classList.toggle('on',i===0);
+  document.getElementById('ft1').classList.toggle('on',i===1);
+  document.getElementById('fd-rank').style.display=i===0?'':'none';
+  document.getElementById('fd-visit').style.display=i===1?'':'none';
+  if(i===0)loadRank();
+  if(i===1)renderVisit();
 }
 
-// ── PROFILE ──────────────────────────────────────────────────
-function renderProfile() {
-    const xpNeeded = state.level * 100;
-    const xpCurrent = state.xp % 100;
-    const titlesIdx = Math.min(Math.floor(state.xp / 200), TITLES.length - 1);
-    document.getElementById('profile-name').textContent = 'Садівник #' + userId.slice(-4);
-    document.getElementById('profile-title').textContent = TITLES[titlesIdx];
-    document.getElementById('xp-fill').style.width = (xpCurrent) + '%';
-    document.getElementById('xp-text').textContent = xpCurrent + ' / 100 ОД';
-    document.getElementById('ps-aqua').textContent = state.aqua;
-    document.getElementById('ps-solar').textContent = state.solar;
-    document.getElementById('ps-plants').textContent = state.plantedCount;
-    document.getElementById('ps-harvest').textContent = state.harvestedCount;
-
-    const badgeGrid = document.getElementById('badge-grid');
-    badgeGrid.innerHTML = '';
-    ACHIEVEMENTS.forEach(a => {
-        const done = !!state.achievementsDone[a.id];
-        const el = document.createElement('div');
-        el.className = 'badge-item' + (done ? '' : ' locked');
-        el.innerHTML = `<span class="b-icon">${a.icon}</span><div class="b-name">${a.name}</div>`;
-        badgeGrid.appendChild(el);
-    });
+// ── NAV
+function go(s){
+  document.querySelectorAll('.scr').forEach(x=>x.classList.remove('on'));
+  document.getElementById('scr-'+s).classList.add('on');
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
+  document.getElementById('nb-'+s).classList.add('on');
+  if(s==='q'){renderQuests();}
+  if(s==='f'){loadRank();}
 }
 
-// ── NAVIGATION ───────────────────────────────────────────────
-function switchScreen(name) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.getElementById('screen-' + name).classList.add('active');
-    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById('nav-' + name).classList.add('active');
-    if (name === 'quests') { renderQuests(); trackQuest('visit', 1); }
-    if (name === 'shop') renderShop();
-    if (name === 'profile') renderProfile();
+// ── MODAL
+function openModal(){document.getElementById('modal').classList.add('on');document.getElementById('minput').value=G.name;setTimeout(()=>document.getElementById('minput').focus(),400);}
+function closeModal(){document.getElementById('modal').classList.remove('on');}
+async function saveName(){const v=document.getElementById('minput').value.trim();if(!v)return;G.name=v.slice(0,24);renderOak();closeModal();save();toast('✅ Збережено!');}
+
+// ── TOAST
+let tt;
+function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('show'),3000);}
+
+// ── PUBLIC API — called from news articles
+window.awardAquaData=async(n=10)=>{G.w+=n;G.reads++;trackQ('read3',1);renderOak();save();toast(`💧 +${n} Води за читання!`);};
+window.awardSolarInsight=async(n=5)=>{G.s+=n;renderOak();save();toast(`☀️ +${n} Сонця!`);};
+
+// ── INIT
+async function init(){
+  sc=supabase.createClient(SB,SK);
+  uid=localStorage.getItem('bukva_uid');
+  if(!uid){uid='u'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);localStorage.setItem('bukva_uid',uid);}
+  buildStars();setSky();
+  await loadDB();
+  checkDailyReset();
+  trackQ('login',1);
+  await welcome();
+  renderOak();
 }
-
-// ── TOAST ─────────────────────────────────────────────────────
-let toastTimer;
-function toast(msg) {
-    const el = document.getElementById('toast');
-    el.textContent = msg;
-    el.classList.add('show');
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
-}
-
-// ── PUBLIC API ── (для статей)
-window.awardAquaData = async (amount = 10) => {
-    state.aqua += amount;
-    state.reads++;
-    trackQuest('read3', 1);
-    checkAchievements();
-    updateStats(); saveState();
-    toast(`💧 +${amount} Води за читання!`);
-};
-window.awardSolarInsight = async (amount = 5) => {
-    state.solar += amount;
-    updateStats(); saveState();
-    toast(`☀️ +${amount} Сонця!`);
-};
-
-// ── INIT ──────────────────────────────────────────────────────
-async function init() {
-    await initSupabase();
-    buildGrid();
-    trackQuest('visit', 1);
-}
-
 init();
 </script>
 </body>
