@@ -30,14 +30,15 @@ body{font-family:'Outfit',sans-serif;color:#f1f5f9;background:#060a0d url('/back
 
 /* Info Pill integrated below Ref Card or as center bar */
 #info-pill{position:absolute;top:78px;left:50%;transform:translateX(-50%);background:rgba(6,10,13,0.5);backdrop-filter:blur(10px);border:1px solid var(--br);border-radius:50px;padding:5px 14px;display:flex;align-items:center;gap:12px;z-index:25}
-.ip-item{display:flex;align-items:center;gap:4px;font-size:11px;font-weight:900;color:#fff}
-.ip-stage{color:var(--g);display:flex;align-items:center;gap:4px;padding-right:8px;border-right:1px solid rgba(255,255,255,0.1)}
+.ip-item{display:flex;align-items:center;gap:4px;font-size:11px;font-weight:900;color:#fff;white-space:nowrap}
+.ip-stage{color:var(--g);display:flex;align-items:center;gap:4px;padding-right:8px;border-right:1px solid rgba(255,255,255,0.1);white-space:nowrap;flex-shrink:0}
 .ip-label{font-size:8px;text-transform:uppercase;opacity:0.5}
 
-/* SCREENS */
-#area{flex:1;overflow:hidden;position:relative}
-.scr{display:none;position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+/* SCREENS with high-contrast smoky overlays */
+#area{flex:1;position:relative;overflow:hidden}
+.scr{display:none;position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;background:rgba(6,10,13,0.7);backdrop-filter:blur(20px);z-index:20}
 .scr.on{display:flex;flex-direction:column}
+#scr-oak{background:transparent;backdrop-filter:none;z-index:5}
 .scr::-webkit-scrollbar{display:none}
 
 /* ── FOREST SCENE ── */
@@ -64,9 +65,9 @@ body{font-family:'Outfit',sans-serif;color:#f1f5f9;background:#060a0d url('/back
 
 
 /* PROFESSIONAL SIDE CIRCULAR BUTTONS + CENTER NAME */
-#oak-panel{position:absolute;bottom:0;left:0;right:0;height:140px;z-index:25;display:flex;align-items:center;justify-content:center;pointer-events:none;background:linear-gradient(to top, rgba(6,10,13,0.6), transparent)}
-.act-grid{width:100%;height:100%;display:flex;justify-content:space-between;align-items:center;padding:0 15px;pointer-events:none}
-.ab{width:86px;height:86px;border-radius:50%;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition:all 0.15s cubic-bezier(0.4,0,0.2,1);box-shadow:0 10px 15px rgba(0,0,0,0.5);outline:none;pointer-events:auto}
+#oak-panel{position:absolute;bottom:0;left:0;right:0;height:120px;z-index:25;display:flex;align-items:center;justify-content:center;pointer-events:none;background:linear-gradient(to top, rgba(6,10,13,0.6), transparent)}
+.act-grid{width:100%;height:100%;display:flex;justify-content:space-between;align-items:flex-end;padding:0 15px 10px;pointer-events:none}
+.ab{width:86px;height:86px;border-radius:50%;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition:all 0.15s cubic-bezier(0.4,0,0.2,1);box-shadow:0 10px 15px rgba(0,0,0,0.5);outline:none;pointer-events:auto;margin-bottom:12px}
 .ab:active{transform:scale(0.9) translateY(4px)}
 .ab:disabled{filter:grayscale(1) brightness(0.7);opacity:0.6;cursor:not-allowed}
 .ab svg{width:24px;height:24px}
@@ -76,7 +77,7 @@ body{font-family:'Outfit',sans-serif;color:#f1f5f9;background:#060a0d url('/back
 .ab.water{background:linear-gradient(180deg,#0ea5e9 0%,#0284c7 100%);box-shadow:0 6px 0 #0369a1}
 .ab.fert{background:linear-gradient(180deg,#fbbf24 0%,#d97706 100%);box-shadow:0 6px 0 #b45309}
 
-#tree-name-row{background:rgba(6,10,13,0.5);backdrop-filter:blur(10px);border:1px solid var(--br);border-radius:50px;padding:6px 14px;display:flex;align-items:center;gap:8px;pointer-events:auto}
+#tree-name-row{background:rgba(6,10,13,0.5);backdrop-filter:blur(10px);border:1px solid var(--br);border-radius:50px;padding:6px 14px;display:flex;align-items:center;gap:8px;pointer-events:auto;margin-bottom:8px}
 #tree-name-disp{font-size:14px;font-weight:900;color:#fff}
 #btn-rename{background:none;border:none;font-size:12px;opacity:0.5;cursor:pointer}
 #btn-rename:hover{opacity:1}
@@ -136,14 +137,33 @@ body{font-family:'Outfit',sans-serif;color:#f1f5f9;background:#060a0d url('/back
 
 /* BOTTOM NAV */
 /* Glassy Nav */
-#nav{flex-shrink:0;display:flex;background:rgba(6,10,13,.5);backdrop-filter:blur(30px);padding:8px 8px calc(8px + env(safe-area-inset-bottom));gap:4px;z-index:30}
-.nb{position:relative;flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 4px;border-radius:16px;border:none;background:transparent;color:rgba(255,255,255,.35);cursor:pointer;transition:all .25s;font-family:'Outfit',sans-serif}
-.nb svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.nb span{font-size:9px;font-weight:700}
-.nb.on{color:var(--g);background:rgba(34,197,94,.1)}.nb.on svg{stroke:var(--g)}
-.nb-badge{position:absolute;top:2px;right:-2px;background:#ef4444;color:#fff;font-size:9px;font-weight:900;padding:2px 5px;border-radius:50px;min-width:16px;display:none}
+#nav{flex-shrink:0;display:flex;background:rgba(6,10,13,0.88);backdrop-filter:blur(30px);border-top:1px solid rgba(255,255,255,0.1);padding:10px 8px calc(10px + env(safe-area-inset-bottom));gap:4px;z-index:30;box-shadow:0 -10px 50px rgba(0,0,0,0.5)}
+.nb{position:relative;flex:1;display:flex;flex-direction:column;align-items:center;gap:3.5px;padding:8px 4px;border-radius:18px;border:none;background:transparent;color:rgba(255,255,255,0.4);cursor:pointer;transition:all 0.25s;font-family:'Outfit',sans-serif}
+.nb svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.nb span{font-size:9.5px;font-weight:700;letter-spacing:0.02em}
+.nb.on{color:var(--g);background:rgba(34,197,94,0.12)}.nb.on svg{stroke:var(--g)}
+.nb-badge{position:absolute;top:4px;right:10px;background:#ef4444;color:#fff;font-size:9px;font-weight:900;padding:2px 5px;border-radius:50px;min-width:16px;display:none;border:1.5px solid #060a0d;z-index:5}
 .nb-badge.show{display:inline-block;animation:pop .3s ease}
 @keyframes pop{0%{transform:scale(0)}80%{transform:scale(1.2)}100%{transform:scale(1)}}
+
+/* PROFILE SCREEN STYLES */
+.pw{padding:20px 16px 40px;display:flex;flex-direction:column;align-items:center;gap:24px}
+.p-header{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}
+.p-av{width:90px;height:90px;border-radius:50%;background:var(--card);border:2.5px solid var(--g);display:flex;align-items:center;justify-content:center;font-size:40px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.4);transition:all 0.3s}
+.p-av img{width:100%;height:100%;object-fit:cover}
+.p-name{font-size:22px;font-weight:900;color:#fff;letter-spacing:0.01em}
+.p-mail{font-size:12px;font-weight:600;color:rgba(255,255,255,0.45);margin-top:-6px}
+.p-stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%}
+.ps-box{background:var(--card);border:1px solid var(--br);border-radius:20px;padding:16px;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;backdrop-filter:blur(10px)}
+.ps-val{font-size:18px;font-weight:900;color:var(--g)}
+.ps-lab{font-size:10px;font-weight:700;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.08em}
+.ach-grid{display:grid;grid-template-columns:repeat(3, 1fr);gap:10px;width:100%}
+.ach{background:rgba(255,255,255,0.03);border:1px solid var(--br);border-radius:18px;aspect-ratio:1/1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;filter:grayscale(1) opacity(0.5);transition:all 0.4s ease}
+.ach.on{background:rgba(34,197,94,0.08);border-color:rgba(34,197,94,0.3);filter:grayscale(0) opacity(1);box-shadow:0 8px 20px rgba(0,0,0,0.2)}
+.ach-ico{font-size:26px}
+.ach-name{font-size:8.5px;font-weight:800;text-align:center;color:#fff;padding:0 4px;line-height:1.2}
+.p-logout{width:auto;align-self:center;background:transparent;border:1px solid rgba(255,255,255,0.1);border-radius:50px;padding:10px 24px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;color:rgba(255,255,255,0.5);cursor:pointer;transition:all 0.2s}
+.p-logout:hover{background:rgba(255,255,255,0.05);color:#fff}
 
 /* TOAST */
 #toast{position:fixed;top:70px;left:50%;transform:translateX(-50%) translateY(-14px);background:#0d2010;border:1px solid rgba(34,197,94,.4);border-radius:18px;padding:10px 18px;font-weight:800;font-size:13px;color:#86efac;opacity:0;pointer-events:none;transition:all .4s cubic-bezier(.175,.885,.32,1.275);z-index:999;white-space:nowrap}
@@ -269,27 +289,27 @@ body{font-family:'Outfit',sans-serif;color:#f1f5f9;background:#060a0d url('/back
         <div class="ach-grid" id="ach-grid"></div>
         <button class="p-logout" onclick="showUserMenu()">🚪 Вийти з акаунту</button>
       </div>
+      </div>
     </div>
-  </div>
 
-  <!-- QUESTS -->
-  <div id="scr-q" class="scr">
-    <div class="qw">
-      <div class="qtabs"><button class="qt on" id="qt0" onclick="qtab(0)">Щоденні</button><button class="qt" id="qt1" onclick="qtab(1)">Тижневе змагання</button></div>
-      <div id="qd-daily"></div>
-      <div id="qd-weekly" style="display:none"></div>
+    <!-- QUESTS -->
+    <div id="scr-q" class="scr">
+      <div class="qw">
+        <div class="qtabs"><button class="qt on" id="qt0" onclick="qtab(0)">Щоденні</button><button class="qt" id="qt1" onclick="qtab(1)">Тижневе змагання</button></div>
+        <div id="qd-daily"></div>
+        <div id="qd-weekly" style="display:none"></div>
+      </div>
     </div>
-  </div>
 
-  <!-- FOREST / LB -->
-  <div id="scr-f" class="scr">
-    <div class="fw">
-      <div class="ftabs"><button class="ft on" id="ft0" onclick="ftab(0)">🏆 Рейтинг</button><button class="ft" id="ft1" onclick="ftab(1)">🌲 Відвідати</button></div>
-      <div id="fd-rank"></div>
-      <div id="fd-visit" style="display:none"></div>
+    <!-- FOREST / LB -->
+    <div id="scr-f" class="scr">
+      <div class="fw">
+        <div class="ftabs"><button class="ft on" id="ft0" onclick="ftab(0)">🏆 Рейтинг</button><button class="ft" id="ft1" onclick="ftab(1)">🌲 Відвідати</button></div>
+        <div id="fd-rank"></div>
+        <div id="fd-visit" style="display:none"></div>
+      </div>
     </div>
   </div>
-</div>
 
 <nav id="nav">
   <button class="nb on" id="nb-oak" onclick="go('oak')">
@@ -300,6 +320,14 @@ body{font-family:'Outfit',sans-serif;color:#f1f5f9;background:#060a0d url('/back
     <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
     <span>Завдання</span>
     <div class="nb-badge" id="badge-quests">0</div>
+  </button>
+  <button class="nb" id="nb-f" onclick="go('f')">
+    <svg viewBox="0 0 24 24" fill="currentColor" stroke-width="0">
+      <path d="M12 2l-4 8h2v3H6l5 7h-2v2h2v2h2v-2h2v-2h-2l5-7h-4V10h2l-4-8z"/>
+      <path d="M6 12l-2 4h1.5v2H3l3.5 4 3.5-4H8.5v-2h1.5l-2-4H6z" opacity="0.4"/>
+      <path d="M18 12l-2 4h1.5v2H16l3.5 4 3.5-4h-1.5v-2H20l-2-4h-2z" opacity="0.4"/>
+    </svg>
+    <span>Ліс</span>
   </button>
   <button class="nb" id="nb-p" onclick="go('p')">
     <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
