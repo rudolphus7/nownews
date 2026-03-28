@@ -9,8 +9,8 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 :root{--g:#22c55e;--g2:#16a34a;--aq:#06b6d4;--sol:#f59e0b;--pur:#7c3aed;--dk:#060a0d;--card:rgba(255,255,255,.05);--br:rgba(255,255,255,.08)}
-html,body{height:100%;overflow:hidden}
-body{font-family:'Outfit',sans-serif;color:#f1f5f9;background:var(--dk);display:flex;flex-direction:column;height:100dvh}
+html{height:100%;background:#020608;display:flex;justify-content:center}
+body{font-family:'Outfit',sans-serif;color:#f1f5f9;background:var(--dk);display:flex;flex-direction:column;height:100dvh;width:100%;max-width:480px;border-left:1px solid var(--br);border-right:1px solid var(--br);position:relative}
 
 /* HUD */
 #hud{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:10px 14px;gap:8px;background:rgba(6,10,13,.95);border-bottom:1px solid var(--br);backdrop-filter:blur(20px);z-index:30}
@@ -30,13 +30,11 @@ body{font-family:'Outfit',sans-serif;color:#f1f5f9;background:var(--dk);display:
 #forest{flex:1;position:relative;overflow:hidden;min-height:320px;user-select:none}
 
 /* Sky layers */
-#sky-bg{position:absolute;inset:0;background:linear-gradient(180deg,#060d1a 0%,#0a1f0a 55%,#071a07 100%);transition:background 3s}
-#stars{position:absolute;inset:0;pointer-events:none}
-.star{position:absolute;border-radius:50%;background:white;animation:twinkle var(--d,3s) infinite alternate}
-@keyframes twinkle{from{opacity:.2}to{opacity:.9}}
+#sky-bg{position:absolute;inset:0;background:url('backgr.png') no-repeat;background-size:cover;background-position:center bottom;z-index:0}
+#stars{display:none}
 
-/* Moon */
-#moon{position:absolute;top:18px;right:30px;width:36px;height:36px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff9c4,#f59e0b);box-shadow:0 0 20px rgba(245,158,11,.4);opacity:.85}
+/* Moon hidden per user request */
+#moon{display:none}
 
 /* Mountain silhouettes */
 #mtn{position:absolute;bottom:25%;left:0;right:0;height:180px;pointer-events:none}
@@ -46,8 +44,7 @@ body{font-family:'Outfit',sans-serif;color:#f1f5f9;background:var(--dk);display:
 #forest-bg-trees{position:absolute;bottom:20%;left:0;right:0;height:120px;pointer-events:none}
 #forest-bg-trees svg{width:100%;height:100%}
 
-/* Ground */
-#ground{position:absolute;bottom:0;left:0;right:0;height:24%;background:radial-gradient(ellipse at 50% 0%, #20712d 0%, #0d4d1d 60%, #072a0f 100%);border-radius:50% 50% 0 0/80px 80px 0 0;box-shadow:inset 0 20px 40px rgba(0,0,0,0.3)}
+
 
 /* THE OAK */
 #oak-wrap{position:absolute;bottom:24%;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;transition:all 1s cubic-bezier(.34,1.56,.64,1);z-index:5}
@@ -517,27 +514,10 @@ function renderOak(){
 }
 
 // ── STARS
-function buildStars(){
-  const c=document.getElementById('stars');c.innerHTML='';
-  for(let i=0;i<50;i++){
-    const d=document.createElement('div');d.className='star';
-    const s=Math.random()*2+1;
-    d.style.cssText=`width:${s}px;height:${s}px;top:${Math.random()*60}%;left:${Math.random()*100}%;--d:${2+Math.random()*4}s;animation-delay:${Math.random()*4}s`;
-    c.appendChild(d);
-  }
-}
+function buildStars(){}
 
-// Sky colour based on time
-function setSky(){
-  const h=new Date().getHours();
-  let bg;
-  if(h>=6&&h<9) bg='linear-gradient(180deg,#1a1030 0%,#2d1b4e 25%,#7c3a12 55%,#0a1f0a 100%)';
-  else if(h>=9&&h<17) bg='linear-gradient(180deg,#061428 0%,#0a3018 50%,#0a1f0a 100%)';
-  else if(h>=17&&h<20) bg='linear-gradient(180deg,#1a0a30 0%,#4a1510 35%,#0a1f0a 100%)';
-  else bg='linear-gradient(180deg,#010408 0%,#020d02 55%,#061006 100%)';
-  document.getElementById('sky-bg').style.background=bg;
-  document.getElementById('moon').style.opacity=h>=20||h<7?'.85':'0';
-}
+// Sky colour based on time (Disabled per user request for static backgr.png)
+function setSky(){}
 
 // ── SUPABASE
 async function loadDB(){
