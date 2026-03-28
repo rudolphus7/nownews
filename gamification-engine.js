@@ -1,14 +1,14 @@
 /**
- * BUKVA NEWS Gamification Engine (v2.0 Professional)
- * Handles persistent tracking, Supabase sync, and visual awards.
+ * BUKVA NEWS Gamification Engine
+ * Synchronized with Oak Gamification (games.html)
  */
 class GamificationEngine {
     constructor() {
         this.config = {
-            readTimeTarget: 150, 
+            readTimeTarget: 60, // lowered for better UX
             scrollTarget: 0.8,    
             rewardAmount: 10,
-            solarReward: 2
+            solarReward: 5
         };
 
         this.state = {
@@ -18,7 +18,8 @@ class GamificationEngine {
             timeSpent: 0,
             awarded: false,
             articleId: this.getArticleId(),
-            resources: { aqua_data: 0, solar_insight: 0, seeds: 0 }
+            resources: { aqua_data: 0, solar_insight: 0 },
+            quests_state: { p: {}, d: {}, l: '' }
         };
 
         if (this.state.articleId) {
@@ -27,10 +28,10 @@ class GamificationEngine {
     }
 
     getOrCreateUserId() {
-        let id = localStorage.getItem('gamification_user_id');
+        let id = localStorage.getItem('bukva_uid');
         if (!id) {
-            id = crypto.randomUUID();
-            localStorage.setItem('gamification_user_id', id);
+            id = 'u' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+            localStorage.setItem('bukva_uid', id);
         }
         return id;
     }
@@ -45,9 +46,6 @@ class GamificationEngine {
     }
 
     async init() {
-        // Initial sync from DB
-        await this.syncFromDB();
-
         if (sessionStorage.getItem(`awarded_${this.state.articleId}`)) {
             this.state.awarded = true;
         }
@@ -55,6 +53,7 @@ class GamificationEngine {
         window.addEventListener('scroll', () => this.trackScroll());
         this.timer = setInterval(() => this.trackTime(), 1000);
         
+        await this.syncFromDB();
         this.updateWidgets();
     }
 
@@ -63,28 +62,29 @@ class GamificationEngine {
         try {
             const { data, error } = await window.supabase
                 .from('user_gamification')
-                .select('*')
+                .select('aqua_data, solar_insight, quests_state')
                 .eq('user_id', this.state.userId)
-                .single();
+                .maybeSingle();
 
             if (data) {
-                this.state.resources = {
-                    aqua_data: data.aqua_data || 0,
-                    solar_insight: data.solar_insight || 0,
-                    seeds: data.seeds || 0
-                };
+                this.state.resources.aqua_data = data.aqua_data || 0;
+                this.state.resources.solar_insight = data.solar_insight || 0;
+                this.state.quests_state = data.quests_state || { p: {}, d: {}, l: '' };
             } else {
-                // Initialize user if not exists
+                // New user: grant welcome bonus
+                this.state.resources.aqua_data = 50;
+                this.state.resources.solar_insight = 30;
+                localStorage.setItem('oak_wel2', '1');
                 await window.supabase.from('user_gamification').insert([{
                     user_id: this.state.userId,
-                    aqua_data: 0,
-                    solar_insight: 0,
-                    seeds: 0
+                    aqua_data: 50,
+                    solar_insight: 30,
+                    tree_name: 'Мій Дуб'
                 }]);
+                this.showNotification('🎉 Вітаємо!', 'Ви отримали стартовий бонус: +50 Води та +30 Сонця');
             }
-            this.updateWidgets();
         } catch (e) {
-            console.warn("[Gamification] DB Sync failed, using fallback:", e);
+            console.warn("[Gamification] DB Sync failed", e);
         }
     }
 
@@ -124,43 +124,73 @@ class GamificationEngine {
         this.state.resources[type] += amount;
         this.updateWidgets();
 
-        // Push to DB
+        // Update Quest Progress
+        let questMsg = '';
+        if (type === 'aqua_data') {
+            const lastDay = this.state.quests_state.l ? new Date(this.state.quests_state.l).toDateString() : '';
+            const today = new Date().toDateString();
+            if (lastDay !== today) {
+                this.state.quests_state.p = {};
+                this.state.quests_state.d = {};
+                this.state.quests_state.l = new Date().toISOString();
+            }
+            
+            this.state.quests_state.p['read3'] = (this.state.quests_state.p['read3'] || 0) + 1;
+            const prog = this.state.quests_state.p['read3'];
+            questMsg = ` Прочитано новин: ${prog}/3.`;
+        }
+
+        // Push to DB directly by updating row
         if (window.supabase) {
-            await window.supabase.rpc('increment_gamification_resource', {
-                target_user_id: this.state.userId,
-                resource_type: type,
-                delta: amount
-            });
+            const updateObj = { updated_at: new Date().toISOString() };
+            if (type === 'aqua_data') {
+                updateObj.aqua_data = this.state.resources.aqua_data;
+                updateObj.quests_state = this.state.quests_state;
+            } else {
+                updateObj.solar_insight = this.state.resources.solar_insight;
+            }
+            
+            await window.supabase
+                .from('user_gamification')
+                .update(updateObj)
+                .eq('user_id', this.state.userId);
         }
 
         const icon = type === 'aqua_data' ? '💧' : '☀️';
-        const label = type === 'aqua_data' ? 'Aqua-Data' : 'Solar-Insight';
-        this.showNotification(`+${amount} ${label} ${icon}`, 'Ваша активність розвиває місто.');
+        const nameStr = type === 'aqua_data' ? 'Води' : 'Сонця';
+        this.showNotification(`+${amount} ${nameStr}`, `Новини дають живлення дубу!${questMsg}`);
     }
 
     showNotification(title, text) {
-        const toast = document.createElement('div');
-        toast.style.cssText = `
-            position: fixed; bottom: 20px; right: 20px; background: #2e1065; color: white; padding: 20px;
-            border-radius: 20px; border: 1px solid #7c3aed; box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-            z-index: 10000; transform: translateY(100px); transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            font-family: 'Inter', sans-serif; max-width: 300px;
-        `;
+        let toast = document.getElementById('gam-toast-news');
+        if(!toast){
+            toast = document.createElement('div');
+            toast.id = 'gam-toast-news';
+            toast.style.cssText = `
+                position: fixed; bottom: 85px; left: 50%; transform: translateX(-50%) translateY(100px);
+                background: #0d2010; border: 1px solid rgba(34,197,94,0.4); border-radius: 18px; 
+                padding: 12px 18px; font-weight: 800; font-size: 13px; color: #86efac; opacity: 0;
+                pointer-events: none; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                z-index: 99999; box-shadow: 0 10px 40px rgba(0,0,0,0.5); font-family: 'Outfit', sans-serif;
+                white-space: nowrap; text-align: center;
+            `;
+            document.body.appendChild(toast);
+        }
         toast.innerHTML = `
-            <div style="font-weight: 900; color: #7c3aed; margin-bottom: 5px; text-transform: uppercase; font-size: 14px;">${title}</div>
-            <div style="font-size: 12px; opacity: 0.8;">${text}</div>
-            <a href="/games.html" style="display: block; margin-top: 10px; color: #ea580c; font-weight: bold; font-size: 10px; text-transform: uppercase;">Мій Сад →</a>
+            <div style="font-size:15px;margin-bottom:4px;color:#fff">${title}</div>
+            <div style="font-size:11px;opacity:0.8;font-weight:600">${text}</div>
+            <div style="font-size:10px;margin-top:6px;color:#22c55e">Перейти до дуба →</div>
         `;
-        document.body.appendChild(toast);
-        setTimeout(() => toast.style.transform = 'translateY(0)', 100);
-        setTimeout(() => { toast.style.transform = 'translateY(150px)'; setTimeout(() => toast.remove(), 500); }, 8000);
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateX(-50%) translateY(0)';
+        setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateX(-50%) translateY(50px)'; }, 5000);
     }
 }
 
 // Global hooks for events
 window.awardSolarInsight = function() {
     if (window.gamification) {
-        window.gamification.awardResources('solar_insight', 2);
+        window.gamification.awardResources('solar_insight', 5);
     }
 };
 

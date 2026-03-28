@@ -129,10 +129,13 @@ body{font-family:'Outfit',sans-serif;color:#f1f5f9;background:var(--dk);display:
 
 /* BOTTOM NAV */
 #nav{flex-shrink:0;display:flex;background:rgba(6,10,13,.96);border-top:1px solid var(--br);backdrop-filter:blur(30px);padding:8px 8px calc(8px + env(safe-area-inset-bottom));gap:4px;z-index:30}
-.nb{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 4px;border-radius:16px;border:none;background:transparent;color:rgba(255,255,255,.35);cursor:pointer;transition:all .25s;font-family:'Outfit',sans-serif}
+.nb{position:relative;flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 4px;border-radius:16px;border:none;background:transparent;color:rgba(255,255,255,.35);cursor:pointer;transition:all .25s;font-family:'Outfit',sans-serif}
 .nb svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .nb span{font-size:9px;font-weight:700}
 .nb.on{color:var(--g);background:rgba(34,197,94,.1)}.nb.on svg{stroke:var(--g)}
+.nb-badge{position:absolute;top:2px;right:-2px;background:#ef4444;color:#fff;font-size:9px;font-weight:900;padding:2px 5px;border-radius:50px;min-width:16px;display:none}
+.nb-badge.show{display:inline-block;animation:pop .3s ease}
+@keyframes pop{0%{transform:scale(0)}80%{transform:scale(1.2)}100%{transform:scale(1)}}
 
 /* TOAST */
 #toast{position:fixed;top:70px;left:50%;transform:translateX(-50%) translateY(-14px);background:#0d2010;border:1px solid rgba(34,197,94,.4);border-radius:18px;padding:10px 18px;font-weight:800;font-size:13px;color:#86efac;opacity:0;pointer-events:none;transition:all .4s cubic-bezier(.175,.885,.32,1.275);z-index:999;white-space:nowrap}
@@ -268,6 +271,7 @@ body{font-family:'Outfit',sans-serif;color:#f1f5f9;background:var(--dk);display:
   <button class="nb" id="nb-q" onclick="go('q')">
     <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
     <span>Завдання</span>
+    <div class="nb-badge" id="badge-quests">0</div>
   </button>
   <button class="nb" id="nb-f" onclick="go('f')">
     <svg viewBox="0 0 24 24"><path d="M8 21H5a2 2 0 01-2-2v-5m18 7h-3a2 2 0 01-2-2v-5M3 10l9-9 9 9"/><path d="M9 21V12h6v9"/></svg>
@@ -485,21 +489,36 @@ function checkDailyReset(){
 function trackQ(id,n=1){
   if(G.qd[id])return;
   G.qp[id]=(G.qp[id]||0)+n;
-  const q=DQ.find(x=>x.id===id);
-  if(q&&G.qp[id]>=q.total){
-    // auto-award
-    claimQ(id,q);
-  }
-  renderQuests();
+  if(document.getElementById('scr-q').classList.contains('on')) renderQuests();
+  updateBadge();
 }
 
-function claimQ(id,q){
-  if(G.qd[id])return;
+function updateBadge(){
+  checkDailyReset();
+  let claimable = 0;
+  DQ.forEach(q=>{
+    const pr=G.qp[q.id]||0;
+    if(!G.qd[q.id] && pr>=q.total) claimable++;
+  });
+  const b = document.getElementById('badge-quests');
+  if(claimable>0) {
+    b.textContent = claimable;
+    b.classList.add('show');
+  } else {
+    b.classList.remove('show');
+  }
+}
+
+function claimQ(id){
+  const q=DQ.find(x=>x.id===id);
+  if(!q || G.qd[id])return;
   G.qd[id]=true;
   if(q.r.w)G.w+=q.r.w;
   if(q.r.s)G.s+=q.r.s;
   renderOak();save();
-  toast(`✅ ${q.name}: отримано ${q.r.w?'+'+q.r.w+' 💧':'+'+q.r.s+' ☀️'}`);
+  toast(`🎁 Забрано ${q.r.w?'+'+q.r.w+' 💧':'+'+q.r.s+' ☀️'}`);
+  renderQuests();
+  updateBadge();
 }
 
 // ── MILESTONES
@@ -551,22 +570,33 @@ async function doFertilize(){
 function renderQuests(){
   checkDailyReset();
   const dd=document.getElementById('qd-daily');dd.innerHTML='';
-  dd.innerHTML='<div class="qlabel">Щоденні завдання — оновлюються кожен день</div>';
+  dd.innerHTML='<div class="qlabel">Щоденні завдання — оновлюються щодня</div>';
   DQ.forEach(q=>{
-    const pr=G.qp[q.id]||0;const done=!!G.qd[q.id];
+    const pr=G.qp[q.id]||0;
+    const done=!!G.qd[q.id];
+    const canClaim=!done && pr>=q.total;
     const pct=Math.min(100,(pr/q.total)*100);
     const rStr=q.r.w?`+${q.r.w} 💧`:`+${q.r.s} ☀️`;
+    
+    let btnHtml;
+    if(done) {
+      btnHtml = `<div class="qbtn" style="background:#166534"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>`;
+    } else if(canClaim) {
+      btnHtml = `<button onclick="claimQ('${q.id}')" style="background:#22c55e;border:none;border-radius:12px;color:#fff;font-weight:800;font-size:11px;padding:8px 14px;cursor:pointer;box-shadow:0 0 15px rgba(34,197,94,0.4);animation:pop 1s infinite alternate;font-family:'Outfit'">Забрати</button>`;
+    } else {
+      btnHtml = `<button onclick="window.location.href='/'" style="background:${q.bg};border:none;border-radius:12px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer"><svg viewBox="0 0 24 24" style="width:17px;stroke:#fff;fill:none;stroke-width:2.5"><polyline points="9 18 15 12 9 6"/></svg></button>`;
+    }
+
     const d=document.createElement('div');
-    d.className='qcard'+(done?' done':'');
+    d.className='qcard'+(done?' done':'')+(canClaim?' claimable':'');
     d.innerHTML=`<div class="qi" style="background:${q.bg}22;font-size:22px">${q.icon}</div>
       <div class="qinfo"><div class="qname">${q.name}</div><div class="qdesc">${q.desc}</div>
         <div class="qbar"><div class="qbar-f" style="width:${pct}%"></div></div>
         <div style="font-size:10px;opacity:.4;margin-top:3px">${pr}/${q.total}</div>
       </div>
-      <div><div class="qrew">${rStr}</div>
-        <div class="qbtn" style="background:${done?'#166534':q.bg}">
-          <svg viewBox="0 0 24 24">${done?'<polyline points="20 6 9 17 4 12"/>':'<polyline points="9 18 15 12 9 6"/>'}</svg>
-        </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+        <div class="qrew">${rStr}</div>
+        ${btnHtml}
       </div>`;
     dd.appendChild(d);
   });
@@ -783,6 +813,7 @@ async function startGame(){
   if(!localStorage.getItem('ref_done'))await handleRef(uid);
   checkDailyReset();
   trackQ('login',1);
+  updateBadge();
   await welcome();
   renderOak();
 }
