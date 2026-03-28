@@ -10,15 +10,26 @@
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 :root{--g:#22c55e;--g2:#16a34a;--aq:#06b6d4;--sol:#f59e0b;--pur:#7c3aed;--dk:#060a0d;--card:rgba(255,255,255,.05);--br:rgba(255,255,255,.08)}
 html{height:100%;background:#020608;display:flex;justify-content:center}
-body{font-family:'Outfit',sans-serif;color:#f1f5f9;background:var(--dk);display:flex;flex-direction:column;height:100dvh;width:100%;max-width:480px;border-left:1px solid var(--br);border-right:1px solid var(--br);position:relative}
+body{font-family:'Outfit',sans-serif;color:#f1f5f9;background:#060a0d url('/backgr.png') no-repeat center bottom;background-size:cover;display:flex;flex-direction:column;height:100dvh;width:100%;max-width:480px;border-left:1px solid var(--br);border-right:1px solid var(--br);position:relative}
 
-/* HUD */
-#hud{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:10px 14px;gap:8px;background:rgba(6,10,13,.95);border-bottom:1px solid var(--br);backdrop-filter:blur(20px);z-index:30}
-.hud-logo{font-size:10px;font-weight:900;opacity:.35;letter-spacing:.05em;line-height:1.3}
+/* HUD Overlay */
+#hud{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:10px 14px;gap:8px;background:rgba(6,10,13,0.3);backdrop-filter:blur(20px);z-index:30}
 .hud-res{display:flex;gap:6px;flex:1;justify-content:center}
-.rc{display:flex;align-items:center;gap:5px;background:var(--card);border:1px solid var(--br);padding:5px 10px;border-radius:50px}
-.rc svg{width:14px;height:14px;flex-shrink:0}.rc .v{font-weight:900;font-size:14px}.rc .l{font-size:8px;font-weight:700;opacity:.5;text-transform:uppercase}
-.rank-pill{background:linear-gradient(135deg,var(--sol),#ea580c);border-radius:50px;padding:5px 11px;font-weight:900;font-size:12px;white-space:nowrap}
+.rc{display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.06);border:1px solid var(--br);padding:4px 10px;border-radius:50px}
+.rc svg{width:13px;height:13px}.rc .v{font-weight:900;font-size:13px}
+.rank-pill{background:linear-gradient(135deg,var(--sol),#ea580c);border-radius:50px;padding:4px 10px;font-weight:900;font-size:11px}
+
+/* FLOATING INFO PILL */
+#info-pill{position:absolute;top:70px;left:50%;transform:translateX(-50%);background:rgba(6,10,13,0.6);backdrop-filter:blur(15px);border:1px solid var(--br);border-radius:50px;padding:6px 16px;display:flex;align-items:center;gap:12px;z-index:25;box-shadow:0 8px 20px rgba(0,0,0,0.5)}
+.ip-item{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:900;color:#fff}
+.ip-stage{color:var(--g);display:flex;align-items:center;gap:4px;padding-right:8px;border-right:1px solid rgba(255,255,255,0.1)}
+.ip-label{font-size:9px;text-transform:uppercase;opacity:0.5;letter-spacing:0.05em}
+
+/* COMPACT REFERRAL CHIP (Top Left) */
+#ref-chip{position:absolute;top:16px;left:16px;background:rgba(34,197,94,0.15);backdrop-filter:blur(10px);border:1px solid rgba(34,197,94,0.3);border-radius:50px;padding:6px 12px;display:flex;align-items:center;gap:8px;z-index:35;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 15px rgba(0,0,0,0.3)}
+#ref-chip:active{transform:scale(0.95)}
+.ref-chip-icon{font-size:16px}
+.ref-chip-text{font-size:11px;font-weight:900;color:#f1f5f9;text-transform:uppercase;letter-spacing:0.02em}
 
 /* SCREENS */
 #area{flex:1;overflow:hidden;position:relative}
@@ -27,10 +38,9 @@ body{font-family:'Outfit',sans-serif;color:#f1f5f9;background:var(--dk);display:
 .scr::-webkit-scrollbar{display:none}
 
 /* ── FOREST SCENE ── */
-#forest{flex:1;position:relative;overflow:hidden;min-height:320px;user-select:none}
+#forest{flex:1;position:relative;overflow:hidden;user-select:none;display:flex;flex-direction:column;justify-content:flex-end}
 
-/* Sky layers */
-#sky-bg{position:absolute;inset:0;background:url('/backgr.png') no-repeat;background-size:cover;background-position:center bottom;z-index:0}
+#sky-bg{display:none}
 #stars{display:none}
 
 /* Moon hidden per user request */
@@ -38,7 +48,7 @@ body{font-family:'Outfit',sans-serif;color:#f1f5f9;background:var(--dk);display:
 
 #mtn, #forest-bg-trees {display:none}
 
-/* THE OAK */
+/* THE OAK - grounded on backgr.png */
 #oak-wrap{position:absolute;bottom:12%;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;transition:all 1s cubic-bezier(.34,1.56,.64,1);z-index:5}
 #oak-svg{display:block;transition:all 1s cubic-bezier(.34,1.56,.64,1);filter:drop-shadow(0 8px 30px rgba(0,0,0,.4))}
 
@@ -46,26 +56,25 @@ body{font-family:'Outfit',sans-serif;color:#f1f5f9;background:var(--dk);display:
 .particle{position:absolute;pointer-events:none;z-index:10;font-size:18px;animation:float-up 1.2s ease forwards}
 @keyframes float-up{0%{transform:translateY(0) scale(1);opacity:1}100%{transform:translateY(-80px) scale(.5);opacity:0}}
 
-/* Height chip */
-#h-chip{position:absolute;bottom:calc(22% + 8px);left:50%;transform:translateX(-50%);background:rgba(6,10,13,.88);border:1px solid var(--br);border-radius:50px;padding:5px 14px;font-size:12px;font-weight:800;white-space:nowrap;backdrop-filter:blur(10px);z-index:6;transition:all .5s}
+#h-chip{position:absolute;bottom:calc(15% + 10px);left:50%;transform:translateX(-50%);background:rgba(6,10,13,.88);border:1px solid var(--br);border-radius:50px;padding:5px 14px;font-size:12px;font-weight:800;white-space:nowrap;backdrop-filter:blur(10px);z-index:6;transition:all .5s}
 
-/* Stage label */
-#stage-badge{position:absolute;top:16px;left:16px;background:rgba(6,10,13,.75);border:1px solid var(--g);border-radius:12px;padding:6px 12px;font-size:11px;font-weight:800;color:var(--g);backdrop-filter:blur(8px)}
 
-/* Actions panel */
-#oak-panel{flex-shrink:0;padding:12px 14px 8px;background:rgba(6,10,13,.95);border-top:1px solid var(--br)}
-#tree-name-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-#tree-name-disp{font-size:17px;font-weight:900;flex:1}
-#btn-rename{background:var(--card);border:1px solid var(--br);padding:5px 10px;border-radius:10px;font-family:'Outfit',sans-serif;font-size:11px;font-weight:700;color:rgba(255,255,255,.5);cursor:pointer}
-.stats3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px}
-.sp{background:var(--card);border:1px solid var(--br);border-radius:14px;padding:8px;text-align:center}.sp .sv{font-size:17px;font-weight:900}.sp .sl{font-size:8px;opacity:.5;font-weight:700;text-transform:uppercase}
-.act-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;padding:0 4px}
-.ab{border:none;border-radius:22px;padding:14px;font-family:'Outfit',sans-serif;font-size:15px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.15s cubic-bezier(0.4,0,0.2,1);position:relative;letter-spacing:0.02em}
-.ab:active{transform:translateY(6px);box-shadow:0 0 0 transparent !important}
-.ab:disabled{opacity:0.4;background:#374151 !important;box-shadow:none !important;transform:none !important;cursor:not-allowed}
-.ab.water{background:linear-gradient(180deg,#0ea5e9 0%,#0284c7 100%);color:#fff;box-shadow:0 8px 0 #0369a1, 0 12px 20px rgba(2,132,199,0.4)}
-.ab.fert{background:linear-gradient(180deg,#fbbf24 0%,#d97706 100%);color:#fff;box-shadow:0 8px 0 #b45309, 0 12px 20px rgba(217,119,6,0.4)}
-.ab-sub{font-size:10px;opacity:0.9;font-weight:700;display:block;margin-top:2px}
+
+/* PROFESSIONAL FLOATING ACTION BUTTONS (FABs) */
+.ab{position:absolute;width:68px;height:68px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;border:none;cursor:pointer;z-index:25;box-shadow:0 8px 15px rgba(0,0,0,0.5);transition:all 0.15s cubic-bezier(0.4,0,0.2,1);outline:none}
+.ab:active{transform:scale(0.9) translateY(4px)}
+.ab svg{width:24px;height:24px;margin-bottom:2px}
+.ab-sub{font-size:8px;font-weight:900;opacity:0.9;text-transform:uppercase}
+.ab.water{bottom:25px;left:20px;background:linear-gradient(180deg,#0ea5e9 0%,#0284c7 100%);box-shadow:0 6px 0 #0369a1, 0 10px 20px rgba(2,132,199,0.5)}
+.ab.fert{bottom:25px;right:20px;background:linear-gradient(180deg,#fbbf24 0%,#d97706 100%);box-shadow:0 6px 0 #b45309, 0 10px 20px rgba(217,119,6,0.5)}
+
+/* Gifting / Tree Name Pills */
+#oak-panel{display:contents} /* We don't need a panel wrapper anymore, elements will float */
+#tree-name-row{position:absolute;bottom:25px;left:50%;transform:translateX(-50%);z-index:25;background:rgba(6,10,13,0.5);backdrop-filter:blur(10px);border:1px solid var(--br);border-radius:50px;padding:6px 12px;display:flex;align-items:center;gap:6px}
+#tree-name-disp{font-size:14px;font-weight:900;color:#fff}
+#btn-rename{background:none;border:none;font-size:12px;cursor:pointer}
+
+
 #tip-bar{padding:0}
 
 /* REFERRAL PREMIUM CARD */
@@ -130,7 +139,8 @@ body{font-family:'Outfit',sans-serif;color:#f1f5f9;background:var(--dk);display:
 .steal-btn:disabled{opacity:.4;cursor:not-allowed}
 
 /* BOTTOM NAV */
-#nav{flex-shrink:0;display:flex;background:rgba(6,10,13,.96);border-top:1px solid var(--br);backdrop-filter:blur(30px);padding:8px 8px calc(8px + env(safe-area-inset-bottom));gap:4px;z-index:30}
+/* Glassy Nav */
+#nav{flex-shrink:0;display:flex;background:rgba(6,10,13,.5);backdrop-filter:blur(30px);padding:8px 8px calc(8px + env(safe-area-inset-bottom));gap:4px;z-index:30}
 .nb{position:relative;flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 4px;border-radius:16px;border:none;background:transparent;color:rgba(255,255,255,.35);cursor:pointer;transition:all .25s;font-family:'Outfit',sans-serif}
 .nb svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .nb span{font-size:9px;font-weight:700}
@@ -218,43 +228,43 @@ body{font-family:'Outfit',sans-serif;color:#f1f5f9;background:var(--dk);display:
         </svg>
       </div>
       <div id="ground"></div>
-      <div id="stage-badge" id="sbadge">🌱 Насіння</div>
+      <div id="ref-chip" onclick="copyRefLink()">
+        <span class="ref-chip-icon">🎁</span>
+        <span class="ref-chip-text">Запроси</span>
+      </div>
       <div id="h-chip">🌳 0 см</div>
       <div id="oak-wrap">
         <svg id="oak-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300" width="120" height="180"></svg>
       </div>
+      <!-- NEW PROFESSIONAL INFO PILL -->
+      <div id="info-pill">
+        <div class="ip-stage" id="ip-stage-text">🌱 Насіння</div>
+        <div class="ip-item"><span id="si-h">0</span><span class="ip-label">см</span></div>
+        <div class="ip-item">💧 <span id="si-w">0</span></div>
+        <div class="ip-item">☀️ <span id="si-f">0</span></div>
+      </div>
     </div>
+
+    <!-- FLOATING ACTION BUTTONS -->
+    <button class="ab water" id="btn-w" onclick="doWater()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+      <span class="ab-sub">-5 💧</span>
+    </button>
+
+    <button class="ab fert" id="btn-f" onclick="doFertilize()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M12 22V12M2 12c4 0 10-4 10-10 0 6 6 10 10 10"/></svg>
+      <span class="ab-sub">-15 ☀️</span>
+    </button>
+
     <div id="oak-panel">
       <div id="tree-name-row">
         <div id="tree-name-disp">Мій Дуб</div>
-        <button id="btn-rename" onclick="openModal()">✏️ Назвати</button>
+        <button id="btn-rename" onclick="openModal()">✏️</button>
       </div>
-      <div class="stats3">
-        <div class="sp"><div class="sv" id="si-h">0</div><div class="sl">Висота см</div></div>
-        <div class="sp"><div class="sv" id="si-w">0</div><div class="sl">Поливів</div></div>
-        <div class="sp"><div class="sv" id="si-f">0</div><div class="sl">Добрив</div></div>
-      </div>
-      <div class="act-grid">
-        <button class="ab water" id="btn-w" onclick="doWater()">
-          <svg viewBox="0 0 24 24" width="18" fill="none" stroke="white" stroke-width="2.5"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
-          <div><div>Полити</div><span class="ab-sub">−5 💧 → +1 см</span></div>
-        </button>
-        <button class="ab fert" id="btn-f" onclick="doFertilize()">
-          <svg viewBox="0 0 24 24" width="18" fill="none" stroke="white" stroke-width="2.5"><path d="M12 22V12M2 12c4 0 10-4 10-10 0 6 6 10 10 10"/></svg>
-          <div><div>Удобрити</div><span class="ab-sub">−15 ☀️ → +3 см</span></div>
-        </button>
-      </div>
+
       <div id="tip-bar">
         <div class="user-pill" id="user-pill" onclick="showUserMenu()" title="Профіль"></div>
-        <div class="ref-promo">
-          <div class="ref-promo-icon">🎁</div>
-          <div class="ref-promo-text">
-            <div class="ref-promo-t1">Запроси друга</div>
-            <div class="ref-promo-t2">Отримайте +50 💧 разом</div>
-          </div>
-          <button class="ref-btn-3d" onclick="copyRefLink()">🔗 Запросити</button>
-        </div>
-        <div style="padding:4px 0 8px;font-size:11px;font-weight:700;color:rgba(255,255,255,0.4);text-align:center;text-transform:uppercase;letter-spacing:0.05em">📰 Читайте новини → Шукайте іконки 💧 та ☀️</div>
+        <div style="padding:4px 0 8px;font-size:10px;font-weight:700;color:rgba(255,255,255,0.3);text-align:center;text-transform:uppercase;letter-spacing:0.05em">📰 Читайте новини → Шукайте іконки 💧 та ☀️</div>
       </div>
     </div>
   </div>
@@ -486,9 +496,10 @@ function oakSVG(h){
   s.style.width = `${150 * scale}px`;
   s.style.height = `${225 * scale}px`;
 
-  // Stage badge
-  const stg=STAGES.filter(sg=>G.h>=sg.minH).pop()||STAGES[0];
-  document.getElementById('stage-badge').textContent=stg.badge;
+  // Stage integration into central info pill
+  const stg=STAGES.findLast(sg=>G.h>=sg.minH)||STAGES[0];
+  const stgEl = document.getElementById('ip-stage-text');
+  if(stgEl) stgEl.textContent = stg.badge;
   document.getElementById('h-chip').textContent=`🌳 ${G.h} см`;
 }
 
