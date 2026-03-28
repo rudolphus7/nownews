@@ -988,8 +988,8 @@
 
     .p-stats {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
       width: 100%
     }
 
@@ -1609,7 +1609,8 @@
         <div class="p-header" id="p-header"></div>
         <div class="p-stats">
           <div class="ps-box"><span class="ps-val" id="ps-h">0 см</span><span class="ps-lab">Висота</span></div>
-          <div class="ps-box"><span class="ps-val" id="ps-w">0</span><span class="ps-lab">Поливів</span></div>
+          <div class="ps-box"><span class="ps-val" id="ps-w">0</span><span class="ps-lab">Поливи</span></div>
+          <div class="ps-box"><span class="ps-val" id="ps-i">0</span><span class="ps-lab">Запрошено</span></div>
         </div>
         <div class="qlabel" style="text-align:center">🏆 Досягнення</div>
         <div class="ach-grid" id="ach-grid"></div>
@@ -1768,7 +1769,7 @@
       if (!sc && typeof supabase !== 'undefined') sc = supabase.createClient(SB, SK);
       return sc;
     }
-    let G = { w: 0, s: 0, h: 0, watered: 0, fert: 0, name: 'Мій Дуб', reads: 0, ms: {}, qp: {}, qd: {}, ql: {}, stealLog: {} };
+    let G = { w: 0, s: 0, h: 0, watered: 0, fert: 0, invites: 0, name: 'Мій Дуб', reads: 0, ms: {}, qp: {}, qd: {}, ql: {}, stealLog: {} };
     let myRank = null, allTrees = [];
 
     function oakSVG(h, svgId = 'oak-svg') {
@@ -1849,6 +1850,7 @@
           G.w = data.aqua_data || 0; G.s = data.solar_insight || 0;
           G.h = data.tree_height || 0; G.watered = data.tree_watered || 0;
           G.fert = data.tree_fertilized || 0; G.name = data.tree_name || 'Мій Дуб';
+          G.invites = data.tree_invites || 0;
           const gs = data.garden_state || {};
           G.reads = gs.reads || 0; G.ms = gs.ms || {};
           const qs = data.quests_state || {};
@@ -1864,7 +1866,8 @@
       return {
         user_id: uid, aqua_data: G.w, solar_insight: G.s,
         tree_height: G.h, tree_watered: G.watered, tree_fertilized: G.fert,
-        tree_name: G.name, last_active: new Date().toISOString(),
+        tree_name: G.name, tree_invites: G.invites, ref_code: refCode(uid),
+        last_active: new Date().toISOString(),
         garden_state: { reads: G.reads, ms: G.ms },
         quests_state: { p: G.qp, d: G.qd, l: G.ql },
         steal_log: G.stealLog, updated_at: new Date().toISOString()
@@ -2205,6 +2208,7 @@
       }
       document.getElementById('ps-h').textContent = `${G.h} см`;
       document.getElementById('ps-w').textContent = G.watered;
+      document.getElementById('ps-i').textContent = G.invites;
 
       const ag = document.getElementById('ach-grid'); ag.innerHTML = '';
       const achs = [
@@ -2253,10 +2257,19 @@
       localStorage.removeItem('pending_ref');
       try {
         if (!db()) return;
-        const { data: referrer } = await db().from('user_gamification').select('*').eq('user_id', pendingRef).maybeSingle();
+        // Search by ref_code column instead of UUID
+        const { data: referrer } = await db().from('user_gamification').select('*').eq('ref_code', pendingRef).maybeSingle();
         if (!referrer || referrer.user_id === myUid) return;
-        G.w += 50; G.s += 20; renderOak(); save();
-        await db().from('user_gamification').update({ aqua_data: (referrer.aqua_data || 0) + 50 }).eq('user_id', referrer.user_id);
+        
+        // Reward Invitee (current user)
+        G.w += 50; G.s += 20; 
+        renderOak(); save();
+        
+        // Reward Referrer
+        const newInvites = (referrer.tree_invites || 0) + 1;
+        const newAqua = (referrer.aqua_data || 0) + 50;
+        await db().from('user_gamification').update({ aqua_data: newAqua, tree_invites: newInvites }).eq('user_id', referrer.user_id);
+        
         toast('🎁 Бонус від реферального запрошення: +50 Води!');
         localStorage.setItem('ref_done', '1');
       } catch (e) { console.warn('ref error', e); }
