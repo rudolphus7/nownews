@@ -20,7 +20,7 @@ body{font-family:'Outfit',sans-serif;color:#f1f5f9;background:#060a0d url('/back
 .rank-pill{background:linear-gradient(135deg,var(--sol),#ea580c);border-radius:50px;padding:4px 10px;font-weight:900;font-size:11px}
 
 /* COMPACT DARK GLASS REFERRAL PILL (Top) */
-#ref-promo-top{position:absolute;top:74px;left:14px;right:14px;z-index:35;background:rgba(6,10,13,0.6);backdrop-filter:blur(25px);border:1px solid rgba(255,255,255,0.12);border-radius:50px;height:58px;padding:0 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 12px 30px rgba(0,0,0,0.4);overflow:hidden;transition:all 0.3s}
+#ref-promo-top{position:absolute;top:72px;left:14px;right:14px;z-index:35;background:rgba(6,10,13,0.6);backdrop-filter:blur(25px);border:1px solid rgba(255,255,255,0.12);border-radius:50px;height:58px;padding:0 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 12px 30px rgba(0,0,0,0.4);overflow:hidden;transition:all 0.3s}
 .ref-promo-icon{font-size:26px;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.4))}
 .ref-promo-text{flex:1;text-align:left}
 .ref-promo-t1{font-size:13px;font-weight:900;color:#fff;text-transform:uppercase;letter-spacing:0.04em}
@@ -29,16 +29,16 @@ body{font-family:'Outfit',sans-serif;color:#f1f5f9;background:#060a0d url('/back
 .ref-btn-3d:active{transform:translateY(3px);box-shadow:0 0 0 transparent}
 
 /* Info Pill integrated below Ref Card or as center bar */
-#info-pill{position:absolute;top:136px;left:50%;transform:translateX(-50%);background:rgba(6,10,13,0.5);backdrop-filter:blur(10px);border:1px solid var(--br);border-radius:50px;padding:5px 14px;display:flex;align-items:center;gap:12px;z-index:25}
+#info-pill{position:absolute;top:134px;left:50%;transform:translateX(-50%);background:rgba(6,10,13,0.5);backdrop-filter:blur(10px);border:1px solid var(--br);border-radius:50px;padding:5px 14px;display:flex;align-items:center;gap:12px;z-index:25}
 .ip-item{display:flex;align-items:center;gap:4px;font-size:11px;font-weight:900;color:#fff;white-space:nowrap}
 .ip-stage{color:var(--g);display:flex;align-items:center;gap:4px;padding-right:8px;border-right:1px solid rgba(255,255,255,0.1);white-space:nowrap;flex-shrink:0}
 .ip-label{font-size:8px;text-transform:uppercase;opacity:0.5}
 
 /* SCREENS with high-contrast smoky overlays */
-#area{flex:1;position:relative;overflow:hidden;margin-top:68px}
-.scr{display:none;position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;background:rgba(6,10,13,0.7);backdrop-filter:blur(20px);z-index:20}
+#area{flex:1;position:relative;overflow:hidden}
+.scr{display:none;position:absolute;inset:0;padding-top:68px;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;background:rgba(6,10,13,0.7);backdrop-filter:blur(20px);z-index:20}
 .scr.on{display:flex;flex-direction:column}
-#scr-oak{background:transparent;backdrop-filter:none;z-index:5;margin-top:-68px}
+#scr-oak{background:transparent;backdrop-filter:none;z-index:5;padding-top:0 !important;margin-top:0}
 .scr::-webkit-scrollbar{display:none}
 
 /* ── FOREST SCENE ── */
@@ -89,7 +89,7 @@ body{font-family:'Outfit',sans-serif;color:#f1f5f9;background:#060a0d url('/back
 
 /* QUESTS SCREEN */
 .qw{padding:12px 14px 20px}
-.qtabs{display:flex;gap:6px;margin-bottom:14px;background:var(--card);border:1px solid var(--br);border-radius:16px;padding:5px;position:sticky;top:0;z-index:100}
+.qtabs{display:flex;gap:6px;margin-bottom:14px;background:var(--card);border:1px solid var(--br);border-radius:16px;padding:5px;position:sticky;top:68px;z-index:100}
 .qt{flex:1;padding:9px;border-radius:11px;border:none;background:transparent;color:rgba(255,255,255,.45);font-family:'Outfit',sans-serif;font-size:13px;font-weight:800;cursor:pointer;transition:all .2s}
 .qt.on{background:var(--pur);color:#fff}
 .qlabel{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.12em;opacity:.4;margin:0 0 8px}
@@ -114,7 +114,7 @@ body{font-family:'Outfit',sans-serif;color:#f1f5f9;background:#060a0d url('/back
 
 /* FOREST/LEADERBOARD SCREEN */
 .fw{padding:12px 14px 20px}
-.ftabs{display:flex;gap:6px;margin-bottom:14px;background:rgba(15,23,42,0.9);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:5px;position:sticky;top:0;z-index:90}
+.ftabs{display:flex;gap:6px;margin-bottom:14px;background:rgba(15,23,42,0.9);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:5px;position:sticky;top:68px;z-index:90}
 .ft{flex:1;padding:10px;border-radius:11px;border:none;background:transparent;color:rgba(255,255,255,0.5);font-family:'Outfit',sans-serif;font-size:13px;font-weight:800;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px}
 .ft.on{background:var(--g2);color:#fff;box-shadow:0 4px 12px rgba(22,163,74,0.3)}
 .lb-card{background:var(--card);border:1px solid var(--br);border-radius:18px;padding:12px 13px;display:flex;align-items:center;gap:11px;margin-bottom:8px;transition:all .2s;cursor:pointer}
@@ -167,7 +167,7 @@ body{font-family:'Outfit',sans-serif;color:#f1f5f9;background:#060a0d url('/back
 
 /* NEIGHBOR VISIT UI */
 #scr-v{background:#060a0d url('/backgr.png') no-repeat center bottom;background-size:cover;z-index:25;flex-direction:column;justify-content:flex-end}
-.vn-header{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:rgba(6,10,13,0.8);backdrop-filter:blur(10px);border:1px solid var(--br);border-radius:50px;padding:8px 18px;z-index:30;display:flex;align-items:center;gap:10px}
+.vn-header{position:absolute;top:78px;left:50%;transform:translateX(-50%);background:rgba(6,10,13,0.8);backdrop-filter:blur(10px);border:1px solid var(--br);border-radius:50px;padding:8px 18px;z-index:30;display:flex;align-items:center;gap:10px}
 .vn-back{background:rgba(255,255,255,0.1);border:none;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;font-size:12px}
 .vn-title{font-size:13px;font-weight:900;text-transform:uppercase;letter-spacing:0.04em}
 .vn-oak{position:absolute;bottom:11%;left:50%;transform:translateX(-50%);transition:all 0.5s}
