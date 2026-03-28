@@ -1769,7 +1769,7 @@
       if (!sc && typeof supabase !== 'undefined') sc = supabase.createClient(SB, SK);
       return sc;
     }
-    let G = { w: 0, s: 0, h: 0, watered: 0, fert: 0, invites: 0, name: 'Мій Дуб', reads: 0, ms: {}, qp: {}, qd: {}, ql: {}, stealLog: {} };
+    let G = { w: 0, s: 0, h: 0, watered: 0, fert: 0, invites: 0, referrer_id: null, name: 'Мій Дуб', reads: 0, ms: {}, qp: {}, qd: {}, ql: {}, stealLog: {} };
     let myRank = null, allTrees = [];
 
     function oakSVG(h, svgId = 'oak-svg') {
@@ -1850,6 +1850,7 @@
           G.w = data.aqua_data || 0; G.s = data.solar_insight || 0;
           G.h = data.tree_height || 0; G.watered = data.tree_watered || 0;
           G.fert = data.tree_fertilized || 0; G.name = data.tree_name || 'Мій Дуб';
+          G.referrer_id = data.referrer_id || null;
           const gs = data.garden_state || {};
           G.reads = gs.reads || 0; G.ms = gs.ms || {};
           const qs = data.quests_state || {};
@@ -1873,7 +1874,7 @@
     }
 
     function buildSave() {
-      return {
+      const obj = {
         user_id: uid, aqua_data: G.w, solar_insight: G.s,
         tree_height: G.h, tree_watered: G.watered, tree_fertilized: G.fert,
         tree_name: G.name, last_active: new Date().toISOString(),
@@ -1881,6 +1882,8 @@
         quests_state: { p: G.qp, d: G.qd, l: G.ql },
         steal_log: G.stealLog, updated_at: new Date().toISOString()
       };
+      if (G.referrer_id) obj.referrer_id = G.referrer_id;
+      return obj;
     }
     async function save() { try { if (!db()) return; await db().from('user_gamification').upsert(buildSave()); } catch (e) { console.warn(e); } }
 
@@ -2267,8 +2270,7 @@
       try {
         if (!db()) return;
 
-        // Find referrer: fetch candidates and match short code client-side
-        // (ref code is deterministic: refCode(user_id) === pendingRef)
+        // Find referrer by scanning all user_ids and matching deterministic short code
         const { data: allUsers } = await db()
           .from('user_gamification')
           .select('user_id')
@@ -2276,18 +2278,16 @@
 
         const referrer = (allUsers || []).find(r => refCode(r.user_id) === pendingRef);
 
-        // Award the invitee regardless
-        G.w += 50; G.s += 20; renderOak();
-
+        // Store referrer_id in state so buildSave() will persist it
         if (referrer) {
-          // Save referrer_id so the referrer gets rewarded on their next login
-          await db().from('user_gamification')
-            .update({ referrer_id: referrer.user_id })
-            .eq('user_id', myUid);
+          G.referrer_id = referrer.user_id;
         }
 
-        // Save after updating water/sun
-        save();
+        // Award the invitee
+        G.w += 50; G.s += 20;
+        
+        // save() will upsert the row including referrer_id
+        renderOak(); await save();
         toast('🎁 +50 💧 +20 ☀️ Реферальний бонус!');
         localStorage.setItem('ref_done', '1');
       } catch (e) { console.warn('ref error', e); }
