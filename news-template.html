@@ -24,6 +24,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="/components/header.css?v=7">
     <script defer src="/components/header.js?v=7"></script>
+    <script defer src="/gamification-engine.js"></script>
 
     <!-- Google Analytics 4 -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-383BY386JQ"></script>
@@ -517,12 +518,38 @@
                             </div>
                         </div>
 
-                        <!-- Related News -->
-                        <div>
-                            <h3
-                                class="text-xl font-black text-slate-900 mb-8 flex items-center tracking-tighter italic">
-                                <span class="w-2 h-6 bg-orange-600 rounded-full mr-3"></span>Також читають
-                            </h3>
+                            <!-- Gamification Widget -->
+                            <div class="bg-[#2e1065] rounded-[2.5rem] p-8 text-white shadow-xl border border-[#7c3aed]/30 relative overflow-hidden group mb-8">
+                                <div class="absolute top-0 right-0 w-32 h-32 bg-[#7c3aed]/20 rounded-full blur-[40px] -mr-16 -mt-16"></div>
+                                <div class="relative z-10">
+                                    <div class="flex items-center gap-4 mb-4">
+                                        <div class="w-12 h-12 bg-[#7c3aed] rounded-2xl flex items-center justify-center shadow-lg">
+                                            <span class="text-2xl">🌱</span>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-sm font-black uppercase tracking-tighter italic">Мій сад</h4>
+                                            <p class="text-[9px] text-indigo-300 font-bold uppercase tracking-widest">Цифровий садівник</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex justify-between items-end">
+                                        <div>
+                                            <div class="text-[10px] font-black uppercase opacity-50 mb-1">Ресурси</div>
+                                            <div class="flex gap-3 text-lg font-black">
+                                                <span><span class="gamification-aqua-val">0</span> 💧</span>
+                                                <span><span class="gamification-solar-val">0</span> ☀️</span>
+                                            </div>
+                                        </div>
+                                        <a href="/games.html" class="text-[9px] font-black uppercase tracking-widest text-[#7c3aed] bg-white px-4 py-2 rounded-full hover:bg-orange-600 hover:text-white transition">Увійти</a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Related News -->
+                            <div>
+                                <h3
+                                    class="text-xl font-black text-slate-900 mb-8 flex items-center tracking-tighter italic">
+                                    <span class="w-2 h-6 bg-orange-600 rounded-full mr-3"></span>Також читають
+                                </h3>
                             <div id="related-list" class="space-y-8">
                                 <!-- Loaded via JS -->
                             </div>
@@ -1268,6 +1295,7 @@
                     userName.value = '';
                     content.value = '';
                     loadComments(currentPost.id);
+                    if (window.awardSolarInsight) window.awardSolarInsight();
                 } catch (err) {
                     alert("Помилка: " + err.message);
                 } finally {
@@ -1328,6 +1356,7 @@
                 if (error) throw error;
                 localStorage.setItem(`reaction_${currentPost.id}`, type);
                 btn.classList.add('bg-orange-600/20', 'border-orange-600');
+                if (window.awardSolarInsight) window.awardSolarInsight();
 
                 const countElem = document.getElementById(`count-${type}`);
                 if (countElem) countElem.innerText = parseInt(countElem.innerText) + 1;

@@ -189,6 +189,73 @@
     color: #f97316 !important; /* Orange text on hover */
 }
 
+/* Gamification Floating Badge */
+.gamification-badge {
+    position: fixed;
+    right: 0;
+    bottom: calc(25% - 90px); /* Positioned below voice badge */
+    z-index: 9999;
+    background: #2e1065 !important; /* Deep purple */
+    color: white;
+    height: 80px !important;
+    width: 86px !important;
+    display: flex !important;
+    align-items: center !important;
+    border-radius: 40px 0 0 40px !important;
+    text-decoration: none !important;
+    box-shadow: -10px 10px 40px rgba(0, 0, 0, 0.4) !important;
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+    overflow: hidden !important;
+    border: 2px solid rgba(255, 255, 255, 0.2) !important;
+    border-right: none !important;
+}
+
+.gamification-badge:hover {
+    width: 260px !important;
+    background: #4c1d95 !important;
+    box-shadow: -15px 15px 50px rgba(0, 0, 0, 0.5) !important;
+}
+
+.gamification-badge .badge-content {
+    display: flex !important;
+    align-items: center !important;
+    padding-left: 30px !important;
+    gap: 20px !important;
+    width: max-content !important;
+}
+
+.gamification-badge .badge-icon {
+    width: 32px !important;
+    height: 32px !important;
+    flex-shrink: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.gamification-badge .badge-icon svg {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.gamification-badge .badge-text {
+    font-size: 15px !important;
+    font-weight: 900 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.1em !important;
+    color: white !important;
+    white-space: nowrap !important;
+    opacity: 0 !important;
+    transform: translateX(20px) !important;
+    transition: all 0.4s ease 0.1s !important;
+}
+
+.gamification-badge:hover .badge-text {
+    opacity: 1 !important;
+    transform: translateX(0) !important;
+    color: #a855f7 !important; /* Purple text on hover */
+}
+
 /* Mobile adjustments */
 @media (max-width: 768px) {
     .voice-news-badge {
@@ -219,6 +286,35 @@
     }
 
     .voice-news-badge:hover .badge-text {
+        opacity: 1 !important;
+        transform: translateX(0) !important;
+    }
+
+    .gamification-badge {
+        bottom: calc(20% - 70px) !important;
+        height: 64px !important;
+        width: 70px !important;
+        border-radius: 32px 0 0 32px !important;
+    }
+    
+    .gamification-badge:hover {
+        width: 210px !important;
+    }
+    
+    .gamification-badge .badge-content {
+        padding-left: 20px !important;
+    }
+    
+    .gamification-badge .badge-icon {
+        width: 28px !important;
+        height: 28px !important;
+    }
+
+    .gamification-badge .badge-text {
+        font-size: 12px !important;
+    }
+
+    .gamification-badge:hover .badge-text {
         opacity: 1 !important;
         transform: translateX(0) !important;
     }

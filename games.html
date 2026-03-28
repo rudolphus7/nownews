@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Цифровий Садівник | BUKVA NEWS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/main.css">
+    <style>
+        :root {
+            --brand-orange: #ea580c;
+            --brand-purple: #7c3aed;
+            --aqua-data: #6366f1;
+            --glass-bg: rgba(15, 23, 42, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #020617;
+            background-image: 
+                radial-gradient(circle at 0% 0%, rgba(124, 58, 237, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 100% 100%, rgba(234, 88, 12, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 50% 50%, #020617 0%, #000 100%);
+            color: #f8fafc;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        h1, h2, h3, h4 { font-family: 'Outfit', sans-serif; }
+
+        .game-container {
+            display: grid;
+            grid-template-columns: 320px 1fr 340px;
+            height: 100vh;
+            padding-top: 100px;
+            gap: 20px;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Isometric Viewport */
+        .viewport {
+            position: relative;
+            overflow: hidden;
+            border-radius: 40px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .isometric-grid {
+            position: relative;
+            width: 1200px;
+            height: 800px;
+            transform: rotateX(60deg) rotateZ(-45deg);
+            transform-style: preserve-3d;
+            transition: transform 0.5s ease;
+        }
+
+        .tile {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            background: rgba(99, 102, 241, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .tile:hover {
+            background: rgba(99, 102, 241, 0.2);
+            transform: translateZ(10px);
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+        }
+
+        /* Objects */
+        .game-object {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%) rotateZ(45deg) rotateX(-60deg);
+            transform-origin: bottom center;
+            pointer-events: none;
+        }
+
+        /* Resource HUD */
+        .hud {
+            position: absolute;
+            top: 120px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            z-index: 100;
+        }
+
+        .resource-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            padding: 12px 24px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .resource-icon {
+            width: 24px;
+            height: 24px;
+        }
+
+        .resource-value {
+            font-weight: 900;
+            font-size: 18px;
+            color: white;
+        }
+
+        .resource-label {
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            opacity: 0.5;
+        }
+
+        /* Sidebar Panels */
+        .panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(30px);
+            border: 1px solid var(--glass-border);
+            margin: 0 20px 20px;
+            border-radius: 35px;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .panel-title {
+            font-size: 18px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--brand-orange);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .quest-item {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--glass-border);
+            padding: 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .quest-item:hover {
+            background: rgba(255,255,255,0.07);
+            border-color: var(--brand-purple);
+            transform: translateX(5px);
+        }
+
+        .quest-reward {
+            font-size: 11px;
+            font-weight: 900;
+            color: var(--aqua-data);
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* Global Progress */
+        .global-progress {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 600px;
+            background: var(--glass-bg);
+            padding: 20px 30px;
+            border-radius: 30px;
+            border: 1px solid var(--glass-border);
+            text-align: center;
+        }
+
+        .progress-bar-bg {
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            width: 65%;
+            background: linear-gradient(to right, var(--aqua-data), var(--brand-purple));
+            box-shadow: 0 0 20px var(--aqua-data);
+        }
+
+        /* Animations */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .floating { animation: float 4s ease-in-out infinite; }
+
+    </style>
+</head>
+<body>
+    <div id="header-placeholder"></div>
+
+    <div class="game-container">
+        <!-- Left Panel: Shop/Resources -->
+        <aside>
+            <div class="panel">
+                <h3 class="panel-title">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                    Магазин насіння
+                </h3>
+                <div class="space-y-4">
+                    <div class="quest-item">
+                        <div class="font-bold text-sm uppercase">Дерево Знань</div>
+                        <div class="text-[10px] opacity-40 mt-1">Основа вашого саду. Генерує Solar-Insight.</div>
+                        <div class="quest-reward">Вартість: 100 💧</div>
+                    </div>
+                    <div class="quest-item opacity-50">
+                        <div class="font-bold text-sm uppercase">Смарт-Бібліотека</div>
+                        <div class="text-[10px] opacity-40 mt-1">Відкривається на 5 рівні.</div>
+                        <div class="quest-reward">Locked</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h3 class="panel-title" style="color: #10b981;">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Мої досягнення
+                </h3>
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="w-full aspect-square bg-white/5 rounded-2xl border border-white/5 flex items-center justify-center text-2xl">🌱</div>
+                    <div class="w-full aspect-square bg-white/5 rounded-2xl border border-white/5 flex items-center justify-center text-2xl grayscale">💧</div>
+                    <div class="w-full aspect-square bg-white/5 rounded-2xl border border-white/5 flex items-center justify-center text-2xl grayscale">🏙️</div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Central Viewport -->
+        <main class="viewport">
+            <div class="hud">
+                <div class="resource-card">
+                    <div class="resource-icon">💧</div>
+                    <div>
+                        <div class="resource-value" id="val-aqua">0</div>
+                        <div class="resource-label">Aqua-Data</div>
+                    </div>
+                </div>
+                <div class="resource-card">
+                    <div class="resource-icon">☀️</div>
+                    <div>
+                        <div class="resource-value" id="val-solar">0</div>
+                        <div class="resource-label">Solar-Insight</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="isometric-grid" id="grid">
+                <!-- Tiles will be generated by JS -->
+            </div>
+
+            <div class="global-progress">
+                <div class="text-[10px] font-black uppercase tracking-[0.4em] opacity-40">Глобальний фонтан міста</div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill"></div>
+                </div>
+                <div class="flex justify-between text-[9px] font-black uppercase opacity-60">
+                    <span>652,431 / 1,000,000 💧</span>
+                    <span>84% завершено</span>
+                </div>
+            </div>
+        </main>
+
+        <!-- Right Panel: Tasks -->
+        <aside>
+            <div class="panel">
+                <h3 class="panel-title">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Щоденні місії
+                </h3>
+                <div class="space-y-4">
+                    <div class="quest-item" onclick="location.href='/'">
+                        <div class="font-bold text-sm uppercase">Глибоке читання</div>
+                        <div class="text-[10px] opacity-40 mt-1">Прочитайте 3 статті повністю (скрол 80%+ / 3 хв).</div>
+                        <div class="quest-reward">+30 Aqua-Data 💧</div>
+                    </div>
+                    <div class="quest-item" onclick="location.href='/'">
+                        <div class="font-bold text-sm uppercase">Активний коментатор</div>
+                        <div class="text-[10px] opacity-40 mt-1">Залиште 1 конструктивний коментар.</div>
+                        <div class="quest-reward">+10 Solar-Insight ☀️</div>
+                    </div>
+                    <div class="quest-item" onclick="location.href='/'">
+                        <div class="font-bold text-sm uppercase">Меценат знань</div>
+                        <div class="text-[10px] opacity-40 mt-1">Поділіться статтею у Facebook або Telegram.</div>
+                        <div class="quest-reward">+1 Насіння 🌱</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <button onclick="location.href='/'" class="w-full py-5 bg-orange-600 rounded-3xl font-black uppercase tracking-[0.2em] text-[11px] hover:bg-orange-500 scale-100 active:scale-95 transition-all shadow-xl shadow-orange-600/20">
+                    Заробити ресурси
+                </button>
+                <div class="text-center text-[10px] font-bold opacity-30 uppercase tracking-[0.1em]">
+                    Перейти до новин порталу
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module">
+        import { SiteHeader } from './components/header.js';
+
+        // Initialize Header
+        const header = new SiteHeader();
+        header.init();
+
+        // Create isometric grid
+        const grid = document.getElementById('grid');
+        const rows = 8;
+        const cols = 8;
+        const tileSize = 100;
+
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+                const tile = document.createElement('div');
+                tile.className = 'tile';
+                tile.style.top = `${r * tileSize}px`;
+                tile.style.left = `${c * tileSize}px`;
+                
+                // Randomly add a small sprout to some tiles for visual
+                if (Math.random() > 0.9) {
+                    const sprout = document.createElement('div');
+                    sprout.className = 'game-object floating';
+                    sprout.innerHTML = `
+                        <div style="font-size: 40px;">🌱</div>
+                    `;
+                    tile.appendChild(sprout);
+                }
+
+                grid.appendChild(tile);
+            }
+        }
+
+        // Load resources from localStorage
+        function loadResources() {
+            const aqua = localStorage.getItem('aqua_data') || 0;
+            const solar = localStorage.getItem('solar_insight') || 0;
+            document.getElementById('val-aqua').innerText = aqua;
+            document.getElementById('val-solar').innerText = solar;
+        }
+
+        loadResources();
+
+        // Simple zoom effect on scroll inside viewport
+        document.querySelector('.viewport').addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const currentScale = grid.style.transform.match(/scale\((.*?)\)/)?.[1] || 1;
+            const newScale = Math.max(0.5, Math.min(1.5, parseFloat(currentScale) - e.deltaY * 0.001));
+            grid.style.transform = `rotateX(60deg) rotateZ(-45deg) scale(${newScale})`;
+        });
+
+    </script>
+</body>
+</html>

@@ -85,6 +85,7 @@ class SiteHeader {
         try {
             this.renderPlaceholder();
             this.renderVoiceBadge();
+            this.renderGamificationBadge();
             this.setupEventListeners();
 
             // Hydration: Check if data is already provided by SSR
@@ -237,6 +238,35 @@ class SiteHeader {
                     </svg>
                 </span>
                 <span class="badge-text">Голосові новини</span>
+            </div>
+        `;
+        document.body.appendChild(badge);
+    }
+
+    renderGamificationBadge() {
+        if (document.getElementById('gamification-badge')) return;
+        
+        // Hide badge on the /live/ page
+        if (window.location.pathname.includes('/live/')) {
+            return;
+        }
+
+        const badge = document.createElement('a');
+        badge.id = 'gamification-badge';
+        badge.href = this.isLocal ? '/games.html' : '/games/';
+        badge.className = 'gamification-badge';
+        badge.innerHTML = `
+            <div class="badge-content">
+                <span class="badge-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+                        <line x1="6" y1="12" x2="10" y2="12"></line>
+                        <line x1="8" y1="10" x2="8" y2="14"></line>
+                        <rect x="2" y="6" width="20" height="12" rx="2"></rect>
+                        <line x1="15" y1="13" x2="15.01" y2="13"></line>
+                        <line x1="18" y1="11" x2="18.01" y2="11"></line>
+                    </svg>
+                </span>
+                <span class="badge-text">Гейміфікація</span>
             </div>
         `;
         document.body.appendChild(badge);
