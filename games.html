@@ -24,7 +24,12 @@
                 radial-gradient(circle at 50% 50%, #020617 0%, #000 100%);
             color: #f8fafc;
             min-height: 100vh;
-            overflow: hidden;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        @media (max-width: 1024px) {
+            body { overflow-y: auto; }
         }
 
         h1, h2, h3, h4 { font-family: 'Outfit', sans-serif; }
@@ -32,11 +37,20 @@
         .game-container {
             display: grid;
             grid-template-columns: 320px 1fr 340px;
-            height: 100vh;
-            padding-top: 100px;
+            min-height: 100vh;
+            padding-top: 80px;
             gap: 20px;
             position: relative;
             z-index: 10;
+        }
+
+        @media (max-width: 1200px) {
+            .game-container {
+                grid-template-columns: 1fr;
+                padding: 100px 20px 40px;
+                height: auto;
+            }
+            .panel { margin: 0 0 20px 0 !important; }
         }
 
         /* Isometric Viewport */
@@ -80,12 +94,29 @@
         /* Objects */
         .game-object {
             position: absolute;
-            bottom: 0;
+            bottom: 20px;
             left: 50%;
             transform: translateX(-50%) rotateZ(45deg) rotateX(-60deg);
             transform-origin: bottom center;
             pointer-events: none;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
         }
+
+        .plant-stage {
+            width: 100%;
+            height: 100%;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            filter: drop-shadow(0 0 10px rgba(16, 185, 129, 0.3));
+        }
+
+        .stage-0 { display: none; }
+        .stage-1 { transform: scale(0.3); opacity: 0.6; } /* Seed */
+        .stage-2 { transform: scale(0.6); } /* Sprout */
+        .stage-3 { transform: scale(1); } /* Mature Tree */
 
         /* Resource HUD */
         .hud {
@@ -259,16 +290,20 @@
         <main class="viewport">
             <div class="hud">
                 <div class="resource-card">
-                    <div class="resource-icon">💧</div>
+                    <div class="resource-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
+                    </div>
                     <div>
-                        <div class="resource-value" id="val-aqua">0</div>
+                        <div class="resource-value gamification-aqua-val" id="val-aqua">0</div>
                         <div class="resource-label">Aqua-Data</div>
                     </div>
                 </div>
                 <div class="resource-card">
-                    <div class="resource-icon">☀️</div>
+                    <div class="resource-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                    </div>
                     <div>
-                        <div class="resource-value" id="val-solar">0</div>
+                        <div class="resource-value gamification-solar-val" id="val-solar">0</div>
                         <div class="resource-label">Solar-Insight</div>
                     </div>
                 </div>
@@ -328,58 +363,149 @@
     </div>
 
     <!-- Scripts -->
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script type="module">
-        import { SiteHeader } from './components/header.js';
+        const SUPABASE_URL = window.SUPABASE_URL || localStorage.getItem('supabase_url');
+        const SUPABASE_KEY = window.SUPABASE_KEY || localStorage.getItem('supabase_key');
+        
+        let supabase = null;
+        if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
+            supabase = window.supabase;
+        } else if (SUPABASE_URL && SUPABASE_KEY) {
+            supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_KEY);
+            window.supabase = supabase;
+        }
 
-        // Initialize Header
-        const header = new SiteHeader();
-        header.init();
+        const userId = localStorage.getItem('gamification_user_id');
+        let userState = { aqua_data: 0, solar_insight: 0, seeds: 0, garden_state: [] };
 
-        // Create isometric grid
-        const grid = document.getElementById('grid');
-        const rows = 8;
-        const cols = 8;
-        const tileSize = 100;
+        const PLANT_SVG = `
+            <svg class="plant-stage" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M50 90V40" stroke="#10B981" stroke-width="4" stroke-linecap="round"/>
+                <path d="M50 60C50 60 70 45 75 30" stroke="#10B981" stroke-width="4" stroke-linecap="round"/>
+                <path d="M50 60C50 60 30 45 25 30" stroke="#10B981" stroke-width="4" stroke-linecap="round"/>
+                <circle cx="50" cy="40" r="10" fill="#10B981" fill-opacity="0.3"/>
+            </svg>
+        `;
 
-        for (let r = 0; r < rows; r++) {
-            for (let c = 0; c < cols; c++) {
-                const tile = document.createElement('div');
-                tile.className = 'tile';
-                tile.style.top = `${r * tileSize}px`;
-                tile.style.left = `${c * tileSize}px`;
-                
-                // Randomly add a small sprout to some tiles for visual
-                if (Math.random() > 0.9) {
-                    const sprout = document.createElement('div');
-                    sprout.className = 'game-object floating';
-                    sprout.innerHTML = `
-                        <div style="font-size: 40px;">🌱</div>
-                    `;
-                    tile.appendChild(sprout);
-                }
+        async function init() {
+            if (!userId) return location.href = '/';
+            await loadState();
+            renderGrid();
+        }
 
-                grid.appendChild(tile);
+        async function loadState() {
+            if (!supabase) return;
+            const { data, error } = await supabase
+                .from('user_gamification')
+                .select('*')
+                .eq('user_id', userId)
+                .single();
+            
+            if (data) {
+                userState = data;
+                updateHUD();
             }
         }
 
-        // Load resources from localStorage
-        function loadResources() {
-            const aqua = localStorage.getItem('aqua_data') || 0;
-            const solar = localStorage.getItem('solar_insight') || 0;
-            document.getElementById('val-aqua').innerText = aqua;
-            document.getElementById('val-solar').innerText = solar;
+        function updateHUD() {
+            document.querySelectorAll('.gamification-aqua-val').forEach(el => el.innerText = userState.aqua_data);
+            document.querySelectorAll('.gamification-solar-val').forEach(el => el.innerText = userState.solar_insight);
         }
 
-        loadResources();
+        function renderGrid() {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
+            
+            const rows = 8;
+            const cols = 8;
+            const tileSize = 100;
 
-        // Simple zoom effect on scroll inside viewport
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    const tile = document.createElement('div');
+                    tile.className = 'tile';
+                    tile.style.top = `${r * tileSize}px`;
+                    tile.style.left = `${c * tileSize}px`;
+                    
+                    const plot = userState.garden_state?.find(p => p.r === r && p.c === c);
+                    if (plot && plot.stage > 0) {
+                        const obj = document.createElement('div');
+                        obj.className = `game-object stage-${plot.stage}`;
+                        obj.innerHTML = PLANT_SVG;
+                        tile.appendChild(obj);
+                    }
+
+                    tile.onclick = () => handleTileClick(r, c, plot);
+                    grid.appendChild(tile);
+                }
+            }
+        }
+
+        async function handleTileClick(r, c, plot) {
+            if (!plot) {
+                // Plant new seed
+                if (userState.aqua_data >= 50) {
+                    await updateDBRecord(r, c, 1);
+                } else {
+                    alert("Потрібно 50 Aqua-Data для посадки!");
+                }
+            } else if (plot.stage < 3) {
+                // Grow plant
+                if (userState.solar_insight >= 10) {
+                    await updateDBRecord(r, c, plot.stage + 1);
+                } else {
+                    alert("Потрібно 10 Solar-Insight для росту!");
+                }
+            }
+        }
+
+        async function updateDBRecord(r, c, stage) {
+            let newState = [...(userState.garden_state || [])];
+            const idx = newState.findIndex(p => p.r === r && p.c === c);
+            
+            if (idx > -1) newState[idx].stage = stage;
+            else newState.push({ r, c, stage });
+
+            const aquaDelta = idx === -1 ? -50 : 0;
+            const solarDelta = idx > -1 ? -10 : 0;
+
+            if (supabase) {
+                const { error } = await supabase
+                    .from('user_gamification')
+                    .update({ 
+                        garden_state: newState,
+                        aqua_data: userState.aqua_data + aquaDelta,
+                        solar_insight: userState.solar_insight + solarDelta
+                    })
+                    .eq('user_id', userId);
+
+                if (!error) {
+                    userState.garden_state = newState;
+                    userState.aqua_data += aquaDelta;
+                    userState.solar_insight += solarDelta;
+                    updateHUD();
+                    renderGrid();
+                }
+            }
+        }
+
+        init();
+
+        // Header Init
+        import { SiteHeader } from './components/header.js';
+        const header = new SiteHeader();
+        header.init();
+
+        // Zoom effect
         document.querySelector('.viewport').addEventListener('wheel', (e) => {
             e.preventDefault();
+            const grid = document.getElementById('grid');
             const currentScale = grid.style.transform.match(/scale\((.*?)\)/)?.[1] || 1;
             const newScale = Math.max(0.5, Math.min(1.5, parseFloat(currentScale) - e.deltaY * 0.001));
             grid.style.transform = `rotateX(60deg) rotateZ(-45deg) scale(${newScale})`;
         });
-
     </script>
 </body>
 </html>

@@ -550,7 +550,7 @@
                                 <div class="relative z-10">
                                     <div class="flex items-center gap-4 mb-4">
                                         <div class="w-12 h-12 bg-[#7c3aed] rounded-2xl flex items-center justify-center shadow-lg">
-                                            <span class="text-2xl">🌱</span>
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
                                         </div>
                                         <div>
                                             <h4 class="text-sm font-black uppercase tracking-tighter italic">Мій сад</h4>
@@ -595,6 +595,11 @@
         const SUPABASE_URL = 'https://kgrxlznhimwuvwhjfzhv.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_L4_HhLhbj_m6wbEc3ZqhcQ_QNGOLWXU';
         let _supabase;
+
+        if (typeof supabase !== 'undefined' && supabase.createClient) {
+            _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            window.supabase = _supabase;
+        }
 
         let currentPost = null;
 
