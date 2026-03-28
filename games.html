@@ -39,20 +39,19 @@ body{font-family:'Outfit',sans-serif;color:#f1f5f9;background:var(--dk);display:
 #moon{position:absolute;top:18px;right:30px;width:36px;height:36px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff9c4,#f59e0b);box-shadow:0 0 20px rgba(245,158,11,.4);opacity:.85}
 
 /* Mountain silhouettes */
-#mtn{position:absolute;bottom:30%;left:0;right:0;height:120px;pointer-events:none}
+#mtn{position:absolute;bottom:25%;left:0;right:0;height:180px;pointer-events:none}
 #mtn svg{width:100%;height:100%}
 
 /* Forest background silhouette */
-#forest-bg-trees{position:absolute;bottom:22%;left:0;right:0;height:90px;pointer-events:none}
+#forest-bg-trees{position:absolute;bottom:20%;left:0;right:0;height:120px;pointer-events:none}
 #forest-bg-trees svg{width:100%;height:100%}
 
 /* Ground */
-#ground{position:absolute;bottom:0;left:0;right:0;height:22%;background:linear-gradient(180deg,#14421a,#0a2a0c,#071a07);border-radius:50% 50% 0 0/40px 40px 0 0}
-#ground::before{content:'';position:absolute;top:0;left:0;right:0;height:10px;background:linear-gradient(180deg,rgba(34,197,94,.25),transparent);border-radius:50% 50% 0 0/10px 10px 0 0}
+#ground{position:absolute;bottom:0;left:0;right:0;height:24%;background:radial-gradient(ellipse at 50% 0%, #20712d 0%, #0d4d1d 60%, #072a0f 100%);border-radius:50% 50% 0 0/80px 80px 0 0;box-shadow:inset 0 20px 40px rgba(0,0,0,0.3)}
 
 /* THE OAK */
-#oak-wrap{position:absolute;bottom:22%;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;transition:all .8s cubic-bezier(.19,1,.22,1);z-index:5}
-#oak-svg{display:block;transition:all .8s cubic-bezier(.19,1,.22,1);filter:drop-shadow(0 4px 20px rgba(34,197,94,.25))}
+#oak-wrap{position:absolute;bottom:24%;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;transition:all 1s cubic-bezier(.34,1.56,.64,1);z-index:5}
+#oak-svg{display:block;transition:all 1s cubic-bezier(.34,1.56,.64,1);filter:drop-shadow(0 8px 30px rgba(0,0,0,.4))}
 
 /* Particle effects */
 .particle{position:absolute;pointer-events:none;z-index:10;font-size:18px;animation:float-up 1.2s ease forwards}
@@ -71,13 +70,27 @@ body{font-family:'Outfit',sans-serif;color:#f1f5f9;background:var(--dk);display:
 #btn-rename{background:var(--card);border:1px solid var(--br);padding:5px 10px;border-radius:10px;font-family:'Outfit',sans-serif;font-size:11px;font-weight:700;color:rgba(255,255,255,.5);cursor:pointer}
 .stats3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px}
 .sp{background:var(--card);border:1px solid var(--br);border-radius:14px;padding:8px;text-align:center}.sp .sv{font-size:17px;font-weight:900}.sp .sl{font-size:8px;opacity:.5;font-weight:700;text-transform:uppercase}
-.act-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
-.ab{border:none;border-radius:18px;padding:13px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .2s;letter-spacing:.01em}
-.ab:active{transform:scale(.97)}.ab:disabled{opacity:.35;background:#374151!important;box-shadow:none!important;cursor:not-allowed}
-.ab.water{background:linear-gradient(135deg,var(--aq),#0284c7);color:#fff;box-shadow:0 6px 20px rgba(6,182,212,.3)}
-.ab.fert{background:linear-gradient(135deg,var(--sol),#d97706);color:#fff;box-shadow:0 6px 20px rgba(245,158,11,.3)}
-.ab-sub{font-size:10px;opacity:.7;font-weight:600;display:block}
-#tip-bar{padding:8px 12px;background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.2);border-radius:14px;font-size:11px;font-weight:600;color:#86efac;text-align:center;margin-bottom:4px}
+.act-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;padding:0 4px}
+.ab{border:none;border-radius:22px;padding:14px;font-family:'Outfit',sans-serif;font-size:15px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.15s cubic-bezier(0.4,0,0.2,1);position:relative;letter-spacing:0.02em}
+.ab:active{transform:translateY(6px);box-shadow:0 0 0 transparent !important}
+.ab:disabled{opacity:0.4;background:#374151 !important;box-shadow:none !important;transform:none !important;cursor:not-allowed}
+.ab.water{background:linear-gradient(180deg,#0ea5e9 0%,#0284c7 100%);color:#fff;box-shadow:0 8px 0 #0369a1, 0 12px 20px rgba(2,132,199,0.4)}
+.ab.fert{background:linear-gradient(180deg,#fbbf24 0%,#d97706 100%);color:#fff;box-shadow:0 8px 0 #b45309, 0 12px 20px rgba(217,119,6,0.4)}
+.ab-sub{font-size:10px;opacity:0.9;font-weight:700;display:block;margin-top:2px}
+#tip-bar{padding:0}
+
+/* REFERRAL PREMIUM CARD */
+.ref-promo{background:linear-gradient(145deg,rgba(34,197,94,0.1 5) 0%,rgba(6,182,212,0.1) 100%);border:1px solid rgba(255,255,255,0.08);border-radius:24px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:6px;box-shadow:0 10px 30px rgba(0,0,0,0.3);position:relative;overflow:hidden}
+.ref-promo::before{content:'';position:absolute;top:0;left:0;right:0;height:40%;background:linear-gradient(180deg,rgba(255,255,255,0.06),transparent);pointer-events:none}
+.ref-promo-icon{font-size:32px;line-height:1;filter:drop-shadow(0 6px 10px rgba(0,0,0,0.4));animation:float 3s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+.ref-promo-text{flex:1;text-align:left}
+.ref-promo-t1{font-size:14px;font-weight:900;color:#a7f3d0;text-transform:uppercase;letter-spacing:0.03em;margin-bottom:2px;text-shadow:0 2px 4px rgba(0,0,0,0.5)}
+.ref-promo-t2{font-size:11px;font-weight:600;color:rgba(255,255,255,0.7)}
+.ref-btn-3d{background:linear-gradient(180deg,#22c55e 0%,#16a34a 100%);border:none;border-radius:14px;padding:12px 16px;font-family:'Outfit',sans-serif;font-size:12px;font-weight:900;color:#fff;box-shadow:0 5px 0 #15803d, 0 10px 15px rgba(22,163,74,0.4);cursor:pointer;transition:all 0.1s}
+.ref-btn-3d:active{transform:translateY(5px);box-shadow:0 0 0 #15803d}
+.user-pill{position:absolute;top:-8px;right:10px;background:var(--card);border:1px solid var(--br);border-radius:50px;padding:4px 10px;font-size:10px;font-weight:700;display:flex;align-items:center;gap:6px;cursor:pointer;backdrop-filter:blur(5px);box-shadow:0 4px 10px rgba(0,0,0,0.4)}
+.user-pill img{width:16px;height:16px;border-radius:50%;object-fit:cover}
 
 /* QUESTS SCREEN */
 .qw{padding:12px 14px 20px}
@@ -203,10 +216,18 @@ body{font-family:'Outfit',sans-serif;color:#f1f5f9;background:var(--dk);display:
       <div id="sky-bg"></div>
       <div id="stars"></div>
       <div id="moon"></div>
-      <div id="mtn"><svg viewBox="0 0 400 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><polygon points="0,120 60,30 130,80 190,10 260,70 320,20 400,60 400,120" fill="#061a08" opacity=".8"/><polygon points="0,120 40,50 100,90 160,30 230,75 290,35 360,65 400,45 400,120" fill="#071f09" opacity=".6"/></svg></div>
-      <div id="forest-bg-trees"><svg viewBox="0 0 400 90" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-        <polygon points="20,90 35,30 50,90" fill="#0d2e0f"/><polygon points="40,90 58,15 76,90" fill="#0f3510"/><polygon points="70,90 82,40 94,90" fill="#0d2e0f"/><polygon points="90,90 108,22 126,90" fill="#112e13"/><polygon points="130,90 148,35 166,90" fill="#0d2e0f"/><polygon points="155,90 170,18 185,90" fill="#0f3311"/><polygon points="200,90 220,42 240,90" fill="#0d2e0f"/><polygon points="240,90 255,28 270,90" fill="#112e13"/><polygon points="280,90 296,36 312,90" fill="#0d2e0f"/><polygon points="320,90 340,20 360,90" fill="#0f3311"/><polygon points="355,90 372,44 389,90" fill="#0d2e0f"/>
-      </svg></div>
+      <div id="mtn">
+        <svg viewBox="0 0 1000 300" preserveAspectRatio="none">
+          <path d="M0,300 L0,180 Q80,160 160,110 T400,160 T700,90 T1000,170 L1000,300 Z" fill="#061e0f" opacity="0.7"/>
+          <path d="M0,300 L0,220 Q120,200 250,230 T600,190 T1000,240 L1000,300 Z" fill="#082d15" opacity="0.9"/>
+        </svg>
+      </div>
+      <div id="forest-bg-trees">
+        <svg viewBox="0 0 1000 200" preserveAspectRatio="none">
+          <path d="M0,200 L0,150 Q100,120 280,160 T650,130 T1000,150 L1000,200 Z" fill="#0b401b"/>
+          <path d="M0,200 L0,180 Q150,150 400,190 T850,160 T1000,180 L1000,200 Z" fill="#0d4d20"/>
+        </svg>
+      </div>
       <div id="ground"></div>
       <div id="stage-badge" id="sbadge">🌱 Насіння</div>
       <div id="h-chip">🌳 0 см</div>
@@ -234,12 +255,17 @@ body{font-family:'Outfit',sans-serif;color:#f1f5f9;background:var(--dk);display:
           <div><div>Удобрити</div><span class="ab-sub">−15 ☀️ → +3 см</span></div>
         </button>
       </div>
-      <div id="tip-bar" style="padding:0">
-        <div class="ref-bar">
-          <button class="ref-copy-btn" onclick="copyRefLink()">🔗 Запросити друга → +50 Води</button>
-          <div class="user-pill" id="user-pill" onclick="showUserMenu()" title="Профіль"></div>
+      <div id="tip-bar">
+        <div class="user-pill" id="user-pill" onclick="showUserMenu()" title="Профіль"></div>
+        <div class="ref-promo">
+          <div class="ref-promo-icon">🎁</div>
+          <div class="ref-promo-text">
+            <div class="ref-promo-t1">Запроси друга</div>
+            <div class="ref-promo-t2">Отримайте +50 💧 разом</div>
+          </div>
+          <button class="ref-btn-3d" onclick="copyRefLink()">🔗 Запросити</button>
         </div>
-        <div style="padding:8px 0 4px;font-size:11px;font-weight:600;color:#86efac;text-align:center">📰 Читайте новини → 💧 Вода та ☀️ Сонце</div>
+        <div style="padding:4px 0 8px;font-size:11px;font-weight:700;color:rgba(255,255,255,0.4);text-align:center;text-transform:uppercase;letter-spacing:0.05em">📰 Читайте новини → Шукайте іконки 💧 та ☀️</div>
       </div>
     </div>
   </div>
@@ -335,67 +361,141 @@ let sc,uid;
 let G={w:0,s:0,h:0,watered:0,fert:0,name:'Мій Дуб',reads:0,ms:{},qp:{},qd:{},ql:{},stealLog:{}};
 let myRank=null,allTrees=[];
 
-// ── OAK SVG GENERATOR
 function oakSVG(h){
   const s=document.getElementById('oak-svg');
   // Stage calculation
   const stage=h<5?0:h<20?1:h<50?2:h<100?3:h<200?4:5;
-  // Scale oak proportionally
-  const scale=Math.min(1,Math.max(0.08, h/120));
-  const tw=Math.max(8,Math.min(32,8+h*0.12));  // trunk width
-  const th=Math.max(6,Math.min(160,h*1.1));     // trunk height
-  const cr=Math.max(0,Math.min(110,h*0.9));     // crown radius
-  const cx=100, cy=280-th;
+
+  // Defs for gradients and dropshadows
+  const defs = `
+    <defs>
+      <linearGradient id="trunk-g" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#452311"/>
+        <stop offset="30%" stop-color="#5c3118"/>
+        <stop offset="70%" stop-color="#452311"/>
+        <stop offset="100%" stop-color="#2c1408"/>
+      </linearGradient>
+      <linearGradient id="leaf-dark" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#14532d"/><stop offset="100%" stop-color="#064e3b"/>
+      </linearGradient>
+      <linearGradient id="leaf-mid" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#22c55e"/><stop offset="100%" stop-color="#15803d"/>
+      </linearGradient>
+      <linearGradient id="leaf-light" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#4ade80"/><stop offset="100%" stop-color="#16a34a"/>
+      </linearGradient>
+      <filter id="glow"><feGaussianBlur stdDeviation="3" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    </defs>
+  `;
 
   let svgContent='';
 
-  if(h===0){
-    // Seed
-    svgContent=`
-      <ellipse cx="100" cy="285" rx="14" ry="7" fill="#14421a" opacity=".8"/>
-      <ellipse cx="100" cy="282" rx="8" ry="6" fill="#5c3317"/>
-      <line x1="100" y1="276" x2="100" y2="268" stroke="#22c55e" stroke-width="2"/>
-      <ellipse cx="100" cy="265" rx="6" ry="4" fill="#22c55e" opacity=".8"/>`;
-  } else if(stage===1){
-    // Sprout
-    svgContent=`
-      <rect x="${cx-tw/2}" y="${280-th}" width="${tw}" height="${th}" rx="${tw/2}" fill="url(#trunk-g)"/>
-      <ellipse cx="${cx-8}" cy="${280-th-5}" rx="12" ry="8" fill="#22c55e" transform="rotate(-30,${cx-8},${280-th-5})"/>
-      <ellipse cx="${cx+8}" cy="${280-th-8}" rx="10" ry="7" fill="#16a34a" transform="rotate(20,${cx+8},${280-th-8})"/>`;
-  } else {
-    // Grown tree with crown layers
-    const mul=stage>=4?1.15:1;
-    svgContent=`
-      <ellipse cx="${cx+cr*0.15}" cy="${cy-cr*0.1}" rx="${cr*0.85*mul}" ry="${cr*0.75*mul}" fill="#14532d" opacity=".9"/>
-      <ellipse cx="${cx-cr*0.1}" cy="${cy+cr*0.05}" rx="${cr*0.9*mul}" ry="${cr*0.8*mul}" fill="#166534" opacity=".9"/>
-      <ellipse cx="${cx}" cy="${cy-cr*0.05}" rx="${cr*0.82*mul}" ry="${cr*0.72*mul}" fill="#15803d"/>
-      <ellipse cx="${cx-cr*0.08}" cy="${cy-cr*0.15}" rx="${cr*0.7*mul}" ry="${cr*0.62*mul}" fill="#16a34a"/>
-      <ellipse cx="${cx+cr*0.05}" cy="${cy-cr*0.2}" rx="${cr*0.6*mul}" ry="${cr*0.52*mul}" fill="#22c55e"/>
-      ${stage>=3?`<ellipse cx="${cx}" cy="${cy-cr*0.3}" rx="${cr*0.45*mul}" ry="${cr*0.35*mul}" fill="#4ade80" opacity=".6"/>`:''}
-      ${stage>=4?`<ellipse cx="${cx-cr*0.2}" cy="${cy+cr*0.2}" rx="${cr*0.35}" ry="${cr*0.25}" fill="#166534" opacity=".7"/>
-        <ellipse cx="${cx+cr*0.25}" cy="${cy+cr*0.15}" rx="${cr*0.3}" ry="${cr*0.22}" fill="#15803d" opacity=".7"/>`:''}
-      ${stage>=5?`<ellipse cx="${cx}" cy="${cy-cr*0.4}" rx="${cr*0.35}" ry="${cr*0.25}" fill="#bbf7d0" opacity=".25"/>
-        <ellipse cx="${cx-cr*0.35}" cy="${cy+cr*0.3}" rx="${cr*0.25}" ry="${cr*0.18}" fill="#166534"/>`:''}
-      <rect x="${cx-tw/2}" y="${280-th}" width="${tw}" height="${th}" rx="${tw/2}" fill="url(#trunk-g)"/>`;
+  if(stage===0){ // Насіння (0-4 см)
+    svgContent = `
+      <path d="M 70 280 C 70 265, 130 265, 130 280 Z" fill="#3f271d"/>
+      <path d="M 80 280 C 80 270, 120 270, 120 280 Z" fill="#2d1a11"/>
+      <ellipse cx="100" cy="272" rx="4" ry="3" fill="#a3e635" filter="url(#glow)"/>
+      <path d="M 100 270 Q 95 260 105 255" fill="none" stroke="#4ade80" stroke-width="2" stroke-linecap="round"/>
+      <path d="M 105 255 Q 110 255 108 260 Q 102 260 105 255" fill="#4ade80"/>
+      <path d="M 102 262 Q 95 260 97 265 Q 100 266 102 262" fill="#22c55e"/>
+    `;
+  } else if(stage===1){ // Паросток (5-19 см)
+    svgContent = `
+      <path d="M 100 280 Q 95 230 110 210" fill="none" stroke="#22c55e" stroke-width="4" stroke-linecap="round"/>
+      <path d="M 107 220 C 130 210, 130 230, 107 220" fill="url(#leaf-light)"/>
+      <path d="M 98 240 C 70 230, 70 250, 98 240" fill="url(#leaf-mid)"/>
+      <path d="M 110 210 C 120 190, 100 180, 110 210" fill="url(#leaf-light)"/>
+    `;
+  } else if(stage===2){ // Молоде дерево (20-49 см)
+    svgContent = `
+      <path d="M 95 280 L 105 280 L 102 170 L 98 170 Z" fill="url(#trunk-g)"/>
+      <path d="M 100 210 Q 120 190 125 180" fill="none" stroke="url(#trunk-g)" stroke-width="4" stroke-linecap="round"/>
+      <path d="M 100 190 Q 80 170 80 160" fill="none" stroke="url(#trunk-g)" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="125" cy="170" r="30" fill="url(#leaf-dark)"/>
+      <circle cx="80" cy="150" r="25" fill="url(#leaf-mid)"/>
+      <circle cx="100" cy="130" r="35" fill="url(#leaf-light)"/>
+    `;
+  } else if(stage===3){ // Дорослий дуб (50-99 см)
+    svgContent = `
+      <path d="M 85 280 Q 95 270 95 260 L 105 260 Q 105 270 115 280 Z" fill="url(#trunk-g)"/>
+      <path d="M 95 260 L 105 260 Q 102 120 100 120 Q 98 120 95 260 Z" fill="url(#trunk-g)"/>
+      <path d="M 100 200 Q 140 180 145 150" fill="none" stroke="url(#trunk-g)" stroke-width="6" stroke-linecap="round"/>
+      <path d="M 100 180 Q 60 150 55 120" fill="none" stroke="url(#trunk-g)" stroke-width="5" stroke-linecap="round"/>
+      <path d="M 100 140 Q 120 120 125 110" fill="none" stroke="url(#trunk-g)" stroke-width="4" stroke-linecap="round"/>
+      <circle cx="145" cy="140" r="35" fill="url(#leaf-dark)"/>
+      <circle cx="55" cy="110" r="35" fill="url(#leaf-dark)"/>
+      <circle cx="125" cy="100" r="40" fill="url(#leaf-mid)"/>
+      <circle cx="80" cy="90" r="40" fill="url(#leaf-mid)"/>
+      <circle cx="100" cy="65" r="45" fill="url(#leaf-light)"/>
+    `;
+  } else if(stage===4){ // Могутній дуб (100-199 см)
+    svgContent = `
+      <path d="M 75 280 Q 90 260 90 240 L 110 240 Q 110 260 125 280 Z" fill="url(#trunk-g)"/>
+      <path d="M 90 240 L 110 240 Q 105 100 100 100 Q 95 100 90 240 Z" fill="url(#trunk-g)"/>
+      <path d="M 95 210 Q 160 180 170 140" fill="none" stroke="url(#trunk-g)" stroke-width="10" stroke-linecap="round"/>
+      <path d="M 105 180 Q 40 150 35 110" fill="none" stroke="url(#trunk-g)" stroke-width="8" stroke-linecap="round"/>
+      <path d="M 100 140 Q 140 110 145 90" fill="none" stroke="url(#trunk-g)" stroke-width="6" stroke-linecap="round"/>
+      <path d="M 95 120 Q 70 90 70 70" fill="none" stroke="url(#trunk-g)" stroke-width="5" stroke-linecap="round"/>
+      <circle cx="170" cy="130" r="45" fill="url(#leaf-dark)"/>
+      <circle cx="35" cy="100" r="45" fill="url(#leaf-dark)"/>
+      <circle cx="145" cy="80" r="50" fill="url(#leaf-dark)"/>
+      <circle cx="70" cy="60" r="50" fill="url(#leaf-dark)"/>
+      <circle cx="120" cy="120" r="55" fill="url(#leaf-mid)"/>
+      <circle cx="80" cy="110" r="55" fill="url(#leaf-mid)"/>
+      <circle cx="100" cy="70" r="60" fill="url(#leaf-mid)"/>
+      <circle cx="150" cy="110" r="30" fill="url(#leaf-light)"/>
+      <circle cx="50" cy="80" r="30" fill="url(#leaf-light)"/>
+      <circle cx="120" cy="60" r="40" fill="url(#leaf-light)"/>
+      <circle cx="90" cy="40" r="45" fill="url(#leaf-light)"/>
+    `;
+  } else { // Дуб-Легенда (200+ см)
+    svgContent = `
+      <path d="M 60 280 Q 80 250 85 220 L 115 220 Q 120 250 140 280 Z" fill="url(#trunk-g)"/>
+      <path d="M 85 220 L 115 220 Q 108 80 100 80 Q 92 80 85 220 Z" fill="url(#trunk-g)"/>
+      <path d="M 95 190 Q 30 150 20 100" fill="none" stroke="url(#trunk-g)" stroke-width="12" stroke-linecap="round"/>
+      <path d="M 105 160 Q 180 130 190 80" fill="none" stroke="url(#trunk-g)" stroke-width="10" stroke-linecap="round"/>
+      <path d="M 90 120 Q 50 80 50 50" fill="none" stroke="url(#trunk-g)" stroke-width="8" stroke-linecap="round"/>
+      <path d="M 110 100 Q 150 60 150 40" fill="none" stroke="url(#trunk-g)" stroke-width="8" stroke-linecap="round"/>
+      
+      <circle cx="30" cy="100" r="50" fill="url(#leaf-dark)"/>
+      <circle cx="170" cy="80" r="50" fill="url(#leaf-dark)"/>
+      <circle cx="70" cy="60" r="60" fill="url(#leaf-dark)"/>
+      <circle cx="130" cy="50" r="60" fill="url(#leaf-dark)"/>
+      <circle cx="100" cy="30" r="70" fill="url(#leaf-dark)"/>
+      
+      <circle cx="60" cy="90" r="60" fill="url(#leaf-mid)"/>
+      <circle cx="140" cy="70" r="60" fill="url(#leaf-mid)"/>
+      <circle cx="100" cy="50" r="75" fill="url(#leaf-mid)"/>
+      
+      <circle cx="40" cy="70" r="35" fill="url(#leaf-light)"/>
+      <circle cx="160" cy="50" r="35" fill="url(#leaf-light)"/>
+      <circle cx="80" cy="40" r="45" fill="url(#leaf-light)"/>
+      <circle cx="120" cy="30" r="45" fill="url(#leaf-light)"/>
+      <circle cx="100" cy="15" r="50" fill="url(#leaf-light)"/>
+
+      <circle cx="40" cy="120" r="3" fill="#bef264" filter="url(#glow)"/>
+      <circle cx="160" cy="100" r="2" fill="#bef264" filter="url(#glow)"/>
+      <circle cx="120" cy="130" r="4" fill="#bef264" filter="url(#glow)"/>
+      <circle cx="70" cy="140" r="2.5" fill="#bef264" filter="url(#glow)"/>
+    `;
   }
 
-  s.innerHTML=`
-    <defs>
-      <radialGradient id="trunk-g" cx="30%" cy="50%">
-        <stop offset="0%" stop-color="#7c4a1d"/><stop offset="100%" stop-color="#3d200d"/>
-      </radialGradient>
-      <radialGradient id="glow-g" cx="50%" cy="50%">
-        <stop offset="0%" stop-color="rgba(34,197,94,.3)"/><stop offset="100%" stop-color="rgba(34,197,94,0)"/>
-      </radialGradient>
-    </defs>
-    ${svgContent}
-    ${stage>=3?`<ellipse cx="${cx}" cy="${cy}" rx="${cr*1.1}" ry="${cr*0.4}" fill="url(#glow-g)" opacity=".4"/>`:''}`;
-
-  // Update wrapper size
-  const w=Math.max(60,Math.min(220,60+h*1.3));
-  const hh=Math.max(100,Math.min(350,100+h*1.8));
-  s.setAttribute('width',w);s.setAttribute('height',hh);
-  s.setAttribute('viewBox',`0 0 200 300`);
+  s.innerHTML = defs + svgContent;
+  s.setAttribute('viewBox', '0 0 200 300');
+  
+  // Dynamic scaling logic
+  // Base tree fits inside 200x300. We scale it up via CSS width to keep the vector art sharp,
+  // making it grow visually depending on cm height.
+  let scale;
+  if (h < 5) scale = 0.8;
+  else if (h < 20) scale = 0.9;
+  else if (h < 50) scale = 1.0 + ((h - 20) * 0.015);
+  else if (h < 100) scale = 1.45 + ((h - 50) * 0.01);
+  else if (h < 200) scale = 1.95 + ((h - 100) * 0.005);
+  else scale = 2.45 + ((h - 200) * 0.002);
+  
+  s.style.width = `${150 * scale}px`;
+  s.style.height = `${225 * scale}px`;
 
   // Stage badge
   const stg=STAGES.filter(sg=>G.h>=sg.minH).pop()||STAGES[0];
