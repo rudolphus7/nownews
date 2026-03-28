@@ -165,6 +165,17 @@ body{font-family:'Outfit',sans-serif;color:#f1f5f9;background:#060a0d url('/back
 .p-logout{width:auto;align-self:center;background:transparent;border:1px solid rgba(255,255,255,0.1);border-radius:50px;padding:10px 24px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;color:rgba(255,255,255,0.5);cursor:pointer;transition:all 0.2s}
 .p-logout:hover{background:rgba(255,255,255,0.05);color:#fff}
 
+/* NEIGHBOR VISIT UI */
+#scr-v{background:#060a0d url('/backgr.png') no-repeat center bottom;background-size:cover;z-index:25;flex-direction:column;justify-content:flex-end}
+.vn-header{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:rgba(6,10,13,0.8);backdrop-filter:blur(10px);border:1px solid var(--br);border-radius:50px;padding:8px 18px;z-index:30;display:flex;align-items:center;gap:10px}
+.vn-back{background:rgba(255,255,255,0.1);border:none;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;font-size:12px}
+.vn-title{font-size:13px;font-weight:900;text-transform:uppercase;letter-spacing:0.04em}
+.vn-oak{position:absolute;bottom:11%;left:50%;transform:translateX(-50%);transition:all 0.5s}
+#btn-harvest{position:absolute;bottom:calc(11% + 180px);left:50%;transform:translateX(-50%);background:linear-gradient(180deg, #fbbf24 0%, #d97706 100%);border:none;border-radius:20px;padding:12px 24px;color:#fff;font-family:'Outfit',sans-serif;font-weight:900;font-size:14px;box-shadow:0 8px 25px rgba(217,119,6,0.5);cursor:pointer;display:none;align-items:center;gap:8px;z-index:35;animation:pulse 1.5s infinite}
+@keyframes pulse{0%{transform:translateX(-50%) scale(1)}50%{transform:translateX(-50%) scale(1.05)}100%{transform:translateX(-50%) scale(1)}}
+.vn-panel{position:absolute;bottom:0;left:0;right:0;height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(to top, rgba(6,10,13,0.8), transparent);padding-bottom:15px;z-index:25}
+#vn-name-pill{background:rgba(6,10,13,0.6);backdrop-filter:blur(10px);border:1px solid var(--br);border-radius:50px;padding:6px 18px;font-size:14px;font-weight:900;color:var(--g)}
+
 /* TOAST */
 #toast{position:fixed;top:70px;left:50%;transform:translateX(-50%) translateY(-14px);background:#0d2010;border:1px solid rgba(34,197,94,.4);border-radius:18px;padding:10px 18px;font-weight:800;font-size:13px;color:#86efac;opacity:0;pointer-events:none;transition:all .4s cubic-bezier(.175,.885,.32,1.275);z-index:999;white-space:nowrap}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -309,6 +320,21 @@ body{font-family:'Outfit',sans-serif;color:#f1f5f9;background:#060a0d url('/back
         <div id="fd-visit" style="display:none"></div>
       </div>
     </div>
+
+    <!-- NEIGHBOR VISIT -->
+    <div id="scr-v" class="scr">
+       <div class="vn-header">
+         <button class="vn-back" onclick="go('f')">✕</button>
+         <span class="vn-title" id="vn-title">В гостях у сусіда</span>
+       </div>
+       <button id="btn-harvest" onclick="doHarvest()">🧺 Зібрати ресурси! (+10💧 +5☀️)</button>
+       <div class="vn-oak" id="vn-oak-wrap">
+         <svg id="vn-svg" viewBox="0 0 200 300" width="120" height="180"></svg>
+       </div>
+       <div class="vn-panel">
+         <div id="vn-name-pill">Дуб Садівника</div>
+       </div>
+    </div>
   </div>
 
 <nav id="nav">
@@ -386,7 +412,11 @@ const MS=[
 ];
 
 // ── STATE
-let sc,uid;
+let sc=null,uid;
+function db(){
+  if(!sc && typeof supabase!=='undefined') sc=supabase.createClient(SB,SK);
+  return sc;
+}
 let G={w:0,s:0,h:0,watered:0,fert:0,name:'Мій Дуб',reads:0,ms:{},qp:{},qd:{},ql:{},stealLog:{}};
 let myRank=null,allTrees=[];
 
@@ -555,7 +585,8 @@ function setSky(){}
 // ── SUPABASE
 async function loadDB(){
   try{
-    const{data}=await sc.from('user_gamification').select('*').eq('user_id',uid).maybeSingle();
+    if(!db()){console.warn('DB not ready');return;}
+    const{data}=await db().from('user_gamification').select('*').eq('user_id',uid).maybeSingle();
     if(data){
       G.w=data.aqua_data||0; G.s=data.solar_insight||0;
       G.h=data.tree_height||0; G.watered=data.tree_watered||0;
@@ -567,7 +598,7 @@ async function loadDB(){
       G.stealLog=data.steal_log||{};
     }
     // Touch last_active
-    sc.from('user_gamification').update({last_active:new Date().toISOString()}).eq('user_id',uid).then(()=>{});
+    db().from('user_gamification').update({last_active:new Date().toISOString()}).eq('user_id',uid).then(()=>{});
   }catch(e){console.warn('DB load:',e);}
 }
 
@@ -581,7 +612,7 @@ function buildSave(){
     steal_log:G.stealLog, updated_at:new Date().toISOString()
   };
 }
-async function save(){try{await sc.from('user_gamification').upsert(buildSave());}catch(e){console.warn(e);}}
+async function save(){try{if(!db())return;await db().from('user_gamification').upsert(buildSave());}catch(e){console.warn(e);}}
 
 // ── WELCOME BONUS
 async function welcome(){
@@ -734,14 +765,16 @@ function renderWeekly(){
   wd.appendChild(box);
 
   // Load weekly data
-  sc.from('user_gamification')
+  if(!db())return;
+  db().from('user_gamification')
     .select('user_id,tree_name,tree_height,weekly_height_start,last_active')
     .gt('tree_height',0).order('tree_height',{ascending:false}).limit(20)
     .then(({data})=>{
       if(!data||!data.length)return;
       const sorted=data.map(r=>({...r,wg:(r.tree_height||0)-(r.weekly_height_start||0)})).sort((a,b)=>b.wg-a.wg).slice(0,3);
       const medals=['🥇','🥈','🥉'];
-      document.getElementById('wpodium').innerHTML=sorted.map((r,i)=>`
+      const podium = document.getElementById('wpodium');
+      if(podium) podium.innerHTML=sorted.map((r,i)=>`
         <div class="wb-item">
           <div class="wbi-pos">${medals[i]||i+1}</div>
           <div class="wbi-name">${(r.tree_name||'Дуб').slice(0,12)}</div>
@@ -762,7 +795,8 @@ function qtab(i){
 async function loadRank(){
   const rd=document.getElementById('fd-rank');rd.innerHTML='<div style="text-align:center;padding:30px;opacity:.4">Завантаження...</div>';
   try{
-    const{data}=await sc.from('user_gamification')
+    if(!db()){rd.innerHTML='<div style="text-align:center;padding:20px;opacity:.4">DB FAIL</div>';return;}
+    const{data}=await db().from('user_gamification')
       .select('user_id,tree_name,tree_height,tree_watered,tree_fertilized,last_active')
       .gt('tree_height',0).order('tree_height',{ascending:false}).limit(50);
     if(!data||!data.length){rd.innerHTML='<div style="text-align:center;padding:20px;opacity:.4">Поки нікого немає. Стань першим!</div>';return;}
@@ -796,38 +830,49 @@ async function loadRank(){
 function renderVisit(){
   const vd=document.getElementById('fd-visit');vd.innerHTML='';
   if(!allTrees.length){loadRank().then(renderVisit);return;}
-  vd.innerHTML='<div class="qlabel">Відвідайте дуб сусіда. Якщо він не заходив 4+ год — можна зібрати ресурси!</div>';
+  vd.innerHTML='<div class="qlabel">Якщо сусіда не було онлайн 4+ год — можна зібрати ресурси!</div>';
   const now=Date.now();
   allTrees.filter(r=>r.user_id!==uid).forEach(r=>{
     const la=new Date(r.last_active||0).getTime();
-    const hoursAgo=(now-la)/3600000;
-    const canSteal=hoursAgo>4;
-    const lastSteal=G.stealLog[r.user_id]?new Date(G.stealLog[r.user_id]).getTime():0;
-    const cooldownOk=(now-lastSteal)>3600000;// 1h cooldown per target
-    const stealOk=canSteal&&cooldownOk;
-    const div=document.createElement('div');div.className='lb-card';
+    const hoursAgo=Math.floor((now-la)/3600000);
+    const div=document.createElement('div'); div.className='lb-card';
     div.innerHTML=`
-      <div class="online-dot ${hoursAgo<0.5?'dot-on':'dot-off'}"></div>
-      <div style="font-size:22px;flex-shrink:0">${hoursAgo<1?'🌳':hoursAgo<4?'🌲':'🍂'}</div>
+      <div style="font-size:22px;flex-shrink:0">${hoursAgo>4?'🍂':'🌲'}</div>
       <div class="lbinfo">
-        <div class="lbname">${(r.tree_name||'Дуб садівника').slice(0,20)}</div>
-        <div class="lbsub">${r.tree_height||0} см · ${Math.floor(hoursAgo)}год тому</div>
+        <div class="lbname">${(r.tree_name||'Дуб Садівника').slice(0,20)}</div>
+        <div class="lbsub">${r.tree_height||0} см · ${hoursAgo}год тому</div>
       </div>
-      <button class="steal-btn" ${stealOk?'':'disabled'} onclick="doSteal('${r.user_id}','${(r.tree_name||'').replace(/'/g,'')}')">${stealOk?'🍂 Зібрати':'⏳ Зачекайте'}</button>`;
+      <button class="steal-btn" onclick="goVisit('${r.user_id}','${(r.tree_name||'').replace(/'/g,'')}','${r.tree_height}','${r.last_active}')">👣 Відвідати</button>`;
     vd.appendChild(div);
   });
   if(!allTrees.filter(r=>r.user_id!==uid).length)
     vd.innerHTML+='<div style="text-align:center;padding:20px;opacity:.4">Інших гравців поки немає</div>';
 }
 
-async function doSteal(targetId,targetName){
-  const amt=5;
-  G.w+=amt;
-  G.stealLog[targetId]=new Date().toISOString();
+
+// ── NEIGHBOR VISIT EXPERIENCE
+let visitingId=null, visitingName='';
+function goVisit(tId, tName, tH, la){
+  visitingId=tId; visitingName=tName;
+  document.getElementById('vn-title').textContent='В гостях: '+(tName||'Садівника');
+  document.getElementById('vn-name-pill').textContent=tName||'Дуб Садівника';
+  document.getElementById('vn-svg').innerHTML=oakSVG(tH);
+  // Harvest logic
+  const now=Date.now();
+  const hoursAgo=(now-new Date(la||0).getTime())/3600000;
+  const ls=G.stealLog[tId]?new Date(G.stealLog[tId]).getTime():0;
+  const cooldownOk=(now-ls)>3600000;
+  document.getElementById('btn-harvest').style.display=(hoursAgo>4 && cooldownOk)?'flex':'none';
+  go('v');
+}
+async function doHarvest(){
+  const w=10, s=5;
+  G.w+=w; G.s+=s;
+  G.stealLog[visitingId]=new Date().toISOString();
   trackQ('visit',1);
-  renderOak();save();
-  toast(`🍂 Зібрано ${amt} Води від "${targetName||'сусіда'}"!`);
-  renderVisit();
+  renderOak(); save();
+  toast(`🧺 Ви зібрали ${w}💧 та ${s}☀️ у сусіда!`);
+  go('f');
 }
 
 function ftab(i){
@@ -887,7 +932,8 @@ function copyFallback(url){
 }
 async function renderProfile(){
   const h=document.getElementById('p-header');
-  const{data:{session}}=await sc.auth.getSession();
+  if(!db()){h.innerHTML='<div class="p-av">👤</div><div class="p-name">Завантаження...</div>';return;}
+  const{data:{session}}=await db().auth.getSession();
   if(session&&session.user){
     const u=session.user.user_metadata;
     const av=u.avatar_url;
@@ -922,7 +968,7 @@ async function renderProfile(){
 
 function showUserMenu(){
   if(confirm('Вийти з акаунту?')){
-    sc.auth.signOut().then(()=>{localStorage.clear();location.reload();});
+    if(db()) db().auth.signOut().then(()=>{localStorage.clear();location.reload();});
   }
 }
 
@@ -931,7 +977,8 @@ async function signInGoogle(){
   // Save ref code before redirect
   const ref=new URLSearchParams(location.search).get('ref');
   if(ref)localStorage.setItem('pending_ref',ref);
-  const{error}=await sc.auth.signInWithOAuth({
+  if(!db()){toast('❌ Помилка: Supabase не готовий');return;}
+  const{error}=await db().auth.signInWithOAuth({
     provider:'google',
     options:{redirectTo:window.location.href.split('?')[0]}
   });
@@ -946,18 +993,13 @@ async function handleRef(myUid){
   const pendingRef=localStorage.getItem('pending_ref');
   if(!pendingRef)return;
   localStorage.removeItem('pending_ref');
-  // Find referrer by code
   try{
-    const{data}=await sc.from('user_gamification').select('user_id,aqua_data').limit(200);
-    if(!data)return;
-    const referrer=data.find(r=>refCode(r.user_id)===pendingRef.toUpperCase()&&r.user_id!==myUid);
-    if(!referrer)return;
-    // Award new user welcome bonus
-    G.w+=50; G.s+=20;
-    // Award referrer (stored in DB directly)
-    await sc.from('user_gamification').update({aqua_data:(referrer.aqua_data||0)+30}).eq('user_id',referrer.user_id);
+    if(!db())return;
+    const{data:referrer}=await db().from('user_gamification').select('*').eq('user_id',pendingRef).maybeSingle();
+    if(!referrer||referrer.user_id===myUid)return;
+    G.w+=50; G.s+=20; renderOak(); save();
+    await db().from('user_gamification').update({aqua_data:(referrer.aqua_data||0)+50}).eq('user_id',referrer.user_id);
     toast('🎁 Бонус від реферального запрошення: +50 Води!');
-    // Store so we don't double-award
     localStorage.setItem('ref_done','1');
   }catch(e){console.warn('ref error',e);}
 }
@@ -976,45 +1018,46 @@ async function startGame(){
 
 // ── INIT
 async function init(){
-  sc=supabase.createClient(SB,SK);
+  const sClient = db();
+  if(!sClient) { console.error('CRITICAL: Supabase missing'); return; }
 
   // Check for ref param and show hint
   const refParam=new URLSearchParams(location.search).get('ref');
   if(refParam){
     localStorage.setItem('pending_ref',refParam);
     const hint=document.getElementById('ref-bonus-hint');
-    hint.textContent='🎁 Вас запросив друг! При вході отримаєте +50 Води та +20 Сонця';
-    hint.classList.add('visible');
+    if(hint){
+      hint.textContent='🎁 Вас запросив друг! При вході отримаєте +50 Води та +20 Сонця';
+      hint.classList.add('visible');
+    }
   }
 
   // Check Supabase auth session
-  const{data:{session}}=await sc.auth.getSession();
+  const{data:{session}}=await sClient.auth.getSession();
 
   if(session){
-    // Logged in via Google — use auth uid
     uid=session.user.id;
     localStorage.setItem('bukva_uid',uid);
     await startGame();
   } else {
-    // Check if guest mode was previously confirmed
     const guestConfirmed=localStorage.getItem('bukva_guest_confirmed');
     uid=localStorage.getItem('bukva_uid');
     if(!uid){uid='u'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);localStorage.setItem('bukva_uid',uid);}
     if(guestConfirmed){
       await startGame();
     } else {
-      // Show auth modal
-      document.getElementById('auth-modal').classList.add('on');
+      const modal=document.getElementById('auth-modal');
+      if(modal) modal.classList.add('on');
     }
   }
 
-  // Listen for auth state changes (after OAuth redirect)
-  sc.auth.onAuthStateChange(async(event,session)=>{
+  sClient.auth.onAuthStateChange(async(event,session)=>{
     if(event==='SIGNED_IN'&&session){
       uid=session.user.id;
       localStorage.setItem('bukva_uid',uid);
       localStorage.setItem('bukva_guest_confirmed','1');
-      document.getElementById('auth-modal').classList.remove('on');
+      const modal=document.getElementById('auth-modal');
+      if(modal) modal.classList.remove('on');
       if(!document.getElementById('av').textContent||document.getElementById('av').textContent==='0'){
         await startGame();
       }

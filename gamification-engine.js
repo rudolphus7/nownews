@@ -5,10 +5,10 @@
 class GamificationEngine {
     constructor() {
         this.config = {
-            readTimeTarget: 60, // lowered for better UX
-            scrollTarget: 0.8,    
+            readTimeTarget: 25, // lowered to 25s for better UX
+            scrollTarget: 0.7,  // lowered to 70% scroll target
             rewardAmount: 10,
-            solarReward: 5
+            solarReward: 5,
         };
 
         this.state = {
@@ -37,12 +37,13 @@ class GamificationEngine {
     }
 
     getArticleId() {
-        const path = window.location.pathname;
-        if (path.includes('/news/')) return path.split('/news/')[1];
+        const path = window.location.pathname.replace(/\/$/, ""); // remove trailing slash
+        if (path.includes('/news/')) return path.split('/news/')[1].replace(/\/$/, "");
         const params = new URLSearchParams(window.location.search);
         if (params.has('slug')) return params.get('slug');
         if (params.has('id')) return params.get('id');
-        return path.replace(/\//g, '') || 'home';
+        const slug = path.split('/').pop();
+        return slug || 'home';
     }
 
     async init() {
