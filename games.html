@@ -238,7 +238,7 @@ body{font-family:'Outfit',sans-serif;color:#f1f5f9;background:#060a0d url('/back
             <div class="ref-promo-t1">Запроси друга</div>
             <div class="ref-promo-t2">Разом отримайте +50 💧 бонусу</div>
           </div>
-          <button class="ref-btn-3d" onclick="copyRefLink()">🔗 Запросити</button>
+          <button class="ref-btn-3d" onclick="copyRefLink()">📤 Запросити</button>
         </div>
 
         <div id="h-chip">🌳 0 см</div>
@@ -322,10 +322,9 @@ body{font-family:'Outfit',sans-serif;color:#f1f5f9;background:#060a0d url('/back
     <div class="nb-badge" id="badge-quests">0</div>
   </button>
   <button class="nb" id="nb-f" onclick="go('f')">
-    <svg viewBox="0 0 24 24" fill="currentColor" stroke-width="0">
-      <path d="M12 2l-4 8h2v3H6l5 7h-2v2h2v2h2v-2h2v-2h-2l5-7h-4V10h2l-4-8z"/>
-      <path d="M6 12l-2 4h1.5v2H3l3.5 4 3.5-4H8.5v-2h1.5l-2-4H6z" opacity="0.4"/>
-      <path d="M18 12l-2 4h1.5v2H16l3.5 4 3.5-4h-1.5v-2H20l-2-4h-2z" opacity="0.4"/>
+    <svg viewBox="0 0 24 24" fill="currentColor">
+      <path d="M7.5 13.5L4 18h2.5v3h2v-3h2.5l-3.5-4.5zM6 10.5l-2.5 3h2v1.5h1V13.5h2L6 10.5zM7.5 8l-1.5 2.5h3L7.5 8z" opacity="0.4"/>
+      <path d="M15 11l-4.5 6H13v4h4v-4h2.5L15 11zm-2.5-4l-3 4h2v2h2v-2h2L12.5 7zm2.5-4l-2 3h4L15 3z"/>
     </svg>
     <span>Ліс</span>
   </button>
@@ -866,17 +865,25 @@ window.awardAquaData=async(n=10)=>{G.w+=n;G.reads++;trackQ('read3',1);renderOak(
 window.awardSolarInsight=async(n=5)=>{G.s+=n;renderOak();save();toast(`☀️ +${n} Сонця!`);};
 
 // ── REFERRAL
-const SITE='https://nownews.com.ua'; // змінити на ваш домен
+const SITE='https://bukva.news';
 function refCode(id){// deterministic 6-char code from uid
   let h=0;for(const c of id){h=(h*31+c.charCodeAt(0))&0xffffffff;}
   return (Math.abs(h)).toString(36).toUpperCase().padStart(6,'0').slice(0,6);
 }
-function copyRefLink(){
+async function copyRefLink(){
   const code=refCode(uid);
   const url=`${SITE}/games/?ref=${code}`;
-  navigator.clipboard.writeText(url).then(()=>toast('🔗 Посилання скопійовано!')).catch(()=>{
-    prompt('Скопіюйте посилання:',url);
-  });
+  const shareData={
+    title:'Дуб Громади',
+    text:'Приєднуйся до гри «Дуб Громади» та вирощуй своє дерево разом зі мною! 🌱',
+    url:url
+  };
+  if(navigator.share){
+    try{await navigator.share(shareData);}catch(e){if(e.name!=='AbortError')copyFallback(url);}
+  }else{copyFallback(url);}
+}
+function copyFallback(url){
+  navigator.clipboard.writeText(url).then(()=>toast('🔗 Посилання скопійовано!')).catch(()=>prompt('Скопіюйте посилання:',url));
 }
 async function renderProfile(){
   const h=document.getElementById('p-header');
