@@ -1769,7 +1769,7 @@
       if (!sc && typeof supabase !== 'undefined') sc = supabase.createClient(SB, SK);
       return sc;
     }
-    let G = { w: 0, s: 0, h: 0, watered: 0, fert: 0, invites: 0, name: 'Мій Дуб', reads: 0, ms: {}, qp: {}, qd: {}, ql: {}, stealLog: {} };
+    let G = { w: 0, s: 0, h: 0, watered: 0, fert: 0, invites: 0, rb: null, rc: null, name: 'Мій Дуб', reads: 0, ms: {}, qp: {}, qd: {}, ql: {}, stealLog: {} };
     let myRank = null, allTrees = [];
 
     function oakSVG(h, svgId = 'oak-svg') {
@@ -1850,14 +1850,29 @@
           G.w = data.aqua_data || 0; G.s = data.solar_insight || 0;
           G.h = data.tree_height || 0; G.watered = data.tree_watered || 0;
           G.fert = data.tree_fertilized || 0; G.name = data.tree_name || 'Мій Дуб';
-          G.invites = data.tree_invites || 0;
+          
           const gs = data.garden_state || {};
           G.reads = gs.reads || 0; G.ms = gs.ms || {};
+          G.invites = gs.inv || 0; G.rb = gs.rb || null; G.rc = gs.rc || refCode(uid);
+          
           const qs = data.quests_state || {};
           G.qp = qs.p || {}; G.qd = qs.d || {}; G.ql = qs.l || new Date(0).toISOString();
           G.stealLog = data.steal_log || {};
+
+          // Dynamic Referral Reward (check for NEW referrals since last login)
+          const { count, error: countErr } = await db()
+            .from('user_gamification')
+            .select('user_id', { count: 'exact', head: true })
+            .filter('garden_state->>rb', 'eq', G.rc);
+          
+          if (!countErr && count !== null && count > G.invites) {
+            const added = count - G.invites;
+            G.w += (added * 50);
+            G.invites = count;
+            await save();
+            setTimeout(() => toast(`🎁 +${added * 50} 💧 за нових друзів!`), 1500);
+          }
         }
-        // Touch last_active
         db().from('user_gamification').update({ last_active: new Date().toISOString() }).eq('user_id', uid).then(() => { });
       } catch (e) { console.warn('DB load:', e); }
     }
@@ -1866,9 +1881,8 @@
       return {
         user_id: uid, aqua_data: G.w, solar_insight: G.s,
         tree_height: G.h, tree_watered: G.watered, tree_fertilized: G.fert,
-        tree_name: G.name, tree_invites: G.invites, ref_code: refCode(uid),
-        last_active: new Date().toISOString(),
-        garden_state: { reads: G.reads, ms: G.ms },
+        tree_name: G.name, last_active: new Date().toISOString(),
+        garden_state: { reads: G.reads, ms: G.ms, inv: G.invites, rb: G.rb, rc: G.rc || refCode(uid) },
         quests_state: { p: G.qp, d: G.qd, l: G.ql },
         steal_log: G.stealLog, updated_at: new Date().toISOString()
       };
@@ -2257,18 +2271,24 @@
       localStorage.removeItem('pending_ref');
       try {
         if (!db()) return;
-        // Search by ref_code column instead of UUID
-        const { data: referrer } = await db().from('user_gamification').select('*').eq('ref_code', pendingRef).maybeSingle();
-        if (!referrer || referrer.user_id === myUid) return;
         
-        // Reward Invitee (current user)
+        // Find referrer by their short code inside JSON garden_state
+        const { data: referrer, error: refErr } = await db()
+          .from('user_gamification')
+          .select('user_id')
+          .filter('garden_state->>rc', 'eq', pendingRef)
+          .maybeSingle();
+
+        if (refErr || !referrer || referrer.user_id === myUid) return;
+        
+        // Record who invited this user (User B)
+        G.rb = pendingRef;
+        
+        // Instant Reward for User B
         G.w += 50; G.s += 20; 
         renderOak(); save();
         
-        // Reward Referrer
-        const newInvites = (referrer.tree_invites || 0) + 1;
-        const newAqua = (referrer.aqua_data || 0) + 50;
-        await db().from('user_gamification').update({ aqua_data: newAqua, tree_invites: newInvites }).eq('user_id', referrer.user_id);
+        // Referrer (User A) will get their reward auto-credited next time they login (loadDB)
         
         toast('🎁 Бонус від реферального запрошення: +50 Води!');
         localStorage.setItem('ref_done', '1');
