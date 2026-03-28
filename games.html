@@ -153,6 +153,28 @@ body{font-family:'Outfit',sans-serif;color:#f1f5f9;background:var(--dk);display:
 /* Grow animation */
 @keyframes grow-pop{0%{transform:translateX(-50%) scaleY(.95)}60%{transform:translateX(-50%) scaleY(1.03)}100%{transform:translateX(-50%) scaleY(1)}}
 .grew{animation:grow-pop .5s ease}
+
+/* AUTH MODAL */
+#auth-modal{position:fixed;inset:0;background:linear-gradient(160deg,#060a0d 0%,#071a07 100%);z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .4s}
+#auth-modal.on{opacity:1;pointer-events:all}
+.auth-logo{font-size:13px;font-weight:900;letter-spacing:.1em;opacity:.4;margin-bottom:32px;text-transform:uppercase}
+.auth-tree{font-size:72px;margin-bottom:16px;filter:drop-shadow(0 0 30px rgba(34,197,94,.4))}
+.auth-title{font-size:24px;font-weight:900;text-align:center;margin-bottom:8px}
+.auth-sub{font-size:13px;opacity:.5;text-align:center;margin-bottom:36px;line-height:1.5;max-width:280px}
+.auth-btn-google{width:100%;max-width:320px;padding:16px;border:none;border-radius:18px;background:#fff;color:#1a1a1a;font-family:'Outfit',sans-serif;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:12px;transition:all .2s;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.auth-btn-google:active{transform:scale(.97)}
+.auth-btn-google svg{width:20px;height:20px;flex-shrink:0}
+.auth-btn-guest{width:100%;max-width:320px;padding:13px;border:1px solid var(--br);border-radius:18px;background:var(--card);color:rgba(255,255,255,.55);font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s}
+.auth-btn-guest:active{transform:scale(.97)}
+.auth-ref-bonus{margin-top:24px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);border-radius:14px;padding:10px 16px;font-size:12px;font-weight:700;color:#86efac;text-align:center;max-width:320px;display:none}
+.auth-ref-bonus.visible{display:block}
+
+/* REF PANEL */
+.ref-bar{display:flex;gap:6px;align-items:center}
+.ref-copy-btn{flex:1;padding:9px 12px;border:1px solid rgba(34,197,94,.3);border-radius:14px;background:rgba(34,197,94,.08);font-family:'Outfit',sans-serif;font-size:12px;font-weight:800;color:var(--g);cursor:pointer;transition:all .2s;white-space:nowrap}
+.ref-copy-btn:active{transform:scale(.97)}
+.user-pill{padding:5px 10px;border:1px solid var(--br);border-radius:50px;font-size:10px;font-weight:700;display:flex;align-items:center;gap:5px;cursor:pointer;flex-shrink:0}
+.user-pill img{width:18px;height:18px;border-radius:50%;object-fit:cover}
 </style>
 </head>
 <body>
@@ -209,7 +231,13 @@ body{font-family:'Outfit',sans-serif;color:#f1f5f9;background:var(--dk);display:
           <div><div>Удобрити</div><span class="ab-sub">−15 ☀️ → +3 см</span></div>
         </button>
       </div>
-      <div id="tip-bar">📰 Читайте новини → отримуйте 💧 Воду та ☀️ Сонце</div>
+      <div id="tip-bar" style="padding:0">
+        <div class="ref-bar">
+          <button class="ref-copy-btn" onclick="copyRefLink()">🔗 Запросити друга → +50 Води</button>
+          <div class="user-pill" id="user-pill" onclick="showUserMenu()" title="Профіль"></div>
+        </div>
+        <div style="padding:8px 0 4px;font-size:11px;font-weight:600;color:#86efac;text-align:center">📰 Читайте новини → 💧 Вода та ☀️ Сонце</div>
+      </div>
     </div>
   </div>
 
@@ -247,6 +275,22 @@ body{font-family:'Outfit',sans-serif;color:#f1f5f9;background:var(--dk);display:
   </button>
 </nav>
 <div id="toast"></div>
+
+<!-- AUTH MODAL -->
+<div id="auth-modal">
+  <div class="auth-logo">BUKVA NEWS</div>
+  <div class="auth-tree">🌳</div>
+  <div class="auth-title">Дуб Громади</div>
+  <div class="auth-sub">Увійдіть через Google — ваш дуб буде доступний з будь-якого пристрою</div>
+  <button class="auth-btn-google" onclick="signInGoogle()">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/></svg>
+    Увійти через Google
+  </button>
+  <button class="auth-btn-guest" onclick="continueGuest()">Продовжити як гість (без синхронізації)</button>
+  <div class="auth-ref-bonus" id="ref-bonus-hint"></div>
+</div>
+
+<!-- NAME MODAL -->
 <div id="modal"><div id="mbox"><div class="mhandle"></div><div class="mtitle">🌳 Назвіть своє дерево</div><input id="minput" type="text" maxlength="24" placeholder="Дуб Прикарпаття"><button class="msave" onclick="saveName()">Зберегти</button><button class="mcancel" onclick="closeModal()">Скасувати</button></div></div>
 
 <script>
@@ -654,7 +698,7 @@ function go(s){
   if(s==='f'){loadRank();}
 }
 
-// ── MODAL
+// ── MODAL (rename)
 function openModal(){document.getElementById('modal').classList.add('on');document.getElementById('minput').value=G.name;setTimeout(()=>document.getElementById('minput').focus(),400);}
 function closeModal(){document.getElementById('modal').classList.remove('on');}
 async function saveName(){const v=document.getElementById('minput').value.trim();if(!v)return;G.name=v.slice(0,24);renderOak();closeModal();save();toast('✅ Збережено!');}
@@ -667,17 +711,131 @@ function toast(msg){const el=document.getElementById('toast');el.textContent=msg
 window.awardAquaData=async(n=10)=>{G.w+=n;G.reads++;trackQ('read3',1);renderOak();save();toast(`💧 +${n} Води за читання!`);};
 window.awardSolarInsight=async(n=5)=>{G.s+=n;renderOak();save();toast(`☀️ +${n} Сонця!`);};
 
-// ── INIT
-async function init(){
-  sc=supabase.createClient(SB,SK);
-  uid=localStorage.getItem('bukva_uid');
-  if(!uid){uid='u'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);localStorage.setItem('bukva_uid',uid);}
+// ── REFERRAL
+const SITE='https://nownews.com.ua'; // змінити на ваш домен
+function refCode(id){// deterministic 6-char code from uid
+  let h=0;for(const c of id){h=(h*31+c.charCodeAt(0))&0xffffffff;}
+  return (Math.abs(h)).toString(36).toUpperCase().padStart(6,'0').slice(0,6);
+}
+function copyRefLink(){
+  const code=refCode(uid);
+  const url=`${SITE}/games/?ref=${code}`;
+  navigator.clipboard.writeText(url).then(()=>toast('🔗 Посилання скопійовано!')).catch(()=>{
+    prompt('Скопіюйте посилання:',url);
+  });
+}
+function renderUserPill(user){
+  const p=document.getElementById('user-pill');
+  if(user&&user.user_metadata){
+    const av=user.user_metadata.avatar_url;
+    const nm=(user.user_metadata.name||user.email||'').split(' ')[0].slice(0,8);
+    p.innerHTML=av?`<img src="${av}" onerror="this.remove()">${nm}`:nm;
+  } else {
+    p.innerHTML='👤 Гість';
+  }
+}
+function showUserMenu(){
+  if(confirm('Вийти з Google акаунту?')){
+    sc.auth.signOut().then(()=>{localStorage.removeItem('bukva_uid_google');location.reload();});
+  }
+}
+
+// ── AUTH
+async function signInGoogle(){
+  // Save ref code before redirect
+  const ref=new URLSearchParams(location.search).get('ref');
+  if(ref)localStorage.setItem('pending_ref',ref);
+  const{error}=await sc.auth.signInWithOAuth({
+    provider:'google',
+    options:{redirectTo:window.location.href.split('?')[0]}
+  });
+  if(error)toast('❌ Помилка входу: '+error.message);
+}
+async function continueGuest(){
+  document.getElementById('auth-modal').classList.remove('on');
+  localStorage.setItem('bukva_guest_confirmed','1');
+  await startGame();
+}
+async function handleRef(myUid){
+  const pendingRef=localStorage.getItem('pending_ref');
+  if(!pendingRef)return;
+  localStorage.removeItem('pending_ref');
+  // Find referrer by code
+  try{
+    const{data}=await sc.from('user_gamification').select('user_id,aqua_data').limit(200);
+    if(!data)return;
+    const referrer=data.find(r=>refCode(r.user_id)===pendingRef.toUpperCase()&&r.user_id!==myUid);
+    if(!referrer)return;
+    // Award new user welcome bonus
+    G.w+=50; G.s+=20;
+    // Award referrer (stored in DB directly)
+    await sc.from('user_gamification').update({aqua_data:(referrer.aqua_data||0)+30}).eq('user_id',referrer.user_id);
+    toast('🎁 Бонус від реферального запрошення: +50 Води!');
+    // Store so we don't double-award
+    localStorage.setItem('ref_done','1');
+  }catch(e){console.warn('ref error',e);}
+}
+
+async function startGame(){
   buildStars();setSky();
   await loadDB();
+  // Handle referral if first time
+  if(!localStorage.getItem('ref_done'))await handleRef(uid);
   checkDailyReset();
   trackQ('login',1);
   await welcome();
   renderOak();
+}
+
+// ── INIT
+async function init(){
+  sc=supabase.createClient(SB,SK);
+
+  // Check for ref param and show hint
+  const refParam=new URLSearchParams(location.search).get('ref');
+  if(refParam){
+    localStorage.setItem('pending_ref',refParam);
+    const hint=document.getElementById('ref-bonus-hint');
+    hint.textContent='🎁 Вас запросив друг! При вході отримаєте +50 Води та +20 Сонця';
+    hint.classList.add('visible');
+  }
+
+  // Check Supabase auth session
+  const{data:{session}}=await sc.auth.getSession();
+
+  if(session){
+    // Logged in via Google — use auth uid
+    uid=session.user.id;
+    localStorage.setItem('bukva_uid',uid);
+    renderUserPill(session.user);
+    await startGame();
+  } else {
+    // Check if guest mode was previously confirmed
+    const guestConfirmed=localStorage.getItem('bukva_guest_confirmed');
+    uid=localStorage.getItem('bukva_uid');
+    if(!uid){uid='u'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);localStorage.setItem('bukva_uid',uid);}
+    if(guestConfirmed){
+      renderUserPill(null);
+      await startGame();
+    } else {
+      // Show auth modal
+      document.getElementById('auth-modal').classList.add('on');
+    }
+  }
+
+  // Listen for auth state changes (after OAuth redirect)
+  sc.auth.onAuthStateChange(async(event,session)=>{
+    if(event==='SIGNED_IN'&&session){
+      uid=session.user.id;
+      localStorage.setItem('bukva_uid',uid);
+      localStorage.setItem('bukva_guest_confirmed','1');
+      document.getElementById('auth-modal').classList.remove('on');
+      renderUserPill(session.user);
+      if(!document.getElementById('av').textContent||document.getElementById('av').textContent==='0'){
+        await startGame();
+      }
+    }
+  });
 }
 init();
 </script>
