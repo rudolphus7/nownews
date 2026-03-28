@@ -420,8 +420,8 @@ function db(){
 let G={w:0,s:0,h:0,watered:0,fert:0,name:'Мій Дуб',reads:0,ms:{},qp:{},qd:{},ql:{},stealLog:{}};
 let myRank=null,allTrees=[];
 
-function oakSVG(h){
-  const s=document.getElementById('oak-svg');
+function oakSVG(h, svgId = 'oak-svg'){
+  const s=document.getElementById(svgId);
   // Stage calculation
   const stage=h<5?0:h<20?1:h<50?2:h<100?3:h<200?4:5;
 
@@ -564,7 +564,7 @@ function oakSVG(h){
 }
 
 function renderOak(){
-  oakSVG(G.h);
+  oakSVG(G.h, 'oak-svg');
   document.getElementById('si-h').textContent=G.h;
   document.getElementById('si-w').textContent=G.watered;
   document.getElementById('si-f').textContent=G.fert;
@@ -856,7 +856,7 @@ function goVisit(tId, tName, tH, la){
   visitingId=tId; visitingName=tName;
   document.getElementById('vn-title').textContent='В гостях: '+(tName||'Садівника');
   document.getElementById('vn-name-pill').textContent=tName||'Дуб Садівника';
-  document.getElementById('vn-svg').innerHTML=oakSVG(tH);
+  oakSVG(tH, 'vn-svg');
   // Harvest logic
   const now=Date.now();
   const hoursAgo=(now-new Date(la||0).getTime())/3600000;
