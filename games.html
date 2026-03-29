@@ -2311,12 +2311,25 @@
       if (G.referrer_id) obj.referrer_id = G.referrer_id;
       return obj;
     }
+    let isSaving = false;
+    let pendingSave = false;
+
     async function save() { 
-      if (!db() || isSaving) return;
+      if (!db()) return;
+      if (isSaving) { 
+          pendingSave = true; // Mark that we need another save after this one
+          return; 
+      }
       isSaving = true;
+      pendingSave = false;
+
       try { 
+        console.log("[Game] Syncing with cloud...");
         // 1. SYNC BEFORE SAVE: Get latest from DB to merge changes from news-engine tabs
-        const { data: latest } = await db().from('user_gamification').select('aqua_data, solar_insight, quests_state, garden_state').eq('user_id', uid).maybeSingle();
+        const { data: latest, error: fetchErr } = await db().from('user_gamification').select('aqua_data, solar_insight, quests_state, garden_state').eq('user_id', uid).maybeSingle();
+        
+        if (fetchErr) throw fetchErr;
+        
         if (latest) {
           // Merge resources (take max or intelligently add? actually, we should trust DB more for things we didn't change locally)
           // But here, the game is the main editor. 
@@ -2350,13 +2363,21 @@
           G.lastSyncS = (latest.solar_insight || 0);
         }
 
-        await db().from('user_gamification').upsert(buildSave());
+        const { error: upsertErr } = await db().from('user_gamification').upsert(buildSave());
+        if (upsertErr) throw upsertErr;
+
         G.lastSyncW = G.w; G.lastSyncS = G.s;
-        console.log("[Game] State synced and saved.");
+        console.log("[Game] State synced and saved successfully.");
       } catch (e) { 
-        console.warn("[Game] Save error:", e); 
+        console.error("[Game] Save ERROR:", e); 
+        toast('❌ Помилка збереження! Перевірте інтернет');
       } finally {
         isSaving = false;
+        // If another save was requested during this one, run it now
+        if (pendingSave) {
+            console.log("[Game] Running queued save...");
+            save();
+        }
       }
     }
 
