@@ -150,66 +150,103 @@ class GamificationEngine {
     }
 
     async awardResources(type, amount) {
-        if (type === 'aqua_data') {
-            this.state.awarded = true;
-            sessionStorage.setItem(`awarded_${this.state.articleId}`, 'true');
+        if (this.isSaving) {
+            console.log("[Gamification] Save already in progress. Queuing (skipping for now)...");
+            return;
         }
+        this.isSaving = true;
 
-        this.state.resources[type] += amount;
-        this.updateWidgets();
-
-        // Update Quest Progress
-        let questMsg = '';
-        if (type === 'aqua_data') {
-            const lastDay = this.state.quests_state.l ? new Date(this.state.quests_state.l).toDateString() : '';
-            const today = new Date().toDateString();
-            if (lastDay && lastDay !== today) {
-                this.state.quests_state.p = {};
-                this.state.quests_state.d = {};
-                this.state.quests_state.l = new Date().toISOString();
-            } else if (!lastDay) {
-                this.state.quests_state.l = new Date().toISOString();
-            }
-            
-            // Increment all read tiers
-            this.state.quests_state.p['read3'] = (this.state.quests_state.p['read3'] || 0) + 1;
-            this.state.quests_state.p['read10'] = (this.state.quests_state.p['read10'] || 0) + 1;
-            this.state.quests_state.p['read50'] = (this.state.quests_state.p['read50'] || 0) + 1;
-            
-            questMsg = ` Завдання оновлено!`;
-
-            // Persistent Read Tracker
-            if (!this.state.readIds.includes(this.state.articleId)) {
-                this.state.readIds.push(this.state.articleId);
-            }
-        }
-
-        // Push to DB directly by updating row
-        if (this.supabase && typeof this.supabase.from === 'function') {
-            const updateObj = { updated_at: new Date().toISOString() };
+        try {
             if (type === 'aqua_data') {
-                updateObj.aqua_data = this.state.resources.aqua_data;
-                updateObj.quests_state = this.state.quests_state;
-                updateObj.garden_state = { 
-                    read_ids: this.state.readIds,
-                    reads: (this.state.readIds.length) // sync total count
-                };
-            } else {
-                updateObj.solar_insight = this.state.resources.solar_insight;
+                this.state.awarded = true;
+                sessionStorage.setItem(`awarded_${this.state.articleId}`, 'true');
             }
-            
-            const { error } = await this.supabase
-                .from('user_gamification')
-                .update(updateObj)
-                .eq('user_id', this.state.userId);
-            
-            if (error) console.error("[Gamification] Save error:", error);
-            else console.log("[Gamification] Progress saved to cloud.");
-        }
 
-        const icon = type === 'aqua_data' ? '💧' : '☀️';
-        const nameStr = type === 'aqua_data' ? 'Води' : 'Сонця';
-        this.showNotification(`+${amount} ${nameStr}`, `Новини дають живлення дубу!${questMsg}`);
+            // 1. FRESH SYNC: Get absolute latest from DB to avoid overwriting other tabs' progress
+            if (this.supabase) {
+                const { data: latest, error: syncErr } = await this.supabase
+                    .from('user_gamification')
+                    .select('aqua_data, solar_insight, quests_state, garden_state')
+                    .eq('user_id', this.state.userId)
+                    .maybeSingle();
+                
+                if (latest && !syncErr) {
+                    console.log("[Gamification] Fresh sync before save successful.");
+                    this.state.resources.aqua_data = latest.aqua_data || 0;
+                    this.state.resources.solar_insight = latest.solar_insight || 0;
+                    this.state.quests_state = latest.quests_state || { p: {}, d: {}, l: '' };
+                    const gs = latest.garden_state || {};
+                    this.state.readIds = gs.read_ids || [];
+                }
+            }
+
+            // 2. APPLY REWARD
+            this.state.resources[type] += amount;
+            this.updateWidgets();
+
+            // 3. UPDATE QUESTS & TRACKER
+            let questMsg = '';
+            if (type === 'aqua_data') {
+                const lastSync = this.state.quests_state.l ? new Date(this.state.quests_state.l).toDateString() : '';
+                const today = new Date().toDateString();
+                
+                // Only reset if we actually have a record of a previous different day
+                if (lastSync && lastSync !== today) {
+                    this.state.quests_state.p = {};
+                    this.state.quests_state.d = {};
+                    this.state.quests_state.l = new Date().toISOString();
+                    console.log("[Gamification] New day detected during award. Progress reset.");
+                } else if (!this.state.quests_state.l) {
+                    this.state.quests_state.l = new Date().toISOString();
+                }
+                
+                // Increment all read tiers
+                this.state.quests_state.p = this.state.quests_state.p || {};
+                this.state.quests_state.p['read3'] = (this.state.quests_state.p['read3'] || 0) + 1;
+                this.state.quests_state.p['read10'] = (this.state.quests_state.p['read10'] || 0) + 1;
+                this.state.quests_state.p['read50'] = (this.state.quests_state.p['read50'] || 0) + 1;
+                
+                questMsg = ` Завдання оновлено!`;
+
+                // Persistent Read Tracker (avoid duplicates)
+                if (!this.state.readIds.includes(this.state.articleId)) {
+                    this.state.readIds.push(this.state.articleId);
+                }
+            }
+
+            // 4. PUSH TO DB
+            if (this.supabase) {
+                const updateObj = { updated_at: new Date().toISOString() };
+                if (type === 'aqua_data') {
+                    updateObj.aqua_data = this.state.resources.aqua_data;
+                    updateObj.quests_state = this.state.quests_state;
+                    updateObj.garden_state = { 
+                        read_ids: this.state.readIds,
+                        reads: (this.state.readIds.length)
+                    };
+                } else {
+                    updateObj.solar_insight = this.state.resources.solar_insight;
+                }
+                
+                const { error } = await this.supabase
+                    .from('user_gamification')
+                    .update(updateObj)
+                    .eq('user_id', this.state.userId);
+                
+                if (error) console.error("[Gamification] Save error:", error);
+                else console.log("[Gamification] Progress saved to cloud + merged.");
+            }
+
+            // 5. NOTIFY
+            const icon = type === 'aqua_data' ? '💧' : '☀️';
+            const nameStr = type === 'aqua_data' ? 'Води' : 'Сонця';
+            this.showNotification(`+${amount} ${nameStr}`, `Новини дають живлення дубу!${questMsg}`);
+
+        } catch (err) {
+            console.error("[Gamification] Award error:", err);
+        } finally {
+            this.isSaving = false;
+        }
     }
 
     showNotification(title, text) {

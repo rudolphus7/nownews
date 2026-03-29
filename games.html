@@ -2309,7 +2309,46 @@
       if (G.referrer_id) obj.referrer_id = G.referrer_id;
       return obj;
     }
-    async function save() { try { if (!db()) return; await db().from('user_gamification').upsert(buildSave()); } catch (e) { console.warn(e); } }
+    async function save() { 
+      if (!db() || isSaving) return;
+      isSaving = true;
+      try { 
+        // 1. SYNC BEFORE SAVE: Get latest from DB to merge changes from news-engine tabs
+        const { data: latest } = await db().from('user_gamification').select('aqua_data, solar_insight, quests_state, garden_state').eq('user_id', uid).maybeSingle();
+        if (latest) {
+          // Merge resources (take max or intelligently add? actually, we should trust DB more for things we didn't change locally)
+          // But here, the game is the main editor. 
+          // We'll merge readIds and quests_state progress
+          const remoteGS = latest.garden_state || {};
+          const remoteQS = latest.quests_state || {};
+          
+          // Merge readIds
+          const combinedReadIds = [...new Set([...G.readIds, ...(remoteGS.read_ids || [])])];
+          G.readIds = combinedReadIds;
+          G.reads = combinedReadIds.length;
+          
+          // Merge Quest Progress (p)
+          for (const key in (remoteQS.p || {})) {
+            G.qp[key] = Math.max(G.qp[key] || 0, remoteQS.p[key]);
+          }
+          // Merge Quest Done (d)
+          for (const key in (remoteQS.d || {})) {
+            if (remoteQS.d[key]) G.qd[key] = true;
+          }
+          
+          // Update local resources if DB is higher (indicates news rewards)
+          if (latest.aqua_data > G.w) G.w = latest.aqua_data;
+          if (latest.solar_insight > G.s) G.s = latest.solar_insight;
+        }
+
+        await db().from('user_gamification').upsert(buildSave()); 
+        console.log("[Game] State synced and saved.");
+      } catch (e) { 
+        console.warn("[Game] Save error:", e); 
+      } finally {
+        isSaving = false;
+      }
+    }
 
     // ── WELCOME BONUS
     async function welcome() {
@@ -2365,6 +2404,15 @@
     function claimQ(id) {
       const q = DQ.find(x => x.id === id);
       if (!q || G.qd[id]) return;
+      
+      // 🛡️ ANTI-CHEAT: Re-verify progress before awarding
+      const progress = G.qp[id] || 0;
+      if (progress < q.total) {
+          console.warn(`[Quest] Claim rejected: progress ${progress}/${q.total} for ${id}`);
+          toast('❌ Завдання ще не виконано!');
+          return;
+      }
+      
       G.qd[id] = true;
       if (q.r.w) G.w += q.r.w;
       if (q.r.s) G.s += q.r.s;
@@ -2509,7 +2557,7 @@
       try {
         if (!db()) { rd.innerHTML = '<div style="text-align:center;padding:20px;opacity:.4">DB FAIL</div>'; return; }
         const { data } = await db().from('user_gamification')
-          .select('user_id,tree_name,tree_height,tree_watered,tree_fertilized,last_active')
+          .select('user_id,tree_name,tree_height,tree_watered,tree_fertilized,last_active,last_stolen_at')
           .gt('tree_height', 0).order('tree_height', { ascending: false }).limit(50);
         if (!data || !data.length) { rd.innerHTML = '<div style="text-align:center;padding:20px;opacity:.4">Поки нікого немає. Стань першим!</div>'; return; }
         allTrees = data;
@@ -2547,14 +2595,21 @@
       allTrees.filter(r => r.user_id !== uid).forEach(r => {
         const la = new Date(r.last_active || 0).getTime();
         const hoursAgo = Math.floor((now - la) / 3600000);
+        
+        // GLOBAL HARVEST LOCK CHECK (4h)
+        const ls = new Date(r.last_stolen_at || 0).getTime();
+        const stolenAgo = (now - ls) / 3600000;
+        const isHarvestable = hoursAgo > 4 && stolenAgo > 4;
+
         const div = document.createElement('div'); div.className = 'lb-card';
         div.innerHTML = `
-      <div style="font-size:22px;flex-shrink:0">${hoursAgo > 4 ? '🍂' : '🌲'}</div>
+      <div style="font-size:22px;flex-shrink:0">${isHarvestable ? '🍎' : hoursAgo > 4 ? '🍂' : '🌲'}</div>
       <div class="lbinfo">
         <div class="lbname">${(r.tree_name || 'Дуб Садівника').slice(0, 20)}</div>
-        <div class="lbsub">${r.tree_height || 0} см · ${hoursAgo}год тому</div>
+        <div class="lbsub">${r.tree_height || 0} см · ${hoursAgo}год тому · ${isHarvestable ? '🎁 Доступно' : '⏳ Пусто'}</div>
       </div>
-      <button class="steal-btn" onclick="goVisit('${r.user_id}','${(r.tree_name || '').replace(/'/g, '')}','${r.tree_height}','${r.last_active}')">👣 Відвідати</button>`;
+      <button class="steal-btn" ${!isHarvestable ? 'disabled style="opacity:0.3"' : ''} 
+        onclick="goVisit('${r.user_id}','${(r.tree_name || '').replace(/'/g, '')}','${r.tree_height}','${r.last_active}','${r.last_stolen_at}')">👣 Відвідати</button>`;
         vd.appendChild(div);
       });
       if (!allTrees.filter(r => r.user_id !== uid).length)
@@ -2564,7 +2619,7 @@
 
     // ── NEIGHBOR VISIT EXPERIENCE
     let visitingId = null, visitingName = '';
-    function goVisit(tId, tName, tH, la) {
+    function goVisit(tId, tName, tH, la, ls) {
       visitingId = tId; visitingName = tName;
       document.getElementById('vn-title').textContent = 'В гостях: ' + (tName || 'Садівника');
       document.getElementById('vn-name-pill').textContent = tName || 'Дуб Садівника';
@@ -2572,19 +2627,45 @@
       // Harvest logic
       const now = Date.now();
       const hoursAgo = (now - new Date(la || 0).getTime()) / 3600000;
-      const ls = G.stealLog[tId] ? new Date(G.stealLog[tId]).getTime() : 0;
-      const cooldownOk = (now - ls) > 3600000;
-      document.getElementById('btn-harvest').style.display = (hoursAgo > 4 && cooldownOk) ? 'flex' : 'none';
+      const stolenAgo = (now - new Date(ls || 0).getTime()) / 3600000;
+      
+      const isEligible = hoursAgo > 4 && stolenAgo > 4;
+      document.getElementById('btn-harvest').style.display = isEligible ? 'flex' : 'none';
+      if (!isEligible && hoursAgo > 4) {
+          toast('🍂 Ой! Хтось уже зібрав ресурси у цього сусіда.');
+      }
       go('v');
     }
     async function doHarvest() {
-      const w = 10, s = 5;
-      G.w += w; G.s += s;
-      G.stealLog[visitingId] = new Date().toISOString();
-      trackQ('visit', 1);
-      renderOak(); save();
-      toast(`🧺 Ви зібрали ${w}💧 та ${s}☀️ у сусіда!`);
-      go('f');
+      if (!visitingId) return;
+      
+      // 🛡️ SECURE HARVEST VIA RPC
+      toast('⏳ Збираємо ресурси...');
+      try {
+          const { data, error } = await db().rpc('secure_harvest_tree', { 
+              p_visitor_id: uid, 
+              p_target_id: visitingId 
+          });
+
+          if (error) throw error;
+
+          if (data && data.success) {
+              const w = data.reward_w || 10, s = data.reward_s || 5;
+              G.w += w; G.s += s;
+              trackQ('visit', 1);
+              renderOak(); 
+              // Note: G.w/G.s are already updated in DB inside RPC, 
+              // but we call save() locally to sync other quest progress like 'visit'
+              save(); 
+              toast(`🧺 ${data.msg || 'Успіх!'}`);
+              go('f');
+          } else {
+              toast(`❌ ${data ? data.error : 'Помилка збору'}`);
+          }
+      } catch (err) {
+          console.error("[Harvest] RPC Error:", err);
+          toast('❌ Помилка: Оновіть SQL схему в Supabase!');
+      }
     }
 
     function ftab(i) {
@@ -2630,10 +2711,13 @@
 
     // ── PUBLIC API — called from news articles
     window.awardAquaData = async (n = 10) => { 
-      G.w += n; G.reads++; 
+      // Important: don't just increment local G.w, sync with DB first to avoid overwriting news rewards
+      G.w += n; 
       // Track all news tiers concurrently
       trackQ('read3', 1); trackQ('read10', 1); trackQ('read50', 1); 
-      renderOak(); save(); toast(`💧 +${n} Води за читання!`); 
+      renderOak(); 
+      await save(); // save() now handles the merge
+      toast(`💧 +${n} Води за читання!`); 
     };
     window.awardSolarInsight = async (n = 5) => { G.s += n; renderOak(); save(); toast(`☀️ +${n} Сонця!`); };
 
