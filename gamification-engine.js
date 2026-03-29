@@ -230,8 +230,11 @@ class GamificationEngine {
         toast.innerHTML = `
             <div style="font-size:15px;margin-bottom:4px;color:#fff">${title}</div>
             <div style="font-size:11px;opacity:0.8;font-weight:600">${text}</div>
-            <div style="font-size:10px;margin-top:6px;color:#22c55e">Перейти до дуба →</div>
+            <div style="font-size:11px;margin-top:8px;color:#22c55e;font-weight:800;cursor:pointer;text-decoration:underline">Перейти до дуба →</div>
         `;
+        toast.onclick = () => window.location.href = '/games/';
+        toast.style.pointerEvents = 'auto'; // Enable clicks
+        toast.style.cursor = 'pointer';
         toast.style.opacity = '1';
         toast.style.transform = 'translateX(-50%) translateY(0)';
         setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateX(-50%) translateY(50px)'; }, 5000);
