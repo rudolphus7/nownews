@@ -2064,7 +2064,7 @@
       if (!sc && typeof supabase !== 'undefined') sc = supabase.createClient(SB, SK);
       return sc;
     }
-    let G = { w: 0, s: 0, h: 0, watered: 0, fert: 0, invites: 0, referrer_id: null, name: 'Мій Дуб', reads: 0, readIds: [], ms: {}, qp: {}, qd: {}, ql: '', stealLog: {}, lw: 0 };
+    let G = { w: 0, s: 0, h: 0, watered: 0, fert: 0, invites: 0, referrer_id: null, name: 'Мій Дуб', reads: 0, readIds: [], ms: {}, qp: {}, qd: {}, ql: '', stealLog: {}, lw: 0, lastSyncW: 0, lastSyncS: 0 };
     let myRank = null, allTrees = [];
 
 
@@ -2279,6 +2279,8 @@
           const qs = data.quests_state || {};
           G.qp = qs.p || {}; G.qd = qs.d || {}; G.ql = qs.l || new Date(0).toISOString();
           G.stealLog = data.steal_log || {};
+          // Initialize sync snapshots
+          G.lastSyncW = G.w; G.lastSyncS = G.s;
 
           // ── REFERRAL REWARD CLAIM (via secure RPC, bypasses RLS)
           const { data: rwd } = await db().rpc('claim_referral_rewards', { p_user_id: uid }).single();
@@ -2336,12 +2338,20 @@
             if (remoteQS.d[key]) G.qd[key] = true;
           }
           
-          // Update local resources if DB is higher (indicates news rewards)
-          if (latest.aqua_data > G.w) G.w = latest.aqua_data;
-          if (latest.solar_insight > G.s) G.s = latest.solar_insight;
+          // Update local resources only by adding NEW rewards from other tabs (delta-merge)
+          const deltaW = (latest.aqua_data || 0) - G.lastSyncW;
+          const deltaS = (latest.solar_insight || 0) - G.lastSyncS;
+          
+          if (deltaW > 0) G.w += deltaW;
+          if (deltaS > 0) G.s += deltaS;
+          
+          // Update snapshots
+          G.lastSyncW = (latest.aqua_data || 0); // Note: will be updated to G.w after save
+          G.lastSyncS = (latest.solar_insight || 0);
         }
 
-        await db().from('user_gamification').upsert(buildSave()); 
+        await db().from('user_gamification').upsert(buildSave());
+        G.lastSyncW = G.w; G.lastSyncS = G.s;
         console.log("[Game] State synced and saved.");
       } catch (e) { 
         console.warn("[Game] Save error:", e); 
@@ -2575,7 +2585,7 @@
         <div class="lbpos ${pos === 1 ? 'p1' : pos === 2 ? 'p2' : pos === 3 ? 'p3' : ''}">${pos <= 3 ? ['🥇', '🥈', '🥉'][pos - 1] : pos}</div>
         <div class="online-dot ${online ? 'dot-on' : 'dot-off'}"></div>
         <div class="lbinfo">
-          <div class="lbname">${isMe ? '🟢 Ваш дуб: ' + '' : ''} ${(r.tree_name || 'Дуб садівника').slice(0, 20)}</div>
+          <div class="lbname">${isMe ? '🟢 Ваш дуб: ' : ''} ${(r.tree_name || 'Дуб садівника').slice(0, 20)}</div>
           <div class="lbsub">💧${r.tree_watered || 0} поливів · 🌿${r.tree_fertilized || 0} добрив · ${online ? 'онлайн' : minsAgo + 'хв тому'}</div>
         </div>
         <div class="lbh"><div class="lbhv">${r.tree_height || 0}</div><div class="lbhu">см</div></div>`;
