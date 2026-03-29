@@ -19,7 +19,9 @@ class GamificationEngine {
             awarded: false,
             articleId: this.getArticleId(),
             resources: { aqua_data: 0, solar_insight: 0 },
-            quests_state: { p: {}, d: {}, l: '' }
+            quests_state: { p: {}, d: {}, l: '' },
+            readIds: [], // PERSISTENT list of awarded articles
+            isSynced: false // LOCK: prevent saving before loading
         };
 
         if (this.state.articleId) {
@@ -86,6 +88,8 @@ class GamificationEngine {
                 this.state.resources.aqua_data = data.aqua_data || 0;
                 this.state.resources.solar_insight = data.solar_insight || 0;
                 this.state.quests_state = data.quests_state || { p: {}, d: {}, l: '' };
+                const gs = data.garden_state || {};
+                this.state.readIds = gs.read_ids || [];
             } else {
                 // New user: grant welcome bonus
                 this.state.resources.aqua_data = 50;
@@ -99,6 +103,7 @@ class GamificationEngine {
                 }]);
                 this.showNotification('🎉 Вітаємо!', 'Ви отримали стартовий бонус: +50 Води та +30 Сонця');
             }
+            this.state.isSynced = true;
             console.log("[Gamification] Switched to online mode. Resources synced.");
         } catch (e) {
             console.warn("[Gamification] DB Sync failed", e);
@@ -128,7 +133,15 @@ class GamificationEngine {
     }
 
     checkRequirements() {
-        if (this.state.awarded) return;
+        if (this.state.awarded || !this.state.isSynced) return;
+        
+        // Anti-cheat: Check if this article was ALREADY rewarded in the past
+        if (this.state.readIds.includes(this.state.articleId)) {
+            console.log("[Gamification] Article already rewarded. Skipping bonus.");
+            this.state.awarded = true; // Stop tracking this article
+            return;
+        }
+
         if (this.state.timeSpent >= this.config.readTimeTarget || 
             this.state.maxScroll >= this.config.scrollTarget) {
             console.log("[Gamification] Award criteria met. awarding...");
@@ -150,18 +163,25 @@ class GamificationEngine {
         if (type === 'aqua_data') {
             const lastDay = this.state.quests_state.l ? new Date(this.state.quests_state.l).toDateString() : '';
             const today = new Date().toDateString();
-            if (lastDay !== today) {
+            if (lastDay && lastDay !== today) {
                 this.state.quests_state.p = {};
                 this.state.quests_state.d = {};
                 this.state.quests_state.l = new Date().toISOString();
+            } else if (!lastDay) {
+                this.state.quests_state.l = new Date().toISOString();
             }
             
+            // Increment all read tiers
             this.state.quests_state.p['read3'] = (this.state.quests_state.p['read3'] || 0) + 1;
             this.state.quests_state.p['read10'] = (this.state.quests_state.p['read10'] || 0) + 1;
             this.state.quests_state.p['read50'] = (this.state.quests_state.p['read50'] || 0) + 1;
             
-            const prog = this.state.quests_state.p['read3'];
             questMsg = ` Завдання оновлено!`;
+
+            // Persistent Read Tracker
+            if (!this.state.readIds.includes(this.state.articleId)) {
+                this.state.readIds.push(this.state.articleId);
+            }
         }
 
         // Push to DB directly by updating row
@@ -170,6 +190,10 @@ class GamificationEngine {
             if (type === 'aqua_data') {
                 updateObj.aqua_data = this.state.resources.aqua_data;
                 updateObj.quests_state = this.state.quests_state;
+                updateObj.garden_state = { 
+                    read_ids: this.state.readIds,
+                    reads: (this.state.readIds.length) // sync total count
+                };
             } else {
                 updateObj.solar_insight = this.state.resources.solar_insight;
             }

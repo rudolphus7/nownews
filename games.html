@@ -30,7 +30,9 @@
       height: 100%;
       background: #020608;
       display: flex;
-      justify-content: center
+      justify-content: center;
+      overflow: hidden; /* Prevent dragging/scrolling on mobile */
+      touch-action: none;
     }
 
     body {
@@ -45,7 +47,9 @@
       max-width: 480px;
       border-left: 1px solid var(--br);
       border-right: 1px solid var(--br);
-      position: relative
+      position: relative;
+      overflow: hidden; /* Absolute lockdown */
+      user-select: none;
     }
 
     /* HUD Overlay: Constrained to 480px */
@@ -2060,7 +2064,7 @@
       if (!sc && typeof supabase !== 'undefined') sc = supabase.createClient(SB, SK);
       return sc;
     }
-    let G = { w: 0, s: 0, h: 0, watered: 0, fert: 0, invites: 0, referrer_id: null, name: 'Мій Дуб', reads: 0, ms: {}, qp: {}, qd: {}, ql: {}, stealLog: {}, lw: 0 };
+    let G = { w: 0, s: 0, h: 0, watered: 0, fert: 0, invites: 0, referrer_id: null, name: 'Мій Дуб', reads: 0, readIds: [], ms: {}, qp: {}, qd: {}, ql: {}, stealLog: {}, lw: 0 };
     let myRank = null, allTrees = [];
 
 
@@ -2269,7 +2273,9 @@
           G.referrer_id = data.referrer_id || null;
           G.lw = data.last_wheel || 0;
           const gs = data.garden_state || {};
-          G.reads = gs.reads || 0; G.ms = gs.ms || {};
+          G.reads = gs.reads || 0; 
+          G.readIds = gs.read_ids || [];
+          G.ms = gs.ms || {};
           const qs = data.quests_state || {};
           G.qp = qs.p || {}; G.qd = qs.d || {}; G.ql = qs.l || new Date(0).toISOString();
           G.stealLog = data.steal_log || {};
@@ -2295,7 +2301,7 @@
         user_id: uid, aqua_data: G.w, solar_insight: G.s,
         tree_height: G.h, tree_watered: G.watered, tree_fertilized: G.fert,
         tree_name: G.name, last_active: new Date().toISOString(),
-        garden_state: { reads: G.reads, ms: G.ms },
+        garden_state: { reads: G.reads, ms: G.ms, read_ids: G.readIds },
         quests_state: { p: G.qp, d: G.qd, l: G.ql },
         steal_log: G.stealLog, updated_at: new Date().toISOString(),
         last_wheel: G.lw
@@ -2324,9 +2330,13 @@
 
     // ── DAILY QUEST CHECK
     function checkDailyReset() {
-      const lastDay = G.ql ? new Date(G.ql).toDateString() : '';
+      if (!G.ql) return; // Don't reset if we haven't loaded the last active date yet
+      const lastDay = new Date(G.ql).toDateString();
       const today = new Date().toDateString();
-      if (lastDay !== today) { G.qp = {}; G.qd = {}; G.ql = new Date().toISOString(); }
+      if (lastDay !== today) { 
+        G.qp = {}; G.qd = {}; G.ql = new Date().toISOString(); 
+        console.log("[Quest] New day detected. Progress reset.");
+      }
     }
 
     function trackQ(id, n = 1) {
@@ -2619,7 +2629,12 @@
     function toast(msg) { const el = document.getElementById('toast'); el.textContent = msg; el.classList.add('show'); clearTimeout(tt); tt = setTimeout(() => el.classList.remove('show'), 3000); }
 
     // ── PUBLIC API — called from news articles
-    window.awardAquaData = async (n = 10) => { G.w += n; G.reads++; trackQ('read3', 1); renderOak(); save(); toast(`💧 +${n} Води за читання!`); };
+    window.awardAquaData = async (n = 10) => { 
+      G.w += n; G.reads++; 
+      // Track all news tiers concurrently
+      trackQ('read3', 1); trackQ('read10', 1); trackQ('read50', 1); 
+      renderOak(); save(); toast(`💧 +${n} Води за читання!`); 
+    };
     window.awardSolarInsight = async (n = 5) => { G.s += n; renderOak(); save(); toast(`☀️ +${n} Сонця!`); };
 
     // ── REFERRAL
