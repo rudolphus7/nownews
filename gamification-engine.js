@@ -191,7 +191,7 @@ class GamificationEngine {
                 const today = new Date().toDateString();
                 
                 // Only reset if we actually have a record of a previous different day
-                if (lastSync && lastSync !== today) {
+                if (lastSync && lastSync !== 'Invalid Date' && lastSync !== today) {
                     this.state.quests_state.p = {};
                     this.state.quests_state.d = {};
                     this.state.quests_state.l = new Date().toISOString();

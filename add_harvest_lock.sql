@@ -20,12 +20,12 @@ BEGIN
 
     -- 1. Verify target is offline for at least 4 hours
     IF v_target_last_active > (now() - interval '4 hours') THEN
-        RETURN jsonb_build_object('success', false, 'error', 'Target is still active (less than 4h offline)');
+        RETURN jsonb_build_object('success', false, 'error', 'Сусід був у мережі менш як 4 години тому');
     END IF;
 
     -- 2. Verify target hasn't been harvested in the last 4 hours (Global Lock)
     IF v_target_last_stolen > (now() - interval '4 hours') THEN
-        RETURN jsonb_build_object('success', false, 'error', 'Already harvested by someone else in the last 4 hours');
+        RETURN jsonb_build_object('success', false, 'error', 'Цього сусіда вже хтось обігнав! Ресурси зібрані нещодавно (менш як 4 год тому)');
     END IF;
 
     -- 3. Atomically update target's last_stolen_at to lock it
@@ -43,7 +43,7 @@ BEGIN
         'success', true, 
         'reward_w', v_reward_w, 
         'reward_s', v_reward_s,
-        'msg', 'First come, first served! You got ' || v_reward_w || ' water and ' || v_reward_s || ' sun.'
+        'msg', 'Хто перший, той і встиг! Ви отримали ' || v_reward_w || ' 💧 та ' || v_reward_s || ' ☀️.'
     );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

@@ -2064,7 +2064,7 @@
       if (!sc && typeof supabase !== 'undefined') sc = supabase.createClient(SB, SK);
       return sc;
     }
-    let G = { w: 0, s: 0, h: 0, watered: 0, fert: 0, invites: 0, referrer_id: null, name: 'Мій Дуб', reads: 0, readIds: [], ms: {}, qp: {}, qd: {}, ql: {}, stealLog: {}, lw: 0 };
+    let G = { w: 0, s: 0, h: 0, watered: 0, fert: 0, invites: 0, referrer_id: null, name: 'Мій Дуб', reads: 0, readIds: [], ms: {}, qp: {}, qd: {}, ql: '', stealLog: {}, lw: 0 };
     let myRank = null, allTrees = [];
 
 
@@ -2369,12 +2369,13 @@
 
     // ── DAILY QUEST CHECK
     function checkDailyReset() {
-      if (!G.ql) return; // Don't reset if we haven't loaded the last active date yet
+      if (!G.ql || typeof G.ql !== 'string') return; // Don't reset if we haven't loaded the last active date yet
       const lastDay = new Date(G.ql).toDateString();
       const today = new Date().toDateString();
-      if (lastDay !== today) { 
+      if (lastDay !== 'Invalid Date' && lastDay !== today) { 
         G.qp = {}; G.qd = {}; G.ql = new Date().toISOString(); 
-        console.log("[Quest] New day detected. Progress reset.");
+        console.log("[Quest] New day detected. Progress reset at 00:00 check.");
+        save();
       }
     }
 
@@ -2606,7 +2607,7 @@
       <div style="font-size:22px;flex-shrink:0">${isHarvestable ? '🍎' : hoursAgo > 4 ? '🍂' : '🌲'}</div>
       <div class="lbinfo">
         <div class="lbname">${(r.tree_name || 'Дуб Садівника').slice(0, 20)}</div>
-        <div class="lbsub">${r.tree_height || 0} см · ${hoursAgo}год тому · ${isHarvestable ? '🎁 Доступно' : '⏳ Пусто'}</div>
+        <div class="lbsub">${r.tree_height || 0} см · ${hoursAgo}год тому · ${isHarvestable ? '🍎 Можна зібрати' : '⏳ Порожньо'}</div>
       </div>
       <button class="steal-btn" ${!isHarvestable ? 'disabled style="opacity:0.3"' : ''} 
         onclick="goVisit('${r.user_id}','${(r.tree_name || '').replace(/'/g, '')}','${r.tree_height}','${r.last_active}','${r.last_stolen_at}')">👣 Відвідати</button>`;
