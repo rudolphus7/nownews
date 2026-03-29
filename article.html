@@ -1658,6 +1658,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            window._supabase = _supabase;
             init();
             window.initSiteFooter && window.initSiteFooter(_supabase);
         });
@@ -1674,6 +1675,7 @@
             loadFullNews();
         };
     </script>
+    <script src="/gamification-engine.js" defer></script>
     <script src="/popup-engine.js?v=2" defer></script>
 </body>
 

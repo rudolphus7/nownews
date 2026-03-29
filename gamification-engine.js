@@ -5,8 +5,8 @@
 class GamificationEngine {
     constructor() {
         this.config = {
-            readTimeTarget: 25, // lowered to 25s for better UX
-            scrollTarget: 0.7,  // lowered to 70% scroll target
+            readTimeTarget: 10, // 10 seconds presence
+            scrollTarget: 0.5,  // 50% scroll
             rewardAmount: 10,
             solarReward: 5,
         };
@@ -23,7 +23,10 @@ class GamificationEngine {
         };
 
         if (this.state.articleId) {
+            console.log(`[Gamification] Active on article: ${this.state.articleId}`);
             this.init();
+        } else {
+            console.log(`[Gamification] Not on article page.`);
         }
     }
 
@@ -43,6 +46,7 @@ class GamificationEngine {
         if (params.has('slug')) return params.get('slug');
         if (params.has('id')) return params.get('id');
         const slug = path.split('/').pop();
+        if (slug && slug.includes('.html')) return slug.replace('.html', '');
         return slug || 'home';
     }
 
@@ -59,9 +63,20 @@ class GamificationEngine {
     }
 
     async syncFromDB() {
-        if (!window.supabase) return;
+        // Find the Supabase CLIENT (must have .from method), not just the library namespace
+        this.supabase = [window._supabase, window.supabase, (window.db ? window.db() : null)]
+            .find(s => s && typeof s.from === 'function');
+        
+        if (!this.supabase) {
+            console.warn("[Gamification] Supabase client not found (waiting for initialization)...");
+            setTimeout(() => this.syncFromDB(), 2000);
+            return;
+        }
+
+        console.log("[Gamification] Found Supabase Client! Synchronizing progress...");
+
         try {
-            const { data, error } = await window.supabase
+            const { data, error } = await this.supabase
                 .from('user_gamification')
                 .select('aqua_data, solar_insight, quests_state')
                 .eq('user_id', this.state.userId)
@@ -76,7 +91,7 @@ class GamificationEngine {
                 this.state.resources.aqua_data = 50;
                 this.state.resources.solar_insight = 30;
                 localStorage.setItem('oak_wel2', '1');
-                await window.supabase.from('user_gamification').insert([{
+                await this.supabase.from('user_gamification').insert([{
                     user_id: this.state.userId,
                     aqua_data: 50,
                     solar_insight: 30,
@@ -84,6 +99,7 @@ class GamificationEngine {
                 }]);
                 this.showNotification('🎉 Вітаємо!', 'Ви отримали стартовий бонус: +50 Води та +30 Сонця');
             }
+            console.log("[Gamification] Switched to online mode. Resources synced.");
         } catch (e) {
             console.warn("[Gamification] DB Sync failed", e);
         }
@@ -105,13 +121,17 @@ class GamificationEngine {
     trackTime() {
         if (this.state.awarded) { clearInterval(this.timer); return; }
         this.state.timeSpent = (Date.now() - this.state.startTime) / 1000;
+        if (Math.floor(this.state.timeSpent) === this.config.readTimeTarget) {
+            console.log(`[Gamification] Time target reached: ${this.config.readTimeTarget}s`);
+        }
         this.checkRequirements();
     }
 
     checkRequirements() {
         if (this.state.awarded) return;
-        if (this.state.timeSpent >= this.config.readTimeTarget && 
+        if (this.state.timeSpent >= this.config.readTimeTarget || 
             this.state.maxScroll >= this.config.scrollTarget) {
+            console.log("[Gamification] Award criteria met. awarding...");
             this.awardResources('aqua_data', this.config.rewardAmount);
         }
     }
@@ -137,12 +157,15 @@ class GamificationEngine {
             }
             
             this.state.quests_state.p['read3'] = (this.state.quests_state.p['read3'] || 0) + 1;
+            this.state.quests_state.p['read10'] = (this.state.quests_state.p['read10'] || 0) + 1;
+            this.state.quests_state.p['read50'] = (this.state.quests_state.p['read50'] || 0) + 1;
+            
             const prog = this.state.quests_state.p['read3'];
-            questMsg = ` Прочитано новин: ${prog}/3.`;
+            questMsg = ` Завдання оновлено!`;
         }
 
         // Push to DB directly by updating row
-        if (window.supabase) {
+        if (this.supabase && typeof this.supabase.from === 'function') {
             const updateObj = { updated_at: new Date().toISOString() };
             if (type === 'aqua_data') {
                 updateObj.aqua_data = this.state.resources.aqua_data;
@@ -151,10 +174,13 @@ class GamificationEngine {
                 updateObj.solar_insight = this.state.resources.solar_insight;
             }
             
-            await window.supabase
+            const { error } = await this.supabase
                 .from('user_gamification')
                 .update(updateObj)
                 .eq('user_id', this.state.userId);
+            
+            if (error) console.error("[Gamification] Save error:", error);
+            else console.log("[Gamification] Progress saved to cloud.");
         }
 
         const icon = type === 'aqua_data' ? '💧' : '☀️';
@@ -204,6 +230,14 @@ gamStyle.innerHTML = `
 `;
 document.head.appendChild(gamStyle);
 
-if ((window.location.pathname.includes('/news/') || window.location.search.includes('slug=') || window.location.search.includes('id=')) && !window.location.pathname.includes('admin')) {
+if ((window.location.pathname.includes('/news/') || 
+     window.location.pathname.includes('/article.html') || 
+     window.location.pathname.includes('/novyny/') || 
+     window.location.search.includes('slug=') || 
+     window.location.search.includes('id=')) && 
+    !window.location.pathname.includes('admin')) {
+    console.log("[Gamification] Conditions met. Initializing engine...");
     window.gamification = new GamificationEngine();
+} else {
+    console.log("[Gamification] Engine ignored for this page.");
 }

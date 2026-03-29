@@ -567,6 +567,7 @@
         if (typeof supabase !== 'undefined' && supabase.createClient) {
             _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
             window.supabase = _supabase;
+            window._supabase = _supabase;
         }
 
         let currentPost = null;
