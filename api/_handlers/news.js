@@ -265,6 +265,11 @@ module.exports = async (req, res) => {
         }
         image = image || `${SITE_URL}/og-default.jpg`;
 
+        // Ensure image is an absolute URL for Facebook/Telegram
+        if (image && !image.startsWith('http')) {
+            image = `${SITE_URL}${image.startsWith('/') ? '' : '/'}${image}`;
+        }
+
         const author = news.author || 'Редакція BUKVA NEWS';
         const siteName = 'BUKVA NEWS';
         const publishedDate = news.created_at ? new Date(news.created_at).toISOString() : '';
@@ -285,14 +290,13 @@ module.exports = async (req, res) => {
     <meta property="og:title" content="${escapeAttr(title)}">
     <meta property="og:description" content="${escapeAttr(description)}">
     <meta property="og:image" content="${escapeAttr(image)}">
+    <meta property="og:image:secure_url" content="${escapeAttr(image)}">
     <meta property="og:url" content="${escapeAttr(canonicalUrl)}">
     <meta property="og:locale" content="uk_UA">
     <meta property="fb:app_id" content="1617708079361633">
     <meta property="article:published_time" content="${publishedDate}">
     ${news.updated_at ? `<meta property="article:modified_time" content="${new Date(news.updated_at).toISOString()}">` : ''}
     ${news.category ? `<meta property="article:section" content="${news.category}">` : ''}
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
