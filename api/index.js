@@ -29,6 +29,7 @@ const handlers = {
     'places_list': require('./_handlers/places_list')
 };
 
+const ALLOWED_BOT_STRINGS = ['facebookexternalhit', 'facebot', 'twitterbot', 'linkedinbot', 'telegrambot', 'whatsapp', 'viber'];
 const BANNED_BOT_STRINGS = [
     'gptbot', 'ccbot', 'perplexitybot', 'anthropic-ai', 'claudebot', 'oai-searchbot',
     'amazonbot', 'metacrawler', 'mj12bot', 'ahrefsbot', 'semrushbot', 'dotbot',
@@ -38,7 +39,7 @@ const BANNED_BOT_STRINGS = [
 module.exports = async (req, res) => {
     // 0. Emergency Bot filter to save execution costs
     const ua = (req.headers['user-agent'] || '').toLowerCase();
-    if (BANNED_BOT_STRINGS.some(bot => ua.includes(bot))) {
+    if (BANNED_BOT_STRINGS.some(bot => ua.includes(bot)) && !ALLOWED_BOT_STRINGS.some(bot => ua.includes(bot))) {
         // No-store to avoid Vercel edge caching the rejection
         res.setHeader('Cache-Control', 'no-store');
         return res.status(403).send('Bot access denied');

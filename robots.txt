@@ -1,5 +1,11 @@
 User-agent: *
 Allow: /
+
+# Explicitly allow Facebook bots (prevents 403 in Debugger)
+User-agent: facebookexternalhit
+Allow: /
+User-agent: Facebot
+Allow: /
 Allow: /api/sitemap
 Disallow: /admin
 Disallow: /api/
