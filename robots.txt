@@ -1,44 +1,29 @@
+# ==========================================
+# Соціальні мережі та месенджери (для генерації прев'ю)
+# ==========================================
 User-agent: facebookexternalhit
 Allow: /
 
 User-agent: Facebot
 Allow: /
 
-User-agent: *
+User-agent: meta-externalagent
 Allow: /
-Disallow: /admin
-Disallow: /api/
-Crawl-delay: 5
 
-# Block aggressive AI crawlers and scrapers
-User-agent: GPTBot
-Disallow: /
-User-agent: CCBot
-Disallow: /
-User-agent: PerplexityBot
-Disallow: /
-User-agent: anthropic-ai
-Disallow: /
-User-agent: Claude-Web
-Disallow: /
-User-agent: OAI-SearchBot
-Disallow: /
-User-agent: Amazonbot
-Disallow: /
-User-agent: MetaCrawler
-Disallow: /
+User-agent: meta-externalfetcher
+Allow: /
 
-# Block SEO crawlers that consume bandwidth
-User-agent: MJ12bot
-Disallow: /
-User-agent: AhrefsBot
-Disallow: /
-User-agent: SemrushBot
-Disallow: /
-User-agent: DotBot
-Disallow: /
-User-agent: Pinterestbot
-Disallow: /
+User-agent: Twitterbot
+Allow: /
+
+User-agent: TelegramBot
+Allow: /
+
+# ==========================================
+# Пошукові роботи Google
+# ==========================================
+User-agent: Googlebot
+Allow: /
 
 User-agent: Googlebot-News
 Allow: /
@@ -47,6 +32,64 @@ Allow: /api/sitemap
 User-agent: Googlebot-Image
 Allow: /
 
+# ==========================================
+# Блокування AI-парсерів
+# ==========================================
+User-agent: GPTBot
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: PerplexityBot
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: Claude-Web
+Disallow: /
+
+User-agent: OAI-SearchBot
+Disallow: /
+
+User-agent: Amazonbot
+Disallow: /
+
+# MetaCrawler - це стара метапошукова система, не Facebook
+User-agent: MetaCrawler
+Disallow: /
+
+# ==========================================
+# Блокування SEO-краулерів (економія ресурсів сервера)
+# ==========================================
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+User-agent: Pinterestbot
+Disallow: /
+
+# ==========================================
+# Загальні правила для всіх інших ботів
+# ==========================================
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /api/
+Crawl-delay: 5
+
+# ==========================================
+# Карти сайту (Sitemaps)
+# ==========================================
 Sitemap: https://bukva.news/sitemap.xml
 Sitemap: https://bukva.news/sitemap-news.xml
 Sitemap: https://bukva.news/feed/
