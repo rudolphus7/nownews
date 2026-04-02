@@ -126,6 +126,15 @@ module.exports = async (req, res) => {
 
         if (!response.ok) {
             console.warn('Supabase fetch failed:', response.status, response.statusText);
+            const defaultTags = `
+    <title>Новини Івано-Франківщини | BUKVA NEWS</title>
+    <meta name="description" content="Головні новини Івано-Франківська та області. Оперативно, чесно, незалежно.">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="BUKVA NEWS - Головні новини Івано-Франківщини">
+    <meta property="og:description" content="Головні новини Івано-Франківська та області. Оперативно, чесно, незалежно.">
+    <meta property="og:image" content="${SITE_URL}/og-default.jpg">
+    <meta property="og:url" content="${SITE_URL}">`;
+            htmlContent = htmlContent.replace(/<title>.*?<\/title>/s, defaultTags);
             res.setHeader('Content-Type', 'text/html; charset=utf-8');
             return res.status(200).send(htmlContent);
         }
@@ -256,6 +265,7 @@ module.exports = async (req, res) => {
             .replace(/\s+/g, ' ')
             .trim()
             .substring(0, 160);
+        
         let image = news.image_url;
         if (!image && news.content) {
             const imgMatch = news.content.match(/<img[^>]+src=["']([^"']+)["']/i);
@@ -265,9 +275,22 @@ module.exports = async (req, res) => {
         }
         image = image || `${SITE_URL}/og-default.jpg`;
 
-        // Ensure image is an absolute URL for Facebook/Telegram
-        if (image && !image.startsWith('http')) {
-            image = `${SITE_URL}${image.startsWith('/') ? '' : '/'}${image}`;
+        // Ensure image is an absolute URL and properly encoded for Facebook/Telegram
+        if (image) {
+            if (!image.startsWith('http')) {
+                // Handle protocol-relative or path-relative URLs
+                const separator = image.startsWith('/') ? '' : '/';
+                image = `${SITE_URL}${separator}${image}`;
+            }
+            // Encode URI to handle Cyrillic or special characters in the filename, but preserve the protocol/domain structure
+            try {
+                const url = new URL(image);
+                image = url.origin + url.pathname.split('/').map(segment => encodeURIComponent(segment)).join('/') + url.search;
+                // Fix double-encoding of % (Supabase often uses %20 etc already)
+                image = image.replace(/%25/g, '%');
+            } catch (e) {
+                console.warn('URL parsing failed for image:', image);
+            }
         }
 
         const author = news.author || 'Редакція BUKVA NEWS';
@@ -291,6 +314,9 @@ module.exports = async (req, res) => {
     <meta property="og:description" content="${escapeAttr(description)}">
     <meta property="og:image" content="${escapeAttr(image)}">
     <meta property="og:image:secure_url" content="${escapeAttr(image)}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:type" content="image/jpeg">
     <meta property="og:url" content="${escapeAttr(canonicalUrl)}">
     <meta property="og:locale" content="uk_UA">
     <meta property="fb:app_id" content="1617708079361633">
@@ -378,7 +404,9 @@ module.exports = async (req, res) => {
     <\/script>
     <!-- End SEO Meta Tags -->`;
 
-        // Replace <title> tag
+        // Replace <title> tag and HTML prefix for Open Graph
+        htmlContent = htmlContent.replace(/<html[^>]*>/, '<html lang=\"uk\" prefix=\"og: http://ogp.me/ns#\">');
+        // Initial title clean - we will replace it again with full meta tags later
         htmlContent = htmlContent.replace(/<title>.*?<\/title>/s, `<title>${escapeHtml(title)}</title>`);
 
         // Date formatting
