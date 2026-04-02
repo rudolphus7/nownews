@@ -38,12 +38,14 @@ const BANNED_BOT_STRINGS = [
 
 module.exports = async (req, res) => {
     // 0. Emergency Bot filter to save execution costs
+    /*
     const ua = (req.headers['user-agent'] || '').toLowerCase();
     if (BANNED_BOT_STRINGS.some(bot => ua.includes(bot)) && !ALLOWED_BOT_STRINGS.some(bot => ua.includes(bot))) {
         // No-store to avoid Vercel edge caching the rejection
         res.setHeader('Cache-Control', 'no-store');
         return res.status(403).send('Bot access denied');
     }
+    */
 
     // 1. Get the target and host
     const target = req.query.__target;
