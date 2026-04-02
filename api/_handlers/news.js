@@ -21,6 +21,31 @@ let globalCache = {
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 const STATIC_TTL = 60 * 60 * 1000; // 1 hour for categories/cities
 
+/**
+ * Converts any image URL to a Facebook-compatible JPEG og:image URL.
+ * Facebook does not support WebP. We use Supabase Image Transformation API
+ * to serve JPEG for og:image regardless of original format.
+ */
+function toOgImage(imageUrl) {
+    if (!imageUrl) return `${SITE_URL}/og-default.jpg`;
+
+    // If it's already going through bukva.news/images/ proxy -> use Supabase render directly
+    // bukva.news/images/2026/04/file.webp -> Supabase render -> JPEG
+    if (imageUrl.includes(`${SITE_URL}/images/`)) {
+        const relativePath = imageUrl.replace(`${SITE_URL}/images/`, '');
+        return `${SUPABASE_URL}/storage/v1/render/image/public/news/${relativePath}?width=1200&quality=85&format=jpeg`;
+    }
+
+    // If it's already a direct Supabase storage URL
+    if (imageUrl.includes('/storage/v1/object/public/')) {
+        return imageUrl.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/')
+            + '?width=1200&quality=85&format=jpeg';
+    }
+
+    // External URL — return as-is (can't convert)
+    return imageUrl;
+}
+
 module.exports = async (req, res) => {
     // slug може прийти як /news/:slug через rewrite або як ?slug= query param
     let slug = req.query.slug;
@@ -30,27 +55,17 @@ module.exports = async (req, res) => {
     if (Array.isArray(slug)) slug = slug[0];
     if (Array.isArray(id)) id = id[0];
 
-    // Early guard: detect if this request is actually for a category page.
-    // This happens when /:slug/ rewrite catches a category slug (e.g. /pogoda/).
-    // We check the original URL path from Vercel's x-matched-path header or req.url.
-    // If the original request was to /category/:slug/ (only one segment after /category/),
-    // we should serve the category page, not the article page.
     const originalPath = req.headers['x-vercel-sc-headers']
         ? JSON.parse(req.headers['x-vercel-sc-headers'] || '{}')['x-matched-path'] || req.url
         : req.url;
     const pathSegments = (req.headers['x-forwarded-proto'] ? req.url : originalPath).split('?')[0]
         .replace(/^\/|\/$/g, '').split('/').filter(Boolean);
 
-    // If the path is exactly /category/:slug/ (2 segments: 'category' + slug) with no article
-    // then this was already a category URL — but vercel.json should handle it via /api/category.
-    // The issue is when /:slug/ catches category slugs. Check for single-segment non-news slugs.
-
     console.log('SSR Request:', { url: req.url, slug, id, pathSegments });
 
 
     let htmlContent = '';
     try {
-        // У Vercel файли знаходяться у корені проекту, доступному через __dirname або process.cwd()
         const possiblePaths = [
             path.join(process.cwd(), 'article.html'),
             path.join(__dirname, '..', 'article.html'),
@@ -66,7 +81,6 @@ module.exports = async (req, res) => {
         }
 
         if (!htmlContent) {
-            // Fallback to news-template.html
             const templatePaths = [
                 path.join(process.cwd(), 'news-template.html'),
                 path.join(__dirname, '..', 'news-template.html')
@@ -96,7 +110,6 @@ module.exports = async (req, res) => {
     try {
         let isNumeric = (val) => /^\d+$/.test(val);
         let filter = slug ? `slug=eq.${encodeURIComponent(slug)}` : `id=eq.${id}`;
-        // Fetch as array instead of object+json to avoid 406 error on empty results
         let apiUrl = `${SUPABASE_URL}/rest/v1/news?${filter}&select=*&limit=1`;
 
         let response = await fetch(apiUrl, {
@@ -106,7 +119,6 @@ module.exports = async (req, res) => {
             }
         });
 
-        // Fallback: If slug search failed but slug looks like an ID, try searching by ID
         if (response.ok) {
             const dataArr = await response.json();
             if (dataArr.length === 0 && slug && isNumeric(slug)) {
@@ -119,7 +131,6 @@ module.exports = async (req, res) => {
                     }
                 });
             } else {
-                // Restore news object if found
                 var newsData = dataArr[0];
             }
         }
@@ -156,7 +167,6 @@ module.exports = async (req, res) => {
         const now = Date.now();
         const promises = [];
 
-        // Categories
         if (!globalCache.categories || (now - globalCache.lastUpdate > STATIC_TTL)) {
             promises.push(fetch(`${SUPABASE_URL}/rest/v1/categories?select=*&order=order_index.asc`, {
                 headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
@@ -165,7 +175,6 @@ module.exports = async (req, res) => {
             promises.push(Promise.resolve(globalCache.categories));
         }
 
-        // Cities
         if (!globalCache.cities || (now - globalCache.lastUpdate > STATIC_TTL)) {
             promises.push(fetch(`${SUPABASE_URL}/rest/v1/cities?select=*&order=order_index.asc`, {
                 headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
@@ -174,7 +183,6 @@ module.exports = async (req, res) => {
             promises.push(Promise.resolve(globalCache.cities));
         }
 
-        // Ticker fetch
         if (!globalCache.ticker || (now - globalCache.lastUpdate > CACHE_TTL)) {
             promises.push(fetch(`${SUPABASE_URL}/rest/v1/news?is_published=eq.true&select=id,title,slug&order=created_at.desc&limit=5`, {
                 headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
@@ -185,19 +193,16 @@ module.exports = async (req, res) => {
 
         const [categories, cities, tickerNews] = await Promise.all(promises);
 
-        // Update cache
         globalCache.categories = categories;
         globalCache.cities = cities;
         globalCache.ticker = tickerNews;
         globalCache.lastUpdate = now;
 
-        // If no news article found, check if slug matches a category
         if (!articleData) {
             if (slug) {
                 const matchingCategory = categories.find(c => c.slug === slug);
                 if (matchingCategory) {
                     console.log(`Slug "${slug}" matches a category, forwarding to category handler`);
-                    // Forward to category API handler internally (no redirect = no loop)
                     try {
                         const categoryHandler = require('./category');
                         const modifiedReq = Object.assign({}, req, {
@@ -210,7 +215,6 @@ module.exports = async (req, res) => {
                 }
             }
             console.warn('No news article found for slug/id:', slug);
-            // Return proper 404 — not soft 404 — so Google Search Console shows correct status
             const notFoundHtml = htmlContent
                 .replace(/<title>.*?<\/title>/s, '<title>\u0421\u0442\u043e\u0440\u0456\u043d\u043a\u0443 \u043d\u0435 \u0437\u043d\u0430\u0439\u0434\u0435\u043d\u043e | BUKVA NEWS</title>');
             res.setHeader('Content-Type', 'text/html; charset=utf-8');
@@ -251,7 +255,6 @@ module.exports = async (req, res) => {
 
         const canonicalUrl = `${SITE_URL}${preferredPath}`;
 
-        // 301 Redirect if current path is not the preferred one
         if (currentPath !== preferredPath && !currentPath.includes('/api/')) {
             console.log(`301 Redirect: ${currentPath} -> ${preferredPath}`);
             res.setHeader('Cache-Control', 's-maxage=86400, stale-while-revalidate=3600');
@@ -265,7 +268,8 @@ module.exports = async (req, res) => {
             .replace(/\s+/g, ' ')
             .trim()
             .substring(0, 160);
-        
+
+        // --- image: оригінальний URL для відображення на сторінці ---
         let image = news.image_url;
         if (!image && news.content) {
             const imgMatch = news.content.match(/<img[^>]+src=["']([^"']+)["']/i);
@@ -275,29 +279,21 @@ module.exports = async (req, res) => {
         }
         image = image || `${SITE_URL}/og-default.jpg`;
 
-        // Ensure image is an absolute URL and properly encoded for Facebook/Telegram
-        if (image) {
-            if (!image.startsWith('http')) {
-                // Handle protocol-relative or path-relative URLs
-                const separator = image.startsWith('/') ? '' : '/';
-                image = `${SITE_URL}${separator}${image}`;
-            }
-            // Encode URI to handle Cyrillic or special characters in the filename, but preserve the protocol/domain structure
-            try {
-                const url = new URL(image);
-                image = url.origin + url.pathname.split('/').map(segment => encodeURIComponent(segment)).join('/') + url.search;
-                // Fix double-encoding of % (Supabase often uses %20 etc already)
-                image = image.replace(/%25/g, '%');
-            } catch (e) {
-                console.warn('URL parsing failed for image:', image);
-            }
+        // Ensure image is an absolute URL
+        if (image && !image.startsWith('http')) {
+            const separator = image.startsWith('/') ? '' : '/';
+            image = `${SITE_URL}${separator}${image}`;
         }
+
+        // --- ogImage: JPEG-версія для Facebook og:image ---
+        // Facebook не підтримує WebP. Конвертуємо через Supabase render API.
+        const ogImage = toOgImage(image);
+        console.log('og:image URL:', ogImage);
 
         const author = news.author || 'Редакція BUKVA NEWS';
         const siteName = 'BUKVA NEWS';
         const publishedDate = news.created_at ? new Date(news.created_at).toISOString() : '';
 
-        // Inject SEO meta tags before </head>
         const metaTags = `
     <!-- General SEO -->
     <meta name="description" content="${escapeAttr(description)}">
@@ -312,8 +308,8 @@ module.exports = async (req, res) => {
     <meta property="og:site_name" content="${escapeAttr(siteName)}">
     <meta property="og:title" content="${escapeAttr(title)}">
     <meta property="og:description" content="${escapeAttr(description)}">
-    <meta property="og:image" content="${escapeAttr(image)}">
-    <meta property="og:image:secure_url" content="${escapeAttr(image)}">
+    <meta property="og:image" content="${escapeAttr(ogImage)}">
+    <meta property="og:image:secure_url" content="${escapeAttr(ogImage)}">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:type" content="image/jpeg">
@@ -330,7 +326,7 @@ module.exports = async (req, res) => {
     <meta name="twitter:creator" content="@bukvanews">
     <meta name="twitter:title" content="${escapeAttr(title)}">
     <meta name="twitter:description" content="${escapeAttr(description)}">
-    <meta name="twitter:image" content="${escapeAttr(image)}">
+    <meta name="twitter:image" content="${escapeAttr(ogImage)}">
 
     <!-- Schema.org JSON-LD: NewsArticle -->
     <script type="application/ld+json">
@@ -341,7 +337,7 @@ module.exports = async (req, res) => {
         "description": "${escapeJson(description)}",
         "image": {
             "@type": "ImageObject",
-            "url": "${escapeJson(image)}",
+            "url": "${escapeJson(ogImage)}",
             "width": 1200,
             "height": 630
         },
@@ -404,28 +400,22 @@ module.exports = async (req, res) => {
     <\/script>
     <!-- End SEO Meta Tags -->`;
 
-        // Replace <title> tag and HTML prefix for Open Graph
         htmlContent = htmlContent.replace(/<html[^>]*>/, '<html lang=\"uk\" prefix=\"og: http://ogp.me/ns#\">');
-        // Initial title clean - we will replace it again with full meta tags later
         htmlContent = htmlContent.replace(/<title>.*?<\/title>/s, `<title>${escapeHtml(title)}</title>`);
 
-        // Date formatting
         const formattedDate = new Date(news.created_at).toLocaleDateString('uk-UA', {
             day: 'numeric', month: 'long', year: 'numeric'
         });
 
-        // Reading time calculation
         const words = (news.content || '').replace(/<[^>]*>/g, '').split(/\s+/).filter(Boolean).length;
         const min = Math.max(1, Math.round(words / 200));
         const readingTimeText = `${min} ${min === 1 ? 'хвилина' : (min < 5 ? 'хвилини' : 'хвилин')}`;
 
-        // SSR Utility
         const inject = (html, id, value) => {
             const regex = new RegExp(`(id="${id}"[^>]*>)`, 'g');
             return html.replace(regex, `$1${value || ''}`);
         };
 
-        // SSR Header Injection
         let tickerHtml = 'BUKVA NEWS • ПЕРЕВІРЕНІ ФАКТИ • АКТУАЛЬНІ ПОДІЇ • ОПЕРАТИВНО ТА ЧЕСНО •';
         if (tickerNews && tickerNews.length > 0) {
             tickerHtml = tickerNews.map(tn => {
@@ -434,7 +424,6 @@ module.exports = async (req, res) => {
             }).join(' <span class="text-orange-600 font-bold mx-2">/</span> ');
         }
 
-        // Build SSR nav from DB data
         const navLinksHtml = categories.map(c =>
             `<a href="/${c.slug}/" class="nav-link hover:text-orange-600 transition-colors py-2 border-b-2 border-transparent font-black tracking-tight text-sm" data-category="${c.slug}">${escapeHtml(c.name)}</a>`
         ).join('');
@@ -549,9 +538,8 @@ module.exports = async (req, res) => {
 
         htmlContent = htmlContent.replace(/<div id="site-header-placeholder"><\/div>/, `<div id="site-header-placeholder">${headerHtml}</div>`);
 
-        // SSR Content Injection
         const postData = { ...news };
-        delete postData.content; // REDUCE BANDWIDTH: Content is already pre-rendered in HTML
+        delete postData.content;
 
         const ssrScript = `<script>
         window.__SSR_ID__ = '${news.id}';
@@ -563,13 +551,11 @@ module.exports = async (req, res) => {
         window.__SSR_TICKER__ = ${JSON.stringify(tickerNews)};
     </script>`;
 
-        // Utility for injecting content into specific IDs
         const injectIntoId = (html, id, content) => {
             const regex = new RegExp(`(id=["']${id}["'][^>]*>)`, 'g');
             return html.replace(regex, `$1${content || ''}`);
         };
 
-        // Deep SSR Injections
         htmlContent = injectIntoId(htmlContent, 'news-title', news.title);
         htmlContent = injectIntoId(htmlContent, 'news-text', news.content);
         htmlContent = injectIntoId(htmlContent, 'breadcrumb-category', CAT_MAP[news.category] || news.category);
@@ -577,16 +563,13 @@ module.exports = async (req, res) => {
         htmlContent = injectIntoId(htmlContent, 'reading-time', readingTimeText);
         htmlContent = injectIntoId(htmlContent, 'view-count', news.views || 0);
 
-        // Image
         if (news.image_url) {
             htmlContent = htmlContent.replace('id="news-image" src=""', `id="news-image" src="${news.image_url}" alt="${escapeAttr(news.title)}"`);
         }
 
-        // Initial state: Show content, Hide loader
         htmlContent = htmlContent.replace('id="loader"', 'id="loader" class="hidden"');
         htmlContent = htmlContent.replace('id="news-content" class="hidden"', 'id="news-content"');
 
-        // Meta Badges
         let metaBadgesHtml = '';
         if (news.city) metaBadgesHtml += `<div class="inline-flex items-center gap-2 bg-orange-50 text-orange-600 px-4 py-2 rounded-2xl text-[11px] font-black uppercase tracking-widest border border-orange-100 shadow-sm leading-none">${CITY_MAP[news.city] || news.city}</div>`;
         metaBadgesHtml += `<div class="inline-flex items-center bg-indigo-50 text-indigo-600 px-4 py-2 rounded-2xl text-[11px] font-black uppercase tracking-widest border border-indigo-100 shadow-sm leading-none">${CAT_MAP[news.category] || news.category}</div>`;
@@ -595,10 +578,7 @@ module.exports = async (req, res) => {
         });
         htmlContent = injectIntoId(htmlContent, 'news-meta-tags', metaBadgesHtml);
 
-        // Inject meta tags after title
         htmlContent = htmlContent.replace(/<title>.*?<\/title>/s, `<title>${escapeHtml(title)}</title>\n${metaTags}\n${ssrScript}`);
-
-        // Ensure content is visible and loader is hidden - already handled above
 
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
         res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
