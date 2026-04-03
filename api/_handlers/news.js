@@ -29,20 +29,23 @@ const STATIC_TTL = 60 * 60 * 1000; // 1 hour for categories/cities
 function toOgImage(imageUrl) {
     if (!imageUrl) return `${SITE_URL}/og-default.jpg`;
 
+    // Remove any existing query parameters from the original URL to avoid double question marks
+    const cleanImageUrl = imageUrl.split('?')[0];
+
     // If it's already going through bukva.news/images/ proxy -> use Supabase render directly
-    // bukva.news/images/2026/04/file.webp -> Supabase render -> JPEG
-    if (imageUrl.includes(`${SITE_URL}/images/`)) {
-        const relativePath = imageUrl.replace(`${SITE_URL}/images/`, '');
-        return `${SUPABASE_URL}/storage/v1/render/image/public/news/${relativePath}?width=1200&quality=85&format=jpeg`;
+    // bukva.news/images/2026/04/file.webp -> Supabase render -> origin format
+    if (cleanImageUrl.includes(`${SITE_URL}/images/`)) {
+        const relativePath = cleanImageUrl.replace(`${SITE_URL}/images/`, '');
+        return `${SUPABASE_URL}/storage/v1/render/image/public/news/${relativePath}?width=1200&quality=85&format=origin`;
     }
 
     // If it's already a direct Supabase storage URL
-    if (imageUrl.includes('/storage/v1/object/public/')) {
-        return imageUrl.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/')
-            + '?width=1200&quality=85&format=jpeg';
+    if (cleanImageUrl.includes('/storage/v1/object/public/')) {
+        return cleanImageUrl.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/')
+            + '?width=1200&quality=85&format=origin';
     }
 
-    // External URL — return as-is (can't convert)
+    // External URL — return as-is
     return imageUrl;
 }
 
