@@ -7,6 +7,8 @@
 const PRIMARY_KEY = process.env.GEMINI_API_KEY;
 const BACKUP_KEY = process.env.GEMINI_API_KEY_BACKUP;
 const BACKUP_KEY_2 = process.env.GEMINI_API_KEY_3;
+const BACKUP_KEY_3 = process.env.GEMINI_API_KEY_2;
+const BACKUP_KEY_4 = process.env.GEMINI_API_KEY_4;
 
 // Models to try in order (primary preferred)
 const MODELS = [
@@ -55,7 +57,11 @@ async function tryGemini(promptText, maxTokens, temperature, clientKey) {
     if (PRIMARY_KEY) keys.push({ key: PRIMARY_KEY, label: 'primary' });
     if (BACKUP_KEY) keys.push({ key: BACKUP_KEY, label: 'backup' });
     if (BACKUP_KEY_2) keys.push({ key: BACKUP_KEY_2, label: 'backup2' });
-    if (clientKey && clientKey !== PRIMARY_KEY && clientKey !== BACKUP_KEY && clientKey !== BACKUP_KEY_2) {
+    if (BACKUP_KEY_3) keys.push({ key: BACKUP_KEY_3, label: 'backup3' });
+    if (BACKUP_KEY_4) keys.push({ key: BACKUP_KEY_4, label: 'backup4' });
+
+    const forbidden = [PRIMARY_KEY, BACKUP_KEY, BACKUP_KEY_2, BACKUP_KEY_3, BACKUP_KEY_4].filter(Boolean);
+    if (clientKey && !forbidden.includes(clientKey)) {
         keys.push({ key: clientKey, label: 'client' });
     }
 
