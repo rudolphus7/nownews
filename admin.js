@@ -1318,6 +1318,8 @@ async function rewriteWithAI() {
 
         let resultData = null;
 
+        let lastServerError = null;
+
         // 1. Спроба через серверний проксі (працює на Vercel)
         try {
             const localKey = localStorage.getItem('gemini_api_key') || "";
@@ -1335,8 +1337,13 @@ async function rewriteWithAI() {
             if (response.ok && data.title && data.content) {
                 resultData = data;
                 console.log("AI result from Server Proxy");
+            } else {
+                lastServerError = data.error || data.message || `Server Error ${response.status}`;
             }
-        } catch (e) { console.warn("Server AI Proxy failed, trying direct call..."); }
+        } catch (e) { 
+            console.warn("Server AI Proxy failed, trying direct call...", e); 
+            lastServerError = e.message;
+        }
 
         // 2. Фолбек на прямий виклик (якщо ми на Localhost або проксі не працює)
         if (!resultData) {
@@ -1344,6 +1351,11 @@ async function rewriteWithAI() {
             const key = localStorage.getItem('gemini_api_key');
 
             if (!key) {
+                // ПРІОРИТЕТ: якщо сервер повернув помилку (напр. ліміт ключів), показуємо її,
+                // а не просимо завантажити ключ для прямої роботи.
+                if (lastServerError) {
+                    throw new Error(lastServerError);
+                }
                 throw new Error("Завантажте API ключ у налаштуваннях для прямої роботи.");
             }
 

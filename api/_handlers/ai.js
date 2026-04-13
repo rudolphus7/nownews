@@ -62,7 +62,7 @@ async function tryGemini(promptText, maxTokens, temperature, clientKey) {
     if (keys.length === 0) {
         return {
             ok: false,
-            data: { error: { message: 'Не задано API ключ. Збережіть ключ у Налаштуваннях → AI Конфігурація.' } }
+            data: { error: { message: 'На сервері не налаштовано жодного API ключа (GEMINI_API_KEY). Перевірте змінні оточення у Vercel або вкажіть власний ключ у Налаштуваннях.' } }
         };
     }
 
@@ -79,14 +79,13 @@ async function tryGemini(promptText, maxTokens, temperature, clientKey) {
                 return result;
             }
 
+            lastError = result.data;
             if (!result.quotaExceeded) {
                 // Not a quota issue — real error for this model, skip to next model
                 allQuota = false;
-                lastError = result.data;
                 console.error(`❌ Gemini error (key=${label}, model=${model}):`, result.data?.error?.message);
             } else {
                 console.warn(`⚠️ Quota exceeded: key=${label}, model=${model}`);
-                lastError = result.data;
             }
         }
 
@@ -96,7 +95,8 @@ async function tryGemini(promptText, maxTokens, temperature, clientKey) {
     }
 
     // All keys and models failed
-    return { ok: false, data: lastError || { error: { message: 'Всі ключі та моделі недоступні.' } } };
+    const finalErrorMessage = lastError?.error?.message || lastError?.message || 'Усі ШІ-ключі та моделі наразі недоступні (імовірно, вичерпано добові ліміти).';
+    return { ok: false, data: { error: { message: finalErrorMessage } } };
 }
 
 // --- BUKVA NEWS JOURNALIST ---
